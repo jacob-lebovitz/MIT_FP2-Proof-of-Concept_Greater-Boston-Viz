@@ -1,0 +1,27 @@
+[
+  {
+    "title": "The Business of Platforms: Strategy in the Age of Digital Competition, Innovation, and Power",
+    "author": "Michael A. Cusumano, Annabelle Gawer, David B. Yoffie",
+    "image": "images/business-platforms.jpg"
+  },
+  {
+    "title": "Design for Manufacturability Handbook",
+    "author": "James G. Bralla",
+    "image": "images/dfm-handbook.jpg"
+  },
+  {
+    "title": "Product Design and Development",
+    "author": "Karl T. Ulrich, Steven D. Eppinger, Maria C. Yang",
+    "image": "images/product-design-dev.jpg"
+  },
+  {
+    "title": "Technology Roadmapping and Development: A Quantitative Approach to the Management of Technology",
+    "author": "Volker Schwienbacher, Gerhard Satzger, Torsten Krebs",
+    "image": "images/tech-roadmapping.jpg"
+  },
+  {
+    "title": "System Architecture: Strategy and Product Development for Complex Systems",
+    "author": "Edward Crawley, Bruce Cameron, Daniel Selva",
+    "image": "images/system-architecture.jpg"
+  }
+]
