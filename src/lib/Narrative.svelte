@@ -10,8 +10,10 @@
      ============================================================ -->
 
 <div class="narrative before">
-  <h2><!-- Title here --></h2>
-  <p><!-- Introduction / context goes here --></p>
+  <h2>INSERT HEADLINE MAYBE?</h2>
+  <p>
+    INSERT BODY
+  </p>
 </div>
 
 {:else if position === 'after'}
@@ -21,7 +23,9 @@
      ============================================================ -->
 
 <div class="narrative after">
-  <p><!-- Takeaways / analysis goes here --></p>
+  <p>
+    INSERT BODY
+  </p>
 </div>
 
 {/if}
