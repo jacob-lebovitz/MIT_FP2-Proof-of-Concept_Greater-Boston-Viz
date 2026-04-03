@@ -14,8 +14,23 @@
     2143: '02143', 2144: '02144', 2145: '02145', 2155: '02155',
   };
 
+  const LABEL_OFFSET = {
+    2144: [0, 8],
+  };
+
   const YEARS = Array.from({ length: 26 }, (_, i) => 2000 + i);
-  const N_BUCKETS = 7;
+
+  const ZIP_TO_CITY = {
+    2138: 'Cambridge', 2139: 'Cambridge', 2140: 'Cambridge', 2141: 'Cambridge', 2142: 'Cambridge',
+    2143: 'Somerville', 2144: 'Somerville', 2145: 'Somerville',
+    2155: 'Medford',
+  };
+
+  const CITY_BASE_COLORS = {
+    Cambridge: [37, 99, 235],    // blue
+    Somerville: [234, 88, 12],   // orange
+    Medford: [22, 163, 74],      // green
+  };
 
   const BRANCH_COLORS = {
     Trunk: '#00843D', B: '#E87722', C: '#00B2A9', D: '#DA291C', E: '#7C4D79',
@@ -30,6 +45,8 @@
   let year = 2025;
   let tooltip = { visible: false, x: 0, y: 0, zip: '', city: '', value: '' };
   let glTooltip = { visible: false, x: 0, y: 0, text: '' };
+  let svgEl;
+  let zoomTransform = 'translate(0,0) scale(1)';
 
   onMount(async () => {
     const [geojson, housingData, glGeojson, stationData] = await Promise.all([
@@ -44,7 +61,24 @@
     stations = stationData;
     projection = d3.geoMercator().fitSize([WIDTH, HEIGHT], { type: 'FeatureCollection', features });
     pathGen = d3.geoPath().projection(projection);
+
+    const zoom = d3.zoom()
+      .scaleExtent([1, 8])
+      .translateExtent([[0, 0], [WIDTH, HEIGHT]])
+      .on('zoom', (event) => {
+        const { x, y, k } = event.transform;
+        zoomTransform = `translate(${x},${y}) scale(${k})`;
+      });
+
+    d3.select(svgEl).call(zoom);
   });
+
+  function resetZoom() {
+    d3.select(svgEl).transition().duration(400).call(
+      d3.zoom().transform, d3.zoomIdentity
+    );
+    zoomTransform = 'translate(0,0) scale(1)';
+  }
 
   $: visibleGreenLine = greenLineFeatures.filter(f => f.properties.year_opened <= year);
   $: visibleStations = stations.filter(s => s.year_opened <= year);
@@ -69,6 +103,8 @@
   $: globalMin = d3.min(allValues) ?? 0;
   $: globalMax = d3.max(allValues) ?? 1;
 
+  const N_BUCKETS = 7;
+
   $: thresholds = d3.range(N_BUCKETS - 1).map(i =>
     globalMin + (i + 1) * (globalMax - globalMin) / N_BUCKETS
   );
@@ -77,6 +113,11 @@
     .domain(thresholds)
     .range(d3.schemeBlues[N_BUCKETS]);
 
+  $: legendBuckets = d3.range(N_BUCKETS).map(i => [
+    globalMin + i * (globalMax - globalMin) / N_BUCKETS,
+    globalMin + (i + 1) * (globalMax - globalMin) / N_BUCKETS,
+  ]).reverse();
+
   $: housingByZip = Object.fromEntries(housing.map(d => [d.zip, d]));
 
   function getColor(zipNum, yr) {
@@ -84,6 +125,12 @@
     const entry = housingByZip[zipStr];
     const val = entry?.values?.[String(yr)];
     return val != null ? colorScale(val) : '#ccc';
+  }
+
+  function getLabelColor(zipNum) {
+    const city = ZIP_TO_CITY[zipNum];
+    const [r, g, b] = CITY_BASE_COLORS[city] ?? [255, 255, 255];
+    return `rgb(${r},${g},${b})`;
   }
 
   function getValue(zipNum, yr) {
@@ -95,18 +142,6 @@
     if (v == null) return 'No data';
     return '$' + d3.format(',.0f')(v);
   }
-
-  function fmtShort(v) {
-    if (v >= 1_000_000) return '$' + (v / 1_000_000).toFixed(2) + 'M';
-    return '$' + d3.format(',.0f')(v);
-  }
-
-  // Legend buckets: [min, t1], [t1, t2], ..., [tN, max]
-  $: legendBuckets = [
-    [globalMin, thresholds[0]],
-    ...thresholds.slice(0, -1).map((t, i) => [t, thresholds[i + 1]]),
-    [thresholds[thresholds.length - 1], globalMax],
-  ].reverse(); // darkest on top like reference
 
   function handleMouseMove(e, feature) {
     const zip = feature.properties.ZCTA5CE20;
@@ -195,14 +230,15 @@
       {@const c = pathGen?.centroid(feature)}
       {#if c}
         <text
-          x={c[0]} y={c[1]}
+          x={c[0] + (LABEL_OFFSET[zip]?.[0] ?? 0)}
+          y={c[1] + (LABEL_OFFSET[zip]?.[1] ?? 0)}
           text-anchor="middle"
           dominant-baseline="middle"
           font-size="10"
-          fill="white"
+          fill={getLabelColor(zip)}
           font-weight="bold"
           paint-order="stroke"
-          stroke="#0003"
+          stroke="white"
           stroke-width="3"
           pointer-events="none"
         >{ZIP_LABELS[zip]}</text>
@@ -213,16 +249,17 @@
     <g transform="translate({WIDTH + 20}, 20)">
       <text font-size="12" font-weight="bold" fill="currentColor">Home Value</text>
       {#each legendBuckets as [lo, hi], i}
-        <rect
-          x={0} y={16 + i * 22}
-          width="18" height="18"
-          fill={colorScale(lo + 1)}
-          stroke="#aaa" stroke-width="0.5"
-        />
-        <text
-          x={24} y={16 + i * 22 + 13}
-          font-size="11" fill="currentColor"
-        >{fmtShort(lo)} – {fmtShort(hi)}</text>
+        <rect x={0} y={16 + i * 22} width="18" height="18"
+          fill={colorScale(lo + 1)} stroke="#aaa" stroke-width="0.5" />
+        <text x={24} y={16 + i * 22 + 13} font-size="11" fill="currentColor">
+          {lo >= 1e6 ? '$' + (lo/1e6).toFixed(2) + 'M' : '$' + d3.format(',.0f')(lo)} –
+          {hi >= 1e6 ? '$' + (hi/1e6).toFixed(2) + 'M' : '$' + d3.format(',.0f')(hi)}
+        </text>
+      {/each}
+      <text font-size="11" font-weight="bold" fill="currentColor" y={16 + N_BUCKETS * 22 + 16}>City Labels</text>
+      {#each Object.entries(CITY_BASE_COLORS) as [city, [r, g, b]], i}
+        <circle cx={9} cy={16 + N_BUCKETS * 22 + 32 + i * 20} r="6" fill="rgb({r},{g},{b})" />
+        <text x={24} y={16 + N_BUCKETS * 22 + 37 + i * 20} font-size="11" fill="currentColor">{city}</text>
       {/each}
     </g>
 
