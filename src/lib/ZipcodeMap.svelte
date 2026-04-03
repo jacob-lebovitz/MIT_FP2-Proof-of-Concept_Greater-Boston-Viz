@@ -63,6 +63,7 @@ const ZIP_LABELS = {
   let svgEl;
   let zoomTransform = 'translate(0,0) scale(1)';
   let zoomK = 1;
+  let zoomBehavior;
   let selectedZips = new Set();
   let selectedCities = new Set();
 
@@ -95,7 +96,7 @@ const ZIP_LABELS = {
     pathGen = d3.geoPath().projection(projection);
     loading = false;
 
-    const zoom = d3.zoom()
+    zoomBehavior = d3.zoom()
       .scaleExtent([1, 8])
       .translateExtent([[0, 0], [WIDTH, HEIGHT]])
       .on('zoom', (event) => {
@@ -104,12 +105,12 @@ const ZIP_LABELS = {
         zoomK = k;
       });
 
-    d3.select(svgEl).call(zoom);
+    d3.select(svgEl).call(zoomBehavior);
   });
 
   function resetZoom() {
     d3.select(svgEl).transition().duration(400).call(
-      d3.zoom().transform, d3.zoomIdentity
+      zoomBehavior.transform, d3.zoomIdentity
     );
     zoomTransform = 'translate(0,0) scale(1)';
   }
