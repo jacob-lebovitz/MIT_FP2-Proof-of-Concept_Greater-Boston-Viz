@@ -5,8 +5,8 @@ import { browser } from "$app/environment";
 import "../style.css";
 
 let pages = [
-  {url: "/", title: "About"},
-  {url: "https://github.com/hiromitsdm", title: "Github"},
+  {url: "/", title: "Main"},
+  {url: "/team", title: "Team"},
 ];
 
 let colorScheme = "light dark";
