@@ -155,7 +155,7 @@ const ZIP_LABELS = {
   $: housingByZip = Object.fromEntries(housing.map(d => [d.zip, d]));
 
   // Line chart constants
-  const LC_MARGIN = { top: 155, right: 20, bottom: 40, left: 70 };
+  const LC_MARGIN = { top: 155, right: 50, bottom: 40, left: 70 };
   const LC_W = TOTAL_W - LC_MARGIN.left - LC_MARGIN.right;
   const LC_H = 370 - LC_MARGIN.top - LC_MARGIN.bottom;
 
@@ -538,7 +538,7 @@ const ZIP_LABELS = {
         style="cursor:ew-resize"
         on:pointerdown={startYearDrag}
       />
-      <text x={xScale(year) + 4} y={-6} font-size="10" font-weight="bold" fill="#333">{year}</text>
+      <text x={xScale(year) + 4} y={-6} text-anchor="start" font-size="10" font-weight="bold" fill="#333">{year}</text>
 
       <!-- Line tooltip -->
       {#if lineTooltip.visible}
