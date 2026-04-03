@@ -3,7 +3,7 @@
   <section>
     <h2>A Rationale for and Critique of Our Design Decisions</h2>
     <!-- ============================================================
-         Describe:
+         READ RUBRIC FIRST and Describe:
          - Why you chose your visual encodings (choropleth, line chart, color by city, etc.)
          - What interaction techniques you chose and why (pan/zoom, click-to-highlight, drag year bar)
          - What alternatives you considered
@@ -16,7 +16,7 @@
   <section>
     <h2>An Overview of Our Development Process and Opportunities to Improve</h2>
     <!-- ============================================================
-         Describe:
+         READ RUBRIC FIRST and Describe:
          - How work was split among team members
          - Roughly how many people-hours were spent
          - What aspects took the most time

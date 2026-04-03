@@ -3,7 +3,7 @@
   <section>
     <h2>A Final Project Plan</h2>
     <!-- ============================================================
-         Include:
+         READ RUBRIC FIRST and Include:
          - The specific order in which visualization and narrative components will be implemented
          - A breakdown into manageable tasks
          - Assignment of each task to a team member with a deadline
