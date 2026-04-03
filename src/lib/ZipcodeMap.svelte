@@ -9,8 +9,7 @@
   const TOTAL_W = WIDTH + LEGEND_W + 20;
 
   // Zip codes present in both GeoJSON and housing data
-  const TARGET_ZIPS = new Set([2138, 2139, 2140, 2141, 2142, 2143, 2144, 2145, 2155]);
-  const ZIP_LABELS = {
+const ZIP_LABELS = {
     2138: '02138', 2139: '02139', 2140: '02140', 2141: '02141', 2142: '02142',
     2143: '02143', 2144: '02144', 2145: '02145', 2155: '02155',
   };
@@ -52,12 +51,12 @@
 
   onMount(async () => {
     const [geojson, housingData, glGeojson, stationData] = await Promise.all([
-      d3.json(`${base}/massachusetts-zip-codes.geojson`),
+      d3.json(`${base}/target-zip-codes.geojson`),
       d3.json(`${base}/housing.json`),
       d3.json(`${base}/mbta_green_line.geojson`),
       d3.json(`${base}/mbta_green_line_stations.json`),
     ]);
-    features = geojson.features.filter(f => TARGET_ZIPS.has(f.properties.ZCTA5CE20));
+    features = geojson.features;
     housing = housingData;
     greenLineFeatures = glGeojson.features;
     stations = stationData;
