@@ -32,6 +32,16 @@ const ZIP_LABELS = {
     Medford: [22, 163, 74],      // green
   };
 
+  const GLX_MILESTONES = {
+    2005: 'CLF sued the state for stalling the GLX project.',
+    2007: 'CLF & state settled — commitment to complete GLX by 2014.',
+    2012: 'GLX construction broke ground.',
+    2015: 'Project nearly cancelled after costs ballooned to $3B.',
+    2017: 'GLX redesigned & restarted; design-build contract awarded.',
+    2018: 'Construction restarted, targeting December 2021 opening.',
+    2022: 'Union Square (Mar) & Medford branch (Dec) opened.',
+  };
+
   const BRANCH_COLORS = {
     Trunk: '#00843D', B: '#E87722', C: '#00B2A9', D: '#DA291C', E: '#7C4D79',
     'GLX-D': '#00843D', 'GLX-E': '#00843D',
@@ -257,8 +267,21 @@ const ZIP_LABELS = {
 
     </g><!-- end zoomable group -->
 
+    <!-- GLX Milestone annotation -->
+    {#if GLX_MILESTONES[year]}
+      <g transform="translate({WIDTH + 20}, 20)">
+        <rect x={0} y={0} width={LEGEND_W - 10} height={52}
+          rx="5" ry="5"
+          fill="#1a4a2e" opacity="0.9" />
+        <text x={8} y={16} font-size="10" font-weight="bold" fill="#6fcf97">GLX Milestone · {year}</text>
+        {#each GLX_MILESTONES[year].match(/.{1,28}(\s|$)/g) ?? [] as line, i}
+          <text x={8} y={30 + i * 13} font-size="10" fill="white">{line.trim()}</text>
+        {/each}
+      </g>
+    {/if}
+
     <!-- Legend -->
-    <g transform="translate({WIDTH + 20}, 20)">
+    <g transform="translate({WIDTH + 20}, {GLX_MILESTONES[year] ? 82 : 20})">
       <text font-size="12" font-weight="bold" fill="currentColor">Home Value</text>
       {#each legendBuckets as [lo, hi], i}
         <rect x={0} y={16 + i * 22} width="18" height="18"
