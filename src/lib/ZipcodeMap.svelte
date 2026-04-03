@@ -5,8 +5,12 @@
 
   const WIDTH = 680;
   const HEIGHT = 500;
+  const MAP_W = 460;       // geographic projection width (map content stays left of this)
+  const MILESTONE_X = MAP_W + 10;
+  const MILESTONE_W = 230;
+  const LEGEND_X = MILESTONE_X + MILESTONE_W + 10;
   const LEGEND_W = 180;
-  const TOTAL_W = WIDTH + LEGEND_W + 20;
+  const TOTAL_W = LEGEND_X + LEGEND_W + 10;
 
   // Zip codes present in both GeoJSON and housing data
 const ZIP_LABELS = {
@@ -33,11 +37,11 @@ const ZIP_LABELS = {
   };
 
   const GLX_MILESTONES = {
-    2005: 'CLF sued the state for stalling the GLX project.',
-    2007: 'CLF & state settled — commitment to complete GLX by 2014.',
-    2012: 'GLX construction broke ground.',
+    2005: 'Conservation Law Foundation sued the state for stalling the Green Line Extension project.',
+    2007: 'Conservation Law Foundation & state settled — commitment to complete Green Line Extension by 2014.',
+    2012: 'Green Line Extension construction broke ground.',
     2015: 'Project nearly cancelled after costs ballooned to $3B.',
-    2017: 'GLX redesigned & restarted; design-build contract awarded.',
+    2017: 'Green Line Extension redesigned & restarted; design-build contract awarded.',
     2018: 'Construction restarted, targeting December 2021 opening.',
     2022: 'Union Square (Mar) & Medford branch (Dec) opened.',
   };
@@ -59,6 +63,18 @@ const ZIP_LABELS = {
   let svgEl;
   let zoomTransform = 'translate(0,0) scale(1)';
   let zoomK = 1;
+  let selectedCity = null;
+  let selectedZip = null;
+
+  function toggleCity(city, zip = null) {
+    if (selectedCity === city && selectedZip === zip) {
+      selectedCity = null;
+      selectedZip = null;
+    } else {
+      selectedCity = city;
+      selectedZip = zip;
+    }
+  }
 
   onMount(async () => {
     const [geojson, housingData, glGeojson, stationData] = await Promise.all([
@@ -71,7 +87,7 @@ const ZIP_LABELS = {
     housing = housingData;
     greenLineFeatures = glGeojson.features;
     stations = stationData;
-    projection = d3.geoMercator().fitSize([WIDTH, HEIGHT], { type: 'FeatureCollection', features });
+    projection = d3.geoMercator().fitExtent([[0, 0], [MAP_W, HEIGHT]], { type: 'FeatureCollection', features });
     pathGen = d3.geoPath().projection(projection);
     loading = false;
 
@@ -133,6 +149,87 @@ const ZIP_LABELS = {
   ]).reverse();
 
   $: housingByZip = Object.fromEntries(housing.map(d => [d.zip, d]));
+
+  // Line chart constants
+  const LC_MARGIN = { top: 130, right: 20, bottom: 40, left: 70 };
+  const LC_W = TOTAL_W - LC_MARGIN.left - LC_MARGIN.right;
+  const LC_H = 345 - LC_MARGIN.top - LC_MARGIN.bottom;
+
+  const ANNOT_ROW_Y = [-20, -42, -64, -86, -110]; // row 0 = closest to chart
+
+  const GLX_ANNOTATIONS = [
+    { year: 2005, label: 'Conservation Law Foundation sued state', type: 'glx' },
+    { year: 2007, label: 'Settlement — commit to finish by 2014', type: 'glx' },
+    { year: 2008, label: 'Global Financial Crisis', type: 'event' },
+    { year: 2012, label: 'Construction broke ground', type: 'glx' },
+    { year: 2015, label: 'Nearly cancelled ($3B cost overrun)', type: 'glx' },
+    { year: 2017, label: 'Redesigned & restarted', type: 'glx' },
+    { year: 2018, label: 'Construction restarted', type: 'glx' },
+    { year: 2020, label: 'COVID-19 pandemic', type: 'event' },
+    { year: 2022, label: 'Union Sq & Medford branch opened', type: 'glx' },
+  ];
+
+  // Greedy row assignment: place each annotation in the lowest row with no overlap
+  $: annotAssignments = (() => {
+    if (!xScale) return GLX_ANNOTATIONS.map(() => ({ row: 0, boxW: 100, fullLabel: '' }));
+    const rowEnds = new Array(5).fill(-Infinity);
+    return GLX_ANNOTATIONS.map(a => {
+      const fullLabel = `${a.year}: ${a.label}`;
+      const boxW = fullLabel.length * 5.6 + 14;
+      const ax = xScale(a.year);
+      const left = ax - boxW / 2;
+      const right = ax + boxW / 2;
+      let r = 0;
+      while (r < 4 && rowEnds[r] > left - 6) r++;
+      rowEnds[r] = right;
+      return { row: r, boxW, fullLabel };
+    });
+  })();
+
+  $: xScale = d3.scaleLinear().domain([YEARS[0], YEARS[YEARS.length - 1]]).range([0, LC_W]);
+  $: yScale = d3.scaleLinear().domain([globalMin * 0.95, globalMax * 1.05]).range([LC_H, 0]);
+
+  $: lineGen = d3.line()
+    .x(([yr]) => xScale(yr))
+    .y(([, val]) => yScale(val))
+    .defined(([, val]) => val != null);
+
+  $: lineData = housing.map(d => ({
+    zip: d.zip,
+    city: d.city,
+    points: YEARS.map(yr => [yr, d.values[String(yr)] ?? null]),
+  }));
+
+  function getLineColor(city) {
+    const [r, g, b] = CITY_BASE_COLORS[city] ?? [100, 100, 100];
+    return `rgb(${r},${g},${b})`;
+  }
+
+  let lineTooltip = { visible: false, x: 0, y: 0, zip: '', city: '', value: '' };
+
+  function handleLineMouseMove(e, d) {
+    const rect = e.currentTarget.closest('svg').getBoundingClientRect();
+    const svgX = e.clientX - rect.left - LC_MARGIN.left;
+    const yr = Math.round(xScale.invert(svgX));
+    const val = d.values[String(yr)] ?? null;
+    lineTooltip = {
+      visible: true,
+      x: e.clientX - rect.left + 10,
+      y: e.clientY - rect.top - 30,
+      zip: d.zip,
+      city: d.city,
+      value: fmt(val),
+      yr,
+    };
+  }
+
+  function handleLineMouseLeave() {
+    lineTooltip = { ...lineTooltip, visible: false };
+  }
+
+  function zipStrToNum(zipStr) {
+    return parseInt(zipStr, 10);
+  }
 
   function getColor(zipNum, yr) {
     const zipStr = String(zipNum).padStart(5, '0');
@@ -198,13 +295,16 @@ const ZIP_LABELS = {
       {@const zip = feature.properties.ZCTA5CE20}
       <path
         d={pathGen?.(feature)}
-        fill={getColor(zip, year)}
-        stroke="white"
-        stroke-width="1.5"
-        role="img"
+        fill={selectedZip !== null && selectedZip !== zip ? '#c8c8c8' : selectedCity !== null && ZIP_TO_CITY[zip] !== selectedCity ? '#c8c8c8' : getColor(zip, year)}
+        stroke={selectedZip === zip ? 'black' : 'white'}
+        stroke-width={selectedZip === zip ? 6 / zoomK : 1.5 / zoomK}
+        role="button"
         aria-label={ZIP_LABELS[zip]}
+        tabindex="0"
         on:mousemove={(e) => handleMouseMove(e, feature)}
         on:mouseleave={handleMouseLeave}
+        on:click={() => toggleCity(ZIP_TO_CITY[zip], zip)}
+        on:keydown={(e) => e.key === 'Enter' && toggleCity(ZIP_TO_CITY[zip], zip)}
       />
     {/each}
 
@@ -269,19 +369,21 @@ const ZIP_LABELS = {
 
     <!-- GLX Milestone annotation -->
     {#if GLX_MILESTONES[year]}
-      <g transform="translate({WIDTH + 20}, 20)">
-        <rect x={0} y={0} width={LEGEND_W - 10} height={52}
+      {@const milestoneLines = GLX_MILESTONES[year].match(/.{1,32}(\s|$)/g)?.map(l => l.trim()) ?? []}
+      {@const boxH = 28 + milestoneLines.length * 15}
+      <g transform="translate({MILESTONE_X}, 16)">
+        <rect x={0} y={0} width={MILESTONE_W} height={boxH}
           rx="5" ry="5"
           fill="#1a4a2e" opacity="0.9" />
-        <text x={8} y={16} font-size="10" font-weight="bold" fill="#6fcf97">GLX Milestone · {year}</text>
-        {#each GLX_MILESTONES[year].match(/.{1,28}(\s|$)/g) ?? [] as line, i}
-          <text x={8} y={30 + i * 13} font-size="10" fill="white">{line.trim()}</text>
+        <text x={8} y={16} font-size="10" font-weight="bold" fill="#6fcf97">Green Line Extension Milestone · {year}</text>
+        {#each milestoneLines as line, i}
+          <text x={8} y={32 + i * 15} font-size="10" fill="white">{line}</text>
         {/each}
       </g>
     {/if}
 
     <!-- Legend -->
-    <g transform="translate({WIDTH + 20}, {GLX_MILESTONES[year] ? 82 : 20})">
+    <g transform="translate({LEGEND_X}, 20)">
       <text font-size="12" font-weight="bold" fill="currentColor">Home Value</text>
       {#each legendBuckets as [lo, hi], i}
         <rect x={0} y={16 + i * 22} width="18" height="18"
@@ -293,8 +395,24 @@ const ZIP_LABELS = {
       {/each}
       <text font-size="11" font-weight="bold" fill="currentColor" y={16 + N_BUCKETS * 22 + 16}>City Labels</text>
       {#each Object.entries(CITY_BASE_COLORS) as [city, [r, g, b]], i}
-        <circle cx={9} cy={16 + N_BUCKETS * 22 + 32 + i * 20} r="6" fill="rgb({r},{g},{b})" />
-        <text x={24} y={16 + N_BUCKETS * 22 + 37 + i * 20} font-size="11" fill="currentColor">{city}</text>
+        <g
+          role="button"
+          tabindex="0"
+          aria-label="Filter {city}"
+          style="cursor:pointer"
+          on:click={() => toggleCity(city, null)}
+          on:keydown={(e) => e.key === 'Enter' && toggleCity(city, null)}
+        >
+          <circle cx={9} cy={16 + N_BUCKETS * 22 + 32 + i * 20} r="6"
+            fill="rgb({r},{g},{b})"
+            stroke={selectedCity === city ? '#000' : 'none'}
+            stroke-width="2"
+          />
+          <text x={24} y={16 + N_BUCKETS * 22 + 37 + i * 20} font-size="11"
+            fill="currentColor"
+            font-weight={selectedCity === city ? 'bold' : 'normal'}
+          >{city}</text>
+        </g>
       {/each}
     </g>
 
@@ -317,6 +435,88 @@ const ZIP_LABELS = {
       </foreignObject>
     {/if}
   </svg>
+
+  <!-- Line chart -->
+  {#if !loading}
+  <h2 style="margin-top:2rem">Home Values Over Time by ZIP Code</h2>
+  <svg width={TOTAL_W} height={345} class="line-chart">
+    <g transform="translate({LC_MARGIN.left},{LC_MARGIN.top})">
+
+      <!-- GLX Milestone annotations -->
+      {#each GLX_ANNOTATIONS as a, i}
+        {@const info = annotAssignments[i]}
+        {@const ax = xScale(a.year)}
+        {@const ay = ANNOT_ROW_Y[info.row]}
+        {@const isEvent = a.type === 'event'}
+        <line x1={ax} x2={ax} y1={ay + 18} y2={LC_H}
+          stroke={isEvent ? '#f87171' : '#6fcf97'}
+          stroke-width="1" stroke-dasharray="4,3" opacity="0.6" />
+        <rect x={ax - info.boxW / 2} y={ay} width={info.boxW} height={16} rx="3"
+          fill={isEvent ? '#7f1d1d' : '#1a4a2e'} opacity="0.88" />
+        <text x={ax} y={ay + 11} text-anchor="middle" font-size="9"
+          fill={isEvent ? '#fca5a5' : '#6fcf97'}>{info.fullLabel}</text>
+      {/each}
+
+      <!-- Grid lines -->
+      {#each yScale.ticks(5) as tick}
+        <line x1={0} x2={LC_W} y1={yScale(tick)} y2={yScale(tick)} stroke="#ddd" stroke-width="1" />
+        <text x={-8} y={yScale(tick) + 4} text-anchor="end" font-size="10" fill="currentColor">
+          {tick >= 1e6 ? '$' + (tick/1e6).toFixed(1) + 'M' : '$' + d3.format(',.0f')(tick)}
+        </text>
+      {/each}
+
+      <!-- X axis ticks -->
+      {#each YEARS.filter(y => y % 5 === 0) as yr}
+        <text x={xScale(yr)} y={LC_H + 20} text-anchor="middle" font-size="10" fill="currentColor">{yr}</text>
+        <line x1={xScale(yr)} x2={xScale(yr)} y1={LC_H} y2={LC_H + 5} stroke="#aaa" />
+      {/each}
+
+      <!-- Axis lines -->
+      <line x1={0} x2={LC_W} y1={LC_H} y2={LC_H} stroke="#aaa" />
+      <line x1={0} x2={0} y1={0} y2={LC_H} stroke="#aaa" />
+
+      <!-- Lines per ZIP (dimmed first, highlighted on top) -->
+      {#each lineData as d}
+        <path
+          d={lineGen(d.points)}
+          fill="none"
+          stroke={getLineColor(d.city)}
+          stroke-width={selectedZip !== null ? (d.zip === String(selectedZip).padStart(5,'0') ? 3 : 1.5) : selectedCity !== null && selectedCity === d.city ? 3 : 1.5}
+          opacity={selectedZip !== null ? (d.zip === String(selectedZip).padStart(5,'0') ? 1 : 0.12) : selectedCity !== null ? (selectedCity === d.city ? 1 : 0.12) : 0.8}
+          role="button"
+          aria-label="{d.zip}"
+          tabindex="0"
+          style="cursor:pointer"
+          on:mousemove={(e) => handleLineMouseMove(e, housingByZip[d.zip])}
+          on:mouseleave={handleLineMouseLeave}
+          on:click={() => toggleCity(d.city, zipStrToNum(d.zip))}
+          on:keydown={(e) => e.key === 'Enter' && toggleCity(d.city, zipStrToNum(d.zip))}
+        />
+      {/each}
+
+      <!-- Current year indicator -->
+      <line
+        x1={xScale(year)} x2={xScale(year)}
+        y1={0} y2={LC_H}
+        stroke="#333" stroke-width="1.5" stroke-dasharray="4,3"
+      />
+      <text x={xScale(year) + 4} y={10} font-size="10" fill="#333">{year}</text>
+
+      <!-- Line tooltip -->
+      {#if lineTooltip.visible}
+        <foreignObject
+          x={lineTooltip.x - LC_MARGIN.left}
+          y={lineTooltip.y - LC_MARGIN.top}
+          width="150" height="60">
+          <div class="tooltip">
+            <strong>{lineTooltip.city} {lineTooltip.zip}</strong>
+            <div>{lineTooltip.yr} · {lineTooltip.value}</div>
+          </div>
+        </foreignObject>
+      {/if}
+    </g>
+  </svg>
+  {/if}
 </div>
 
 <style>
@@ -358,6 +558,7 @@ const ZIP_LABELS = {
   }
 
   svg:active { cursor: grabbing; }
+  svg.line-chart { cursor: default; background: none; border: none; border-radius: 0; }
 
   button {
     padding: 3px 10px;
