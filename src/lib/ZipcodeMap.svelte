@@ -155,11 +155,11 @@ const ZIP_LABELS = {
   $: housingByZip = Object.fromEntries(housing.map(d => [d.zip, d]));
 
   // Line chart constants
-  const LC_MARGIN = { top: 130, right: 20, bottom: 40, left: 70 };
+  const LC_MARGIN = { top: 155, right: 20, bottom: 40, left: 70 };
   const LC_W = TOTAL_W - LC_MARGIN.left - LC_MARGIN.right;
-  const LC_H = 345 - LC_MARGIN.top - LC_MARGIN.bottom;
+  const LC_H = 370 - LC_MARGIN.top - LC_MARGIN.bottom;
 
-  const ANNOT_ROW_Y = [-20, -42, -64, -86, -110]; // row 0 = closest to chart
+  const ANNOT_ROW_Y = [-44, -66, -88, -110, -134]; // row 0 = closest to chart
 
   const GLX_ANNOTATIONS = [
     { year: 2005, label: 'Conservation Law Foundation sued state', type: 'glx' },
@@ -210,6 +210,24 @@ const ZIP_LABELS = {
   }
 
   let lineTooltip = { visible: false, x: 0, y: 0, zip: '', city: '', value: '' };
+  let isDraggingYear = false;
+
+  function startYearDrag(e) {
+    isDraggingYear = true;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+
+  function onYearDrag(e) {
+    if (!isDraggingYear) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const svgX = e.clientX - rect.left - LC_MARGIN.left;
+    const rawYear = Math.round(xScale.invert(svgX));
+    year = Math.max(YEARS[0], Math.min(YEARS[YEARS.length - 1], rawYear));
+  }
+
+  function stopYearDrag() {
+    isDraggingYear = false;
+  }
 
   function handleLineMouseMove(e, d) {
     const rect = e.currentTarget.closest('svg').getBoundingClientRect();
@@ -256,6 +274,11 @@ const ZIP_LABELS = {
   function fmt(v) {
     if (v == null) return 'No data';
     return '$' + d3.format(',.0f')(v);
+  }
+
+  function fmtLegend(v) {
+    if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+    return '$' + Math.round(v / 1000) + 'k';
   }
 
   function handleMouseMove(e, feature) {
@@ -393,8 +416,7 @@ const ZIP_LABELS = {
         <rect x={0} y={16 + i * 22} width="18" height="18"
           fill={colorScale(lo + 1)} stroke="#aaa" stroke-width="0.5" />
         <text x={24} y={16 + i * 22 + 13} font-size="11" fill="currentColor">
-          {lo >= 1e6 ? '$' + (lo/1e6).toFixed(2) + 'M' : '$' + d3.format(',.0f')(lo)} –
-          {hi >= 1e6 ? '$' + (hi/1e6).toFixed(2) + 'M' : '$' + d3.format(',.0f')(hi)}
+          {fmtLegend(lo)} – {fmtLegend(hi)}
         </text>
       {/each}
       <text font-size="11" font-weight="bold" fill="currentColor" y={16 + N_BUCKETS * 22 + 16}>City Labels</text>
@@ -443,7 +465,11 @@ const ZIP_LABELS = {
   <!-- Line chart -->
   {#if !loading}
   <h2 style="margin-top:2rem">Home Values Over Time by ZIP Code</h2>
-  <svg width={TOTAL_W} height={345} class="line-chart">
+  <svg width={TOTAL_W} height={370} class="line-chart"
+    on:pointermove={onYearDrag}
+    on:pointerup={stopYearDrag}
+    on:pointerleave={stopYearDrag}
+  >
     <g transform="translate({LC_MARGIN.left},{LC_MARGIN.top})">
 
       <!-- GLX Milestone annotations -->
@@ -498,13 +524,21 @@ const ZIP_LABELS = {
         />
       {/each}
 
-      <!-- Current year indicator -->
+      <!-- Current year indicator (draggable) -->
       <line
         x1={xScale(year)} x2={xScale(year)}
         y1={0} y2={LC_H}
         stroke="#333" stroke-width="1.5" stroke-dasharray="4,3"
+        pointer-events="none"
       />
-      <text x={xScale(year) + 4} y={10} font-size="10" fill="#333">{year}</text>
+      <!-- Drag handle (invisible wide rect over full line) -->
+      <rect
+        x={xScale(year) - 6} y={0} width={12} height={LC_H}
+        fill="transparent"
+        style="cursor:ew-resize"
+        on:pointerdown={startYearDrag}
+      />
+      <text x={xScale(year) + 4} y={-6} font-size="10" font-weight="bold" fill="#333">{year}</text>
 
       <!-- Line tooltip -->
       {#if lineTooltip.visible}
