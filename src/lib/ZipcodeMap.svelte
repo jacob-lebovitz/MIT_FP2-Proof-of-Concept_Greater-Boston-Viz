@@ -39,6 +39,7 @@ const ZIP_LABELS = {
 
   let features = [];
   let housing = [];
+  let loading = true;
   let greenLineFeatures = [];
   let stations = [];
   let projection, pathGen;
@@ -62,6 +63,7 @@ const ZIP_LABELS = {
     stations = stationData;
     projection = d3.geoMercator().fitSize([WIDTH, HEIGHT], { type: 'FeatureCollection', features });
     pathGen = d3.geoPath().projection(projection);
+    loading = false;
 
     const zoom = d3.zoom()
       .scaleExtent([1, 8])
@@ -175,7 +177,11 @@ const ZIP_LABELS = {
     <button on:click={resetZoom}>Reset zoom</button>
   </div>
 
-  <svg width={TOTAL_W} height={HEIGHT} bind:this={svgEl}>
+  {#if loading}
+    <div class="loading">Loading map data…</div>
+  {/if}
+
+  <svg width={TOTAL_W} height={HEIGHT} bind:this={svgEl} style="display:{loading ? 'none' : 'block'}">
     <g transform={zoomTransform}>
     <!-- Map paths -->
     {#each features as feature}
@@ -292,6 +298,15 @@ const ZIP_LABELS = {
 
 <style>
   .map-wrap { margin: 1.5rem 0; }
+
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    font-size: 1rem;
+    color: #888;
+  }
 
   h2 { margin-bottom: 0.2rem; }
 
