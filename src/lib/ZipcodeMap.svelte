@@ -63,18 +63,22 @@ const ZIP_LABELS = {
   let svgEl;
   let zoomTransform = 'translate(0,0) scale(1)';
   let zoomK = 1;
-  let selectedCity = null;
-  let selectedZip = null;
+  let selectedZips = new Set();
+  let selectedCities = new Set();
 
-  function toggleCity(city, zip = null) {
-    if (selectedCity === city && selectedZip === zip) {
-      selectedCity = null;
-      selectedZip = null;
-    } else {
-      selectedCity = city;
-      selectedZip = zip;
-    }
+  function toggleZip(zip) {
+    const s = new Set(selectedZips);
+    s.has(zip) ? s.delete(zip) : s.add(zip);
+    selectedZips = s;
   }
+
+  function toggleLegendCity(city) {
+    const s = new Set(selectedCities);
+    s.has(city) ? s.delete(city) : s.add(city);
+    selectedCities = s;
+  }
+
+  $: anySelected = selectedZips.size > 0 || selectedCities.size > 0;
 
   onMount(async () => {
     const [geojson, housingData, glGeojson, stationData] = await Promise.all([
@@ -295,21 +299,21 @@ const ZIP_LABELS = {
       {@const zip = feature.properties.ZCTA5CE20}
       <path
         d={pathGen?.(feature)}
-        fill={selectedZip !== null && selectedZip !== zip ? '#c8c8c8' : selectedCity !== null && ZIP_TO_CITY[zip] !== selectedCity ? '#c8c8c8' : getColor(zip, year)}
-        stroke={selectedZip === zip ? 'black' : 'white'}
-        stroke-width={selectedZip === zip ? 6 / zoomK : 1.5 / zoomK}
+        fill={anySelected && !selectedZips.has(zip) && !selectedCities.has(ZIP_TO_CITY[zip]) ? '#c8c8c8' : getColor(zip, year)}
+        stroke={selectedZips.has(zip) ? 'black' : 'white'}
+        stroke-width={selectedZips.has(zip) ? 6 / zoomK : 1.5 / zoomK}
         role="button"
         aria-label={ZIP_LABELS[zip]}
         tabindex="0"
         on:mousemove={(e) => handleMouseMove(e, feature)}
         on:mouseleave={handleMouseLeave}
-        on:click={() => toggleCity(ZIP_TO_CITY[zip], zip)}
-        on:keydown={(e) => e.key === 'Enter' && toggleCity(ZIP_TO_CITY[zip], zip)}
+        on:click={() => toggleZip(zip)}
+        on:keydown={(e) => e.key === 'Enter' && toggleZip(zip)}
       />
     {/each}
 
-    <!-- Green Line segments -->
-    {#each visibleGreenLine as segment}
+    <!-- Green Line segments (B branch orange line commented out for now) -->
+    {#each visibleGreenLine.filter(s => s.properties.branch !== 'B') as segment}
       <path
         d={pathGen?.(segment)}
         fill="none"
@@ -325,7 +329,7 @@ const ZIP_LABELS = {
     {/each}
 
     <!-- Green Line stations -->
-    {#each visibleStations as station}
+    {#each visibleStations.filter(s => s.branch !== 'B') as station}
       {@const pos = projection?.([station.lon, station.lat])}
       {#if pos}
         <circle
@@ -400,17 +404,17 @@ const ZIP_LABELS = {
           tabindex="0"
           aria-label="Filter {city}"
           style="cursor:pointer"
-          on:click={() => toggleCity(city, null)}
-          on:keydown={(e) => e.key === 'Enter' && toggleCity(city, null)}
+          on:click={() => toggleLegendCity(city)}
+          on:keydown={(e) => e.key === 'Enter' && toggleLegendCity(city)}
         >
           <circle cx={9} cy={16 + N_BUCKETS * 22 + 32 + i * 20} r="6"
             fill="rgb({r},{g},{b})"
-            stroke={selectedCity === city ? '#000' : 'none'}
+            stroke={selectedCities.has(city) ? '#000' : 'none'}
             stroke-width="2"
           />
           <text x={24} y={16 + N_BUCKETS * 22 + 37 + i * 20} font-size="11"
             fill="currentColor"
-            font-weight={selectedCity === city ? 'bold' : 'normal'}
+            font-weight={selectedCities.has(city) ? 'bold' : 'normal'}
           >{city}</text>
         </g>
       {/each}
@@ -481,16 +485,16 @@ const ZIP_LABELS = {
           d={lineGen(d.points)}
           fill="none"
           stroke={getLineColor(d.city)}
-          stroke-width={selectedZip !== null ? (d.zip === String(selectedZip).padStart(5,'0') ? 3 : 1.5) : selectedCity !== null && selectedCity === d.city ? 3 : 1.5}
-          opacity={selectedZip !== null ? (d.zip === String(selectedZip).padStart(5,'0') ? 1 : 0.12) : selectedCity !== null ? (selectedCity === d.city ? 1 : 0.12) : 0.8}
+          stroke-width={anySelected ? (selectedZips.has(zipStrToNum(d.zip)) || selectedCities.has(d.city) ? 3 : 1.5) : 1.5}
+          opacity={anySelected ? (selectedZips.has(zipStrToNum(d.zip)) || selectedCities.has(d.city) ? 1 : 0.12) : 0.8}
           role="button"
           aria-label="{d.zip}"
           tabindex="0"
           style="cursor:pointer"
           on:mousemove={(e) => handleLineMouseMove(e, housingByZip[d.zip])}
           on:mouseleave={handleLineMouseLeave}
-          on:click={() => toggleCity(d.city, zipStrToNum(d.zip))}
-          on:keydown={(e) => e.key === 'Enter' && toggleCity(d.city, zipStrToNum(d.zip))}
+          on:click={() => toggleZip(zipStrToNum(d.zip))}
+          on:keydown={(e) => e.key === 'Enter' && toggleZip(zipStrToNum(d.zip))}
         />
       {/each}
 
