@@ -489,7 +489,7 @@ const ZIP_LABELS = {
 
       <!-- Grid lines -->
       {#each yScale.ticks(5) as tick}
-        <line x1={0} x2={LC_W} y1={yScale(tick)} y2={yScale(tick)} stroke="#ddd" stroke-width="1" />
+        <line x1={0} x2={LC_W} y1={yScale(tick)} y2={yScale(tick)} stroke="currentColor" stroke-width="1" opacity="0.15" />
         <text x={-8} y={yScale(tick) + 4} text-anchor="end" font-size="10" fill="currentColor">
           {tick >= 1e6 ? '$' + (tick/1e6).toFixed(1) + 'M' : '$' + d3.format(',.0f')(tick)}
         </text>
@@ -498,12 +498,12 @@ const ZIP_LABELS = {
       <!-- X axis ticks -->
       {#each YEARS.filter(y => y % 5 === 0) as yr}
         <text x={xScale(yr)} y={LC_H + 20} text-anchor="middle" font-size="10" fill="currentColor">{yr}</text>
-        <line x1={xScale(yr)} x2={xScale(yr)} y1={LC_H} y2={LC_H + 5} stroke="#aaa" />
+        <line x1={xScale(yr)} x2={xScale(yr)} y1={LC_H} y2={LC_H + 5} stroke="currentColor" opacity="0.4" />
       {/each}
 
       <!-- Axis lines -->
-      <line x1={0} x2={LC_W} y1={LC_H} y2={LC_H} stroke="#aaa" />
-      <line x1={0} x2={0} y1={0} y2={LC_H} stroke="#aaa" />
+      <line x1={0} x2={LC_W} y1={LC_H} y2={LC_H} stroke="currentColor" opacity="0.4" />
+      <line x1={0} x2={0} y1={0} y2={LC_H} stroke="currentColor" opacity="0.4" />
 
       <!-- Lines per ZIP (dimmed first, highlighted on top) -->
       {#each lineData as d}
@@ -528,7 +528,7 @@ const ZIP_LABELS = {
       <line
         x1={xScale(year)} x2={xScale(year)}
         y1={0} y2={LC_H}
-        stroke="#333" stroke-width="1.5" stroke-dasharray="4,3"
+        stroke="currentColor" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6"
         pointer-events="none"
       />
       <!-- Drag handle (invisible wide rect over full line) -->
@@ -538,7 +538,7 @@ const ZIP_LABELS = {
         style="cursor:ew-resize"
         on:pointerdown={startYearDrag}
       />
-      <text x={xScale(year) + 4} y={-6} text-anchor="start" font-size="10" font-weight="bold" fill="#333">{year}</text>
+      <text x={xScale(year) + 4} y={-6} text-anchor="start" font-size="10" font-weight="bold" fill="currentColor">{year}</text>
 
       <!-- Line tooltip -->
       {#if lineTooltip.visible}
@@ -589,9 +589,9 @@ const ZIP_LABELS = {
 
   svg {
     display: block;
-    border: 1px solid #ddd;
+    border: 1px solid light-dark(#ddd, #444);
     border-radius: 8px;
-    background: #f0f0f0;
+    background: light-dark(#f0f0f0, #1e1e1e);
     cursor: grab;
   }
 
@@ -602,9 +602,10 @@ const ZIP_LABELS = {
     padding: 3px 10px;
     font-size: 0.85rem;
     cursor: pointer;
-    border: 1px solid #aaa;
+    border: 1px solid light-dark(#aaa, #555);
     border-radius: 4px;
-    background: white;
+    background: light-dark(white, #2a2a2a);
+    color: inherit;
   }
 
   path { cursor: pointer; transition: opacity 0.1s; }
