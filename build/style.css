@@ -12,30 +12,6 @@ body {
  
 }
 
-nav a.current {
-    border-bottom: 0.4em solid oklch(80% 3% 200); /* Thick bottom border to highlight current page */
-    padding-bottom: 0.1em; /* Reduce bottom padding to counter border height (0.5em - 0.4em = 0.1em) */
-}
-
-nav {
-    display: flex;
-    margin-bottom: 2em; /* Separate navigation from content below */
-    border-bottom: 1px solid oklch(80% 3% 200); /* Subtle border under entire nav bar */
-}
-
-nav a {
-    flex: 1;
-    text-decoration: none; /* Remove underline */
-    color: inherit; /* Use parent text color */
-    text-align: center; /* Center the text */
-    padding: 0.5em; /* Add spacing */
-}
-
-nav a:hover {
-    border-bottom: 0.4em solid var(--color-accent); /* Use accent color on hover */
-    padding-bottom: 0.1em; /* Reduce padding to counter border height */
-}
-
 p {
     margin-bottom: 2em;
 }

@@ -47,6 +47,7 @@
   let glTooltip = { visible: false, x: 0, y: 0, text: '' };
   let svgEl;
   let zoomTransform = 'translate(0,0) scale(1)';
+  let zoomK = 1;
 
   onMount(async () => {
     const [geojson, housingData, glGeojson, stationData] = await Promise.all([
@@ -68,6 +69,7 @@
       .on('zoom', (event) => {
         const { x, y, k } = event.transform;
         zoomTransform = `translate(${x},${y}) scale(${k})`;
+        zoomK = k;
       });
 
     d3.select(svgEl).call(zoom);
@@ -170,9 +172,11 @@
     <span>Year:</span>
     <input type="range" min={YEARS[0]} max={YEARS[YEARS.length - 1]} step="1" bind:value={year} />
     <strong>{year}</strong>
+    <button on:click={resetZoom}>Reset zoom</button>
   </div>
 
-  <svg width={TOTAL_W} height={HEIGHT}>
+  <svg width={TOTAL_W} height={HEIGHT} bind:this={svgEl}>
+    <g transform={zoomTransform}>
     <!-- Map paths -->
     {#each features as feature}
       {@const zip = feature.properties.ZCTA5CE20}
@@ -194,7 +198,7 @@
         d={pathGen?.(segment)}
         fill="none"
         stroke={BRANCH_COLORS[segment.properties.branch] ?? '#00843D'}
-        stroke-width="3"
+        stroke-width={3 / zoomK}
         stroke-linecap="round"
         stroke-linejoin="round"
         role="img"
@@ -209,10 +213,10 @@
       {@const pos = projection?.([station.lon, station.lat])}
       {#if pos}
         <circle
-          cx={pos[0]} cy={pos[1]} r="5"
+          cx={pos[0]} cy={pos[1]} r={5 / zoomK}
           fill="white"
           stroke={BRANCH_COLORS[station.branch] ?? '#00843D'}
-          stroke-width="2"
+          stroke-width={2 / zoomK}
           role="img"
           aria-label={station.name}
           on:mousemove={(e) => {
@@ -234,16 +238,18 @@
           y={c[1] + (LABEL_OFFSET[zip]?.[1] ?? 0)}
           text-anchor="middle"
           dominant-baseline="middle"
-          font-size="10"
+          font-size={10 / zoomK}
           fill={getLabelColor(zip)}
           font-weight="bold"
           paint-order="stroke"
           stroke="white"
-          stroke-width="3"
+          stroke-width={3 / zoomK}
           pointer-events="none"
         >{ZIP_LABELS[zip]}</text>
       {/if}
     {/each}
+
+    </g><!-- end zoomable group -->
 
     <!-- Legend -->
     <g transform="translate({WIDTH + 20}, 20)">
@@ -310,6 +316,18 @@
     border: 1px solid #ddd;
     border-radius: 8px;
     background: #f0f0f0;
+    cursor: grab;
+  }
+
+  svg:active { cursor: grabbing; }
+
+  button {
+    padding: 3px 10px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    background: white;
   }
 
   path { cursor: pointer; transition: opacity 0.1s; }

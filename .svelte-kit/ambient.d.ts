@@ -32,6 +32,7 @@ declare module '$env/static/private' {
 	export const NODE: string;
 	export const INIT_CWD: string;
 	export const SHELL: string;
+	export const BASE_PATH: string;
 	export const HOMEBREW_REPOSITORY: string;
 	export const TMPDIR: string;
 	export const npm_config_global_prefix: string;
@@ -131,6 +132,7 @@ declare module '$env/dynamic/private' {
 		NODE: string;
 		INIT_CWD: string;
 		SHELL: string;
+		BASE_PATH: string;
 		HOMEBREW_REPOSITORY: string;
 		TMPDIR: string;
 		npm_config_global_prefix: string;

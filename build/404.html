@@ -3,30 +3,35 @@
 	<head>
 		<meta charset="utf-8" />
 		<title>Portfolio - Hiro Ogasawara</title>
-		<link rel="icon" href="/favicon.png" />
-		<link rel="stylesheet" href="/style.css" />
+		<link rel="icon" href="/MIT_FP2-Proof-of-Concept_Greater-Boston-Viz/favicon.png" />
 		<meta name="viewport" content="width=device-width" />
-		
-		<link rel="modulepreload" href="/_app/immutable/entry/start.b7cca787.js">
-		<link rel="modulepreload" href="/_app/immutable/chunks/scheduler.63274e7e.js">
-		<link rel="modulepreload" href="/_app/immutable/chunks/singletons.f443ca5f.js">
-		<link rel="modulepreload" href="/_app/immutable/entry/app.9b36624f.js">
-		<link rel="modulepreload" href="/_app/immutable/chunks/index.c320db1c.js">
+		<script>
+		let root = document.documentElement;
+		let colorScheme = localStorage.colorScheme ?? "light dark";
+		root.style.setProperty("color-scheme", colorScheme);
+	</script>
+	
+		<link rel="modulepreload" href="/MIT_FP2-Proof-of-Concept_Greater-Boston-Viz/_app/immutable/entry/start.aef3dc70.js">
+		<link rel="modulepreload" href="/MIT_FP2-Proof-of-Concept_Greater-Boston-Viz/_app/immutable/chunks/scheduler.08babe91.js">
+		<link rel="modulepreload" href="/MIT_FP2-Proof-of-Concept_Greater-Boston-Viz/_app/immutable/chunks/singletons.888509f4.js">
+		<link rel="modulepreload" href="/MIT_FP2-Proof-of-Concept_Greater-Boston-Viz/_app/immutable/entry/app.58b472be.js">
+		<link rel="modulepreload" href="/MIT_FP2-Proof-of-Concept_Greater-Boston-Viz/_app/immutable/chunks/index.5bd3f010.js">
 	</head>
 	<body data-sveltekit-preload-data="hover">
 		<div style="display: contents">
 			<script>
 				{
-					__sveltekit_9p5h05 = {
-						base: "",
+					__sveltekit_1l7lcs8 = {
+						assets: "/MIT_FP2-Proof-of-Concept_Greater-Boston-Viz",
+						base: "/MIT_FP2-Proof-of-Concept_Greater-Boston-Viz",
 						env: {}
 					};
 
 					const element = document.currentScript.parentElement;
 
 					Promise.all([
-						import("/_app/immutable/entry/start.b7cca787.js"),
-						import("/_app/immutable/entry/app.9b36624f.js")
+						import("/MIT_FP2-Proof-of-Concept_Greater-Boston-Viz/_app/immutable/entry/start.aef3dc70.js"),
+						import("/MIT_FP2-Proof-of-Concept_Greater-Boston-Viz/_app/immutable/entry/app.58b472be.js")
 					]).then(([kit, app]) => {
 						kit.start(app, element);
 					});

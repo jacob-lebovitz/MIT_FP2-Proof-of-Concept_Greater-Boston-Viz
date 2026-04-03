@@ -1,0 +1,220 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "segment_id": "tunnel_boylston_park",
+        "name": "Boylston → Park Street (Tremont St Subway)",
+        "branch": "Trunk",
+        "year_opened": 1897,
+        "notes": "First subway tunnel in North America"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-71.0621, 42.3523],
+          [-71.0622, 42.3561]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "segment_id": "tunnel_park_haymarket",
+        "name": "Park Street → Haymarket (Tremont/Washington St Subway)",
+        "branch": "Trunk",
+        "year_opened": 1898,
+        "notes": "Extended subway to Haymarket"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-71.0622, 42.3561],
+          [-71.0598, 42.3598],
+          [-71.0576, 42.3629]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "segment_id": "tunnel_haymarket_north",
+        "name": "Haymarket → North Station → Lechmere (elevated/tunnel)",
+        "branch": "Trunk",
+        "year_opened": 1912,
+        "notes": "Northern extension to Lechmere via elevated Causeway St structure; rebuilt as tunnel 2005"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-71.0576, 42.3629],
+          [-71.0607, 42.3663],
+          [-71.0656, 42.3698],
+          [-71.0742, 42.3706]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "segment_id": "tunnel_boylston_kenmore",
+        "name": "Boylston → Copley → Kenmore (Boylston St Subway)",
+        "branch": "Trunk",
+        "year_opened": 1914,
+        "notes": "Western subway extension from Boylston to Kenmore"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-71.0621, 42.3523],
+          [-71.0700, 42.3498],
+          [-71.0755, 42.3490],
+          [-71.0832, 42.3482],
+          [-71.0950, 42.3482]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "segment_id": "b_kenmore_boston_college",
+        "name": "Kenmore → Boston College (B Branch, Commonwealth Ave)",
+        "branch": "B",
+        "year_opened": 1932,
+        "notes": "Commonwealth Ave surface branch; consolidation of earlier streetcar lines into current B branch configuration"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-71.0950, 42.3482],
+          [-71.1020, 42.3493],
+          [-71.1090, 42.3510],
+          [-71.1162, 42.3512],
+          [-71.1233, 42.3519],
+          [-71.1328, 42.3519],
+          [-71.1395, 42.3524],
+          [-71.1463, 42.3529],
+          [-71.1530, 42.3537],
+          [-71.1589, 42.3540],
+          [-71.1661, 42.3565]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "segment_id": "c_kenmore_cleveland_circle",
+        "name": "Kenmore → Cleveland Circle (C Branch, Beacon St)",
+        "branch": "C",
+        "year_opened": 1932,
+        "notes": "Beacon St surface branch; first electrified 1889, current C branch designation 1967"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-71.0950, 42.3482],
+          [-71.1025, 42.3445],
+          [-71.1100, 42.3408],
+          [-71.1175, 42.3395],
+          [-71.1263, 42.3385],
+          [-71.1368, 42.3390],
+          [-71.1457, 42.3398]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "segment_id": "e_copley_heath",
+        "name": "Copley → Brigham Circle → Heath St (E Branch)",
+        "branch": "E",
+        "year_opened": 1941,
+        "notes": "Huntington Ave surface branch; truncated from Arborway to Heath St in 1985"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-71.0755, 42.3490],
+          [-71.0795, 42.3444],
+          [-71.0832, 42.3379],
+          [-71.0892, 42.3322],
+          [-71.0998, 42.3253],
+          [-71.1065, 42.3214],
+          [-71.1106, 42.3199]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "segment_id": "d_kenmore_riverside",
+        "name": "Kenmore → Riverside (D Branch)",
+        "branch": "D",
+        "year_opened": 1959,
+        "notes": "Former Highland Branch B&A Railroad; converted to Green Line light rail 1959"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-71.0950, 42.3482],
+          [-71.1046, 42.3427],
+          [-71.1162, 42.3385],
+          [-71.1270, 42.3363],
+          [-71.1388, 42.3338],
+          [-71.1500, 42.3302],
+          [-71.1612, 42.3268],
+          [-71.1730, 42.3228],
+          [-71.1875, 42.3197],
+          [-71.2008, 42.3197],
+          [-71.2125, 42.3197],
+          [-71.2244, 42.3224],
+          [-71.2344, 42.3254]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "segment_id": "glx_lechmere_union_sq",
+        "name": "Lechmere → Union Square (GLX Union Branch)",
+        "branch": "GLX-D",
+        "year_opened": 2022,
+        "notes": "Opened March 21, 2022. New elevated Lechmere + Union Square station"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-71.0742, 42.3706],
+          [-71.0800, 42.3740],
+          [-71.0853, 42.3775],
+          [-71.0949, 42.3778]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "segment_id": "glx_lechmere_medford",
+        "name": "Lechmere → East Somerville → Gilman Sq → Magoun Sq → Ball Sq → Medford/Tufts (GLX Medford Branch)",
+        "branch": "GLX-E",
+        "year_opened": 2022,
+        "notes": "Opened December 12, 2022. 3.7 miles; 5 new stations"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-71.0742, 42.3706],
+          [-71.0800, 42.3740],
+          [-71.0850, 42.3800],
+          [-71.0898, 42.3862],
+          [-71.0961, 42.3920],
+          [-71.1024, 42.3969],
+          [-71.1060, 42.4009],
+          [-71.1136, 42.4072],
+          [-71.1188, 42.4085]
+        ]
+      }
+    }
+  ]
+}
