@@ -1,0 +1,193 @@
+:root {
+    --color-accent: oklch(29.162% 0.17862 270.899);
+}
+
+body {
+    font: 100%/1.5 system-ui;
+    max-width: 100ch;
+    margin-inline: auto;
+    writing-mode: horizontal-tb;
+    padding: 1em;
+    accent-color: var(--color-accent); /* Apply accent color to form elements, checkboxes, etc. */
+ 
+}
+
+p {
+    margin-bottom: 2em;
+}
+
+input, textarea, button {
+    font: inherit; /* Inherit font properties from parent elements */
+}
+
+/* Step 3.3: Grid layout for forms */
+form {
+    display: grid;
+    grid-template-columns: auto 1fr; /* Label column (auto-sized) + input column (flexible) */
+    gap: 1em; /* Add spacing between rows and columns */
+}
+
+/* Make labels span both columns and use subgrid */
+label {
+    display: grid;
+    grid-column: 1 / -1; /* Span from first column to last column (entire row) */
+    grid-template-columns: subgrid; /* Inherit parent's 2-column grid structure */
+}
+
+/* Make submit button span both columns too */
+button {
+    grid-column: 1 / -1; /* Span entire row */
+}
+
+img {
+    max-width: 100%;
+}
+
+.projects {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15em, 1fr));
+    gap : 2rem;
+}
+
+h1 {
+    font-size: 300%;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    line-height: 1.1;
+    text-wrap: balance;
+}
+
+/* CV Page Specific Styles - Only affects pages with <section> elements */
+
+/* Header - Name and Contact (only on CV page with sections) */
+
+body:has(section) > h1 {
+    margin-bottom: 0.2em;
+    font-size: 300%;
+    text-align: center;
+}
+
+body:has(section) > p {
+    margin-top: 0;
+    margin-bottom: 2em;
+    font-size: 95%;
+    text-align: center;
+}
+
+/* Section Headings */
+section > h2 {
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 110%;
+    border-bottom: 1px solid #000;
+    margin-top: 2em;
+    margin-bottom: 0.8em;
+    padding-bottom: 0.2em;
+}
+
+/* Experience/Education Articles */
+section > article {
+    margin-bottom: 1.2em;
+}
+
+/* Article Headers - Company/School and Location on same line */
+section article > header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.2em;
+}
+
+section article > header h3 {
+    font-weight: bold;
+    margin: 0;
+    font-size: 105%;
+    text-transform: uppercase;
+}
+
+section article > header > div {
+    flex: 1;
+}
+
+section article > header > div > p {
+    margin: 0;
+}
+
+section article > header > p {
+    margin: 0;
+    font-style: italic;
+    text-align: right;
+    white-space: nowrap;
+    margin-left: 1em;
+}
+
+/* Position line - Job title and dates on same line */
+.position-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.3em;
+}
+
+.position-line p {
+    margin: 0;
+}
+
+.position-line p:first-child {
+    flex: 1;
+    padding-right: 1em;
+}
+
+.position-line p:last-child {
+    white-space: nowrap;
+}
+
+/* Multiple roles at same company */
+.role {
+    margin-bottom: 0.8em;
+}
+
+/* Lists within CV sections only */
+section article ul {
+    margin-top: 0.3em;
+    margin-bottom: 0.3em;
+    padding-left: 1.8em;
+}
+
+section article li {
+    margin-bottom: 0.25em;
+    line-height: 1.4;
+}
+
+/* Additional Information section */
+section:last-of-type ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+section:last-of-type li {
+    margin-bottom: 0.4em;
+}
+
+/* Remove excessive spacing from h2 in additional info */
+section:last-of-type h2 {
+    margin-bottom: 0.5em;
+}
+
+section:first-of-type .position-line p:first-child strong {
+    font-weight: normal;
+    font-style: normal;
+}
+
+section:nth-of-type(2) .position-line p:first-child strong,
+section:nth-of-type(2) .role .position-line p:first-child strong {
+    font-style: italic;
+    font-weight: bold;
+}
+
+/* .reading {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15em, 1fr));
+    gap: 2rem;
+} */

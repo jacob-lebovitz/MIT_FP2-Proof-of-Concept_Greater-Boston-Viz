@@ -1,0 +1,11 @@
+[
+  { "language": "JavaScript", "lines": 120 },
+  { "language": "CSS", "lines": 80 },
+  { "language": "JavaScript", "lines": 95 },
+  { "language": "HTML", "lines": 40 },
+  { "language": "CSS", "lines": 60 },
+  { "language": "Svelte", "lines": 200 },
+  { "language": "JavaScript", "lines": 75 },
+  { "language": "Svelte", "lines": 150 },
+  { "language": "HTML", "lines": 25 }
+]
