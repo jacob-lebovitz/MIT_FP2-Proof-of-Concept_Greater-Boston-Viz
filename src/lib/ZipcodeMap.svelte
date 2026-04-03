@@ -1,6 +1,7 @@
 <script>
   import * as d3 from 'd3';
   import { onMount } from 'svelte';
+  import { base } from '$app/paths';
 
   const WIDTH = 680;
   const HEIGHT = 500;
@@ -51,10 +52,10 @@
 
   onMount(async () => {
     const [geojson, housingData, glGeojson, stationData] = await Promise.all([
-      d3.json('/massachusetts-zip-codes.geojson'),
-      d3.json('/housing.json'),
-      d3.json('/mbta_green_line.geojson'),
-      d3.json('/mbta_green_line_stations.json'),
+      d3.json(`${base}/massachusetts-zip-codes.geojson`),
+      d3.json(`${base}/housing.json`),
+      d3.json(`${base}/mbta_green_line.geojson`),
+      d3.json(`${base}/mbta_green_line_stations.json`),
     ]);
     features = geojson.features.filter(f => TARGET_ZIPS.has(f.properties.ZCTA5CE20));
     housing = housingData;
