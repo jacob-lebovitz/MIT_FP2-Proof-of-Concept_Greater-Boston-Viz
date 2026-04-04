@@ -10,7 +10,20 @@
          - A contingency paragraph: what will you do if something goes wrong?
            Which tasks might be dropped? What functionality might fall out of scope?
          ============================================================ -->
-    <p>INSERT WRITE-UP HERE</p>
+    <p>
+    Final Project Plans:<br>
+    Week 4/6:<br>
+    Team Plan:<br>
+    Continue work on Proof-of-concept visualization assignment through implementation of new datasets into the visualization, including housing demographics, housing developments, and income.<br>
+    Understand through these visualizations what narrative we want to pair with our scrolling visualization. Did housing/population changes come before or after green line expansions? How can we jointly understand changes in many datasets and present these changes as a single narrative?<br>
+    Team Member tasks:<br>
+    • Hiro: Continue visualization refinement design<br>
+    • Eric: Develop a cohesive narrative based on design findings<br>
+    • Christian: Communicate the rationale for each design choice and ways to improve, working directly with Hiro to implement improvements<br>
+    • Jacob: Create a project plan for future 4.5 weeks, designating tasks to team members and working with entire team to ensure fair work distribution.<br>
+    Week 4/13:<br>
+    Team Plan:
+    </p>
   </section>
 
 </div>
