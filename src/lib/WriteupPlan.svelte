@@ -11,6 +11,9 @@
            Which tasks might be dropped? What functionality might fall out of scope?
          ============================================================ -->
     <p>
+    Final Project Plans:
+    </p>
+
     <ul>
       <li>Additional Data Collection
         <ul>
@@ -141,7 +144,6 @@
         </ul>
       </li>
     </ul>
-    </p>
   </section>
 
 </div>
