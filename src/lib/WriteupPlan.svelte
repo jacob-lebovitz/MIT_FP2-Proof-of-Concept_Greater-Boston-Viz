@@ -2,141 +2,131 @@
 
   <section>
     <h2>A Final Project Plan</h2>
-    <!-- ============================================================
-         READ RUBRIC FIRST and Include:
-         - The specific order in which visualization and narrative components will be implemented
-         - A breakdown into manageable tasks
-         - Assignment of each task to a team member with a deadline
-         - A contingency paragraph: what will you do if something goes wrong?
-           Which tasks might be dropped? What functionality might fall out of scope?
-         ============================================================ -->
-    <p>
-    Final Project Plans:
-    </p>
+    <p><strong>Final Project Plans:</strong></p>
 
     <ul>
-      <li>Additional Data Collection
+      <li><strong>Additional Data Collection</strong>
         <ul>
-          <li>Week 4/6
+          <li><strong>Week 4/6</strong>
             <ul>
-              <li>Team Plan:
+              <li><strong>Team Plan:</strong>
                 <ul>
                   <li>Continue collecting data with a zipcode level granularity</li>
-                  <li>Jacob: collect data on demographics by zip code for date range 2000-2025</li>
-                  <li>Christian: collect data on population by zip code for date range 2000-2025</li>
+                  <li><strong>Jacob:</strong> collect data on demographics by zip code for date range 2000-2025</li>
+                  <li><strong>Christian:</strong> collect data on population by zip code for date range 2000-2025</li>
                 </ul>
               </li>
             </ul>
           </li>
-          <li>Week 4/13
+          <li><strong>Week 4/13</strong>
             <ul>
-              <li>Team Plan
+              <li><strong>Team Plan:</strong>
                 <ul>
-                  <li>Iteratively assess whether there is a strong need for new data in order to better understand the impact of green line expansion</li>
-                  <li>Jacob: Gather city-wide Boston data on population changes, demographic changes, and income changes in order to normalize changes in zip codes near expansion stations</li>
-                  <li>Christian: Gather remaining data to complete narrative, working with Eric and Hiro to determine necessary data</li>
-                </ul>
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-    
-      <li>Beautify visualization with scrolling mechanisms, etc.
-        <ul>
-          <li>Week 4/6
-            <ul>
-              <li>Team Plan:
-                <ul>
-                  <li>Improve visualization with scrolling mechanism and changing narrative, and implementing font and color categories from the initial project plan</li>
-                  <li>Hiro: implement scrolling and other interactive features into the proof-of-concept svelte visualization</li>
-                  <li>Eric: implement green line expansion into scrolling visualization, adding station information and lat/lon signals to best show growth of transit</li>
-                </ul>
-              </li>
-            </ul>
-          </li>
-          <li>Week 4/13
-            <ul>
-              <li>Team Plan:
-                <ul>
-                  <li>Continue implementing new datasets into the interactive visualizations (housing developments, demographics, population), and experiment with unique ways to represent each dataset</li>
-                  <li>Jacob: upload housing development dataset to svelte and create point-wise housing development visualization</li>
-                  <li>Hiro: adjust visualizations to fine-tune each one based on the specific data to make the best impact based on the narrative</li>
-                  <li>Christian: upload housing population data to svelte and create choloplot map of population changes</li>
-                  <li>Eric: add narrative elements to the scrolling timeline of visualization for each dataset, while also informing design choices</li>
+                  <li>Iteratively assess whether there is a strong need for new data to better understand the impact of green line expansion</li>
+                  <li><strong>Jacob:</strong> Gather city-wide Boston data on population, demographics, and income changes to normalize zip code changes</li>
+                  <li><strong>Christian:</strong> Gather remaining data to complete narrative, working with Eric and Hiro</li>
                 </ul>
               </li>
             </ul>
           </li>
         </ul>
       </li>
-    
-      <li>Feedback Implementation
+
+      <li><strong>Beautify Visualization</strong>
         <ul>
-          <li>Week 4/6
+          <li><strong>Week 4/6</strong>
             <ul>
-              <li>Team Plan:
+              <li><strong>Team Plan:</strong>
                 <ul>
-                  <li>Review specific feedback given during the project pitch presentation and during office hours</li>
-                  <li>Research articles about TOD to establish a holistic understanding of narrative and know the necessary data to include in our visualization</li>
+                  <li>Improve visualization with scrolling mechanism, changing narrative, fonts, and color categories</li>
+                  <li><strong>Hiro:</strong> implement scrolling and interactive features into proof-of-concept Svelte visualization</li>
+                  <li><strong>Eric:</strong> implement green line expansion info, station details, and lat/lon signals</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li><strong>Week 4/13</strong>
+            <ul>
+              <li><strong>Team Plan:</strong>
+                <ul>
+                  <li>Integrate new datasets (housing, demographics, population) and experiment with visual representation</li>
+                  <li><strong>Jacob:</strong> upload housing dataset and create point-wise visualization</li>
+                  <li><strong>Hiro:</strong> fine-tune visualizations for maximum narrative impact</li>
+                  <li><strong>Christian:</strong> upload population data and create choropleth map of changes</li>
+                  <li><strong>Eric:</strong> add narrative elements to scrolling timeline for each dataset</li>
                 </ul>
               </li>
             </ul>
           </li>
         </ul>
       </li>
-    
-      <li>Narrative Iteration
+
+      <li><strong>Feedback Implementation</strong>
         <ul>
-          <li>Week 4/6
+          <li><strong>Week 4/6</strong>
             <ul>
-              <li>Team Plan:
+              <li><strong>Team Plan:</strong>
                 <ul>
-                  <li>Generate a first-draft of a narrative that explains changes in data due to green line expansion, based on initial EDA and modeling findings</li>
-                  <li>Eric: Read TOD articles and understand how green line and transit expansions impact communities (both positively and negatively)</li>
-                </ul>
-              </li>
-            </ul>
-          </li>
-          <li>Week 4/13
-            <ul>
-              <li>Team Plan:
-                <ul>
-                  <li>Develop a narrative that leads to a policy-based solution or recommendation for future expansions, transit oriented development, or other housing/transit-focused measure to improve Boston resident satisfaction</li>
+                  <li>Review feedback from project pitch and office hours</li>
+                  <li>Research TOD articles to understand necessary data for visualization</li>
                 </ul>
               </li>
             </ul>
           </li>
         </ul>
       </li>
-    
-      <li>MVP (F3)
+
+      <li><strong>Narrative Iteration</strong>
         <ul>
-          <li>Week 4/20
+          <li><strong>Week 4/6</strong>
             <ul>
-              <li>Team Plan:
+              <li><strong>Team Plan:</strong>
                 <ul>
-                  <li>Eric: Finalize narrative and implement different stories into the scrolling aspect of the visualization</li>
-                  <li>Hiro: Publish project to public URL for display while noting any bugs that need fixing</li>
-                  <li>Jacob: Refine project visuals and focus on audience tone and necessary features</li>
-                  <li>Christian: Create demo plan to show the key features of the product, handle demo walkthrough while recording the video</li>
-                  <li>Team: record 5 minute video demonstrating our MVP</li>
+                  <li>Generate first-draft narrative explaining data changes due to green line expansion</li>
+                  <li><strong>Eric:</strong> read TOD articles and understand transit impacts on communities</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li><strong>Week 4/13</strong>
+            <ul>
+              <li><strong>Team Plan:</strong>
+                <ul>
+                  <li>Develop narrative leading to policy recommendations for transit-oriented development or housing/transit improvements</li>
                 </ul>
               </li>
             </ul>
           </li>
         </ul>
       </li>
-    
-      <li>Final Deliverable
+
+      <li><strong>MVP (F3)</strong>
         <ul>
-          <li>Week of 4/27
+          <li><strong>Week 4/20</strong>
             <ul>
-              <li>Team Plan:
+              <li><strong>Team Plan:</strong>
                 <ul>
-                  <li>All-hands working sessions (multiple) to finalize project plan and make necessary changes from the critique</li>
-                  <li>Eric/Jacob: Justify key results from the data analysis in the final report</li>
-                  <li>Hiro/Christian: Justify the design choices in the final project in the final report</li>
+                  <li><strong>Eric:</strong> finalize narrative and implement stories in scrolling visualization</li>
+                  <li><strong>Hiro:</strong> publish project to public URL and note bugs</li>
+                  <li><strong>Jacob:</strong> refine visuals and audience tone</li>
+                  <li><strong>Christian:</strong> create demo plan and record walkthrough</li>
+                  <li><strong>Team:</strong> record 5-minute video demonstrating MVP</li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+
+      <li><strong>Final Deliverable</strong>
+        <ul>
+          <li><strong>Week of 4/27</strong>
+            <ul>
+              <li><strong>Team Plan:</strong>
+                <ul>
+                  <li>All-hands working sessions to finalize project plan and incorporate critique</li>
+                  <li><strong>Eric/Jacob:</strong> justify key data analysis results in final report</li>
+                  <li><strong>Hiro/Christian:</strong> justify design choices in final project report</li>
                 </ul>
               </li>
             </ul>
@@ -161,10 +151,14 @@
   }
 
   h2 {
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     font-weight: 700;
     margin-bottom: 0.75rem;
     border-bottom: 2px solid oklch(80% 3% 200);
     padding-bottom: 0.4rem;
+  }
+
+  ul li strong {
+    font-weight: 600; /* Slightly less than h2, for emphasis */
   }
 </style>
