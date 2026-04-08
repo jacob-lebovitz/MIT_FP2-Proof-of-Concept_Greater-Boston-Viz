@@ -22,6 +22,8 @@
       <li>One strength of the current design is that it makes uneven change visible. Readers can see that home values generally rise across the region, but not uniformly, and that proximity to new transit does not automatically translate into the same visual pattern across nearby ZIP codes.</li>
 
       <li>At the same time, the current design has limits. It is stronger at showing patterns than proving causation, and the map still contains several competing layers at once. In future versions, we would strengthen the visual hierarchy, improve the linkage between map and chart even further, and add clearer comparative context so readers can better distinguish broad regional market growth from more localized change around the Green Line corridor.</li>
+
+      <li>Finally, and very importantly, one aspect we are still not fully satisfied with is the density of information presented at once. The current visualization is effective for exploring many details across geography, time, and transit history, but that richness can also make the experience overwhelming. As readers scroll through the page, some details may be missed because it is difficult to focus on a single comparison while simultaneously processing the map, the time series, the annotations, and the surrounding narrative. This is an important area for improvement in future iterations. To make the experience more didactic and less overwhelming, we plan to investigate interaction techniques that guide attention more deliberately, such as progressive disclosure, step-by-step highlighting, stronger linking between views, or context-sensitive annotations that reveal detail only when it is most relevant.</li>
     </ul>
   </section>
 
