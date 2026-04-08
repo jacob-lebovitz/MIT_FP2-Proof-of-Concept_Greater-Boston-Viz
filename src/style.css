@@ -186,6 +186,26 @@ section:nth-of-type(2) .role .position-line p:first-child strong {
     font-weight: bold;
 }
 
+.writeup ul {
+  list-style-position: outside;
+  margin-left: 1.5rem;
+  padding-left: 1rem;
+}
+
+.writeup ul li::marker {
+  color: #444;
+  font-size: 0.9rem;
+}
+
+.writeup ul ul {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.writeup li {
+  margin-bottom: 0.35rem;
+}
+
 /* .reading {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(15em, 1fr));
