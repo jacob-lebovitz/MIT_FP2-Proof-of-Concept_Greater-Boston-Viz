@@ -52,14 +52,17 @@
   <div class="scrolly-sections">
     {#each MAP_YEARS as yr}
       <section class="year-section" data-year={yr}>
-        <div class="spacer"></div>
+        <div class="narrative-card" class:active={$currentYear === yr}>
+          <div class="narrative-card-year">{yr}</div>
+          <p class="narrative-card-text">{YEAR_NARRATIVES[yr]}</p>
+        </div>
       </section>
     {/each}
   </div>
 
   <div class="map-container">
     <div class="map-inner">
-      <ZipcodeMap year={$currentYear} hideSlider={true} hideLineChart={true} />
+      <ZipcodeMap year={$currentYear} hideSlider={true} hideLineChart={false} />
       
       <!-- Year slider - overlaid on map -->
       <div class="year-slider">
@@ -74,11 +77,6 @@
         <span class="year-display">{$currentYear}</span>
       </div>
 
-      <!-- Narrative text box - overlaid on map -->
-      <div class="narrative-box">
-        <div class="narrative-year">{$currentYear}</div>
-        <p class="narrative-text">{YEAR_NARRATIVES[$currentYear]}</p>
-      </div>
     </div>
   </div>
 </div>
@@ -103,9 +101,31 @@
     justify-content: center;
   }
 
-  .spacer {
-    width: 100%;
-    height: 100%;
+  .narrative-card {
+    padding: 1.5rem 2rem;
+    border-left: 3px solid #ddd;
+    opacity: 0.4;
+    transition: opacity 0.4s ease, border-color 0.4s ease;
+    max-width: 380px;
+  }
+
+  .narrative-card.active {
+    opacity: 1;
+    border-left-color: #2563eb;
+  }
+
+  .narrative-card-year {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #2563eb;
+    margin-bottom: 0.5rem;
+  }
+
+  .narrative-card-text {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #333;
   }
 
   .map-container {
@@ -270,36 +290,6 @@
     text-align: center;
   }
 
-  .narrative-box {
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
-    top: auto;
-    left: auto;
-    padding: 1rem;
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.95), rgba(59, 130, 246, 0.95));
-    border-top: 2px solid rgba(37, 99, 235, 0.3);
-    backdrop-filter: blur(8px);
-    z-index: 10;
-    width: 300px;
-    max-height: 200px;
-    overflow-y: auto;
-    border-radius: 8px;
-  }
-
-  .narrative-year {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 0.4rem;
-  }
-
-  .narrative-text {
-    margin: 0;
-    font-size: 0.8rem;
-    line-height: 1.35;
-    color: rgba(255, 255, 255, 0.95);
-  }
 
   @media (max-width: 1200px) {
     .scrolly-container {

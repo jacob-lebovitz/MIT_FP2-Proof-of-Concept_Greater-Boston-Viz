@@ -10,9 +10,7 @@
   const WIDTH = 680;
   const HEIGHT = 500;
   const MAP_W = 460;       // geographic projection width (map content stays left of this)
-  const MILESTONE_X = MAP_W + 10;
-  const MILESTONE_W = 230;
-  const LEGEND_X = MILESTONE_X + MILESTONE_W + 10;
+  const LEGEND_X = MAP_W + 10;
   const LEGEND_W = 180;
   const TOTAL_W = LEGEND_X + LEGEND_W + 10;
 
@@ -404,8 +402,8 @@ const ZIP_LABELS = {
     {#if GLX_MILESTONES[year]}
       {@const milestoneLines = GLX_MILESTONES[year].match(/.{1,32}(\s|$)/g)?.map(l => l.trim()) ?? []}
       {@const boxH = 28 + milestoneLines.length * 15}
-      <g transform="translate({MILESTONE_X}, 16)">
-        <rect x={0} y={0} width={MILESTONE_W} height={boxH}
+      <g transform="translate({LEGEND_X}, 280)">
+        <rect x={0} y={0} width={LEGEND_W} height={boxH}
           rx="5" ry="5"
           fill="#1a4a2e" opacity="0.9" />
         <text x={8} y={16} font-size="10" font-weight="bold" fill="#6fcf97">Green Line Extension Milestone · {year}</text>
