@@ -29,8 +29,6 @@
 
       <li>In terms of audience, we wanted the design to remain approachable for people who are interested in housing and transit but may not be specialists in GIS, planning, or policy. For that reason, we favored a relatively simple visual language: a familiar map, a clear legend, a single time control, and short milestone annotations. At the same time, the design still gives more engaged readers enough depth to make comparisons and form their own interpretations.</li>
 
-      <li>We considered other possible approaches. One alternative was a more dashboard-like interface with many controls and layers visible at once. Another was a more abstract chart-first design focused on statistical comparison. We moved away from those options because they either made the story harder to follow or weakened the role of geography, which is central to the project. The current design prioritizes clarity and narrative legibility over maximum analytic density.</li>
-
       <li>One thing that works well in the current design is that it reveals uneven change clearly. As the reader moves through time, it becomes possible to see that home values generally rise across the region, but not uniformly. Some places remain consistently stronger than others, and the presence of new transit infrastructure does not automatically translate into a uniform visual pattern across nearby ZIP codes.</li>
 
       <li>At the same time, there are limits to what the current design does well. The visualization is much better at showing patterns than proving causation. It can help readers see how housing values and Green Line milestones line up in time and space, but it cannot by itself isolate the effect of transit from all other neighborhood changes happening at the same time.</li>
@@ -68,7 +66,7 @@
           <li>Christian: about 8–9 hours gathering, checking, and organizing population and demographic data by ZIP code, especially across a long time range where consistency and coverage matter.</li>
           <li>Jacob: about 8–9 hours identifying, cleaning, and structuring household and housing-related data by ZIP code over time.</li>
           <li>Eric: about 9–10 hours setting up the repository and beginning the implementation of the time-evolving map, including early visualization structure and integration of the Green Line with housing data.</li>
-          <li>Hiro: about 9–10 hours working on the interactive webpage and visualization layer, including the evolving map experience and the online presentation of the project.</li>
+          <li>Hiro: about 9–12 hours working on the interactive webpage and visualization layer, including the evolving map experience and the online presentation of the project.</li>
         </ul>
       </li>
 
