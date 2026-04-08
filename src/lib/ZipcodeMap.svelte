@@ -67,6 +67,7 @@ const ZIP_LABELS = {
   let zoomBehavior;
   let selectedZips = new Set();
   let selectedCities = new Set();
+  let hoveredZip = null;
 
   function toggleZip(zip) {
     const s = new Set(selectedZips);
@@ -285,19 +286,22 @@ const ZIP_LABELS = {
 
   function handleMouseMove(e, feature) {
     const zip = feature.properties.ZCTA5CE20;
-    const entry = housingByZip[String(zip).padStart(5, '0')];
+    const zipStr = String(zip).padStart(5, '0');
+    const entry = housingByZip[zipStr];
     const rect = e.currentTarget.closest('svg').getBoundingClientRect();
+    hoveredZip = zipStr;
     tooltip = {
       visible: true,
       x: e.clientX - rect.left + 14,
       y: e.clientY - rect.top - 40,
-      zip: String(zip).padStart(5, '0'),
+      zip: zipStr,
       city: entry?.city ?? '',
       value: fmt(getValue(zip, year)),
     };
   }
 
   function handleMouseLeave() {
+    hoveredZip = null;
     tooltip = { ...tooltip, visible: false };
   }
 </script>
@@ -319,6 +323,7 @@ const ZIP_LABELS = {
     <div class="loading">Loading map data…</div>
   {/if}
 
+  <div class="map-svg-wrap">
   <svg width={TOTAL_W} height={HEIGHT} bind:this={svgEl} style="display:{loading ? 'none' : 'block'}">
     <g transform={zoomTransform}>
     <!-- Map paths -->
@@ -406,7 +411,7 @@ const ZIP_LABELS = {
         <rect x={0} y={0} width={LEGEND_W} height={boxH}
           rx="5" ry="5"
           fill="#1a4a2e" opacity="0.9" />
-        <text x={8} y={16} font-size="10" font-weight="bold" fill="#6fcf97">Green Line Extension Milestone · {year}</text>
+        <text x={8} y={16} font-size="10" font-weight="bold" fill="#6fcf97">Green Line Extension Milestone</text>
         {#each milestoneLines as line, i}
           <text x={8} y={32 + i * 15} font-size="10" fill="white">{line}</text>
         {/each}
@@ -465,6 +470,8 @@ const ZIP_LABELS = {
       </foreignObject>
     {/if}
   </svg>
+  <button class="reset-zoom-btn" on:click={resetZoom}>Reset zoom</button>
+  </div>
 
   <!-- Line chart -->
   {#if !loading && !hideLineChart}
@@ -515,8 +522,8 @@ const ZIP_LABELS = {
           d={lineGen(d.points)}
           fill="none"
           stroke={getLineColor(d.city)}
-          stroke-width={anySelected ? (selectedZips.has(zipStrToNum(d.zip)) || selectedCities.has(d.city) ? 3 : 1.5) : 1.5}
-          opacity={anySelected ? (selectedZips.has(zipStrToNum(d.zip)) || selectedCities.has(d.city) ? 1 : 0.12) : 0.8}
+          stroke-width={hoveredZip ? (d.zip === hoveredZip ? 3.5 : 1) : anySelected ? (selectedZips.has(zipStrToNum(d.zip)) || selectedCities.has(d.city) ? 3 : 1.5) : 1.5}
+          opacity={hoveredZip ? (d.zip === hoveredZip ? 1 : 0.1) : anySelected ? (selectedZips.has(zipStrToNum(d.zip)) || selectedCities.has(d.city) ? 1 : 0.12) : 0.8}
           role="button"
           aria-label="{d.zip}"
           tabindex="0"
@@ -563,6 +570,25 @@ const ZIP_LABELS = {
 
 <style>
   .map-wrap { margin: 1.5rem 0; }
+
+  .map-svg-wrap {
+    position: relative;
+    display: inline-block;
+  }
+
+  .reset-zoom-btn {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border: 1px solid light-dark(#aaa, #555);
+    border-radius: 4px;
+    background: light-dark(rgba(255,255,255,0.9), rgba(42,42,42,0.9));
+    color: inherit;
+    z-index: 10;
+  }
 
   .loading {
     display: flex;

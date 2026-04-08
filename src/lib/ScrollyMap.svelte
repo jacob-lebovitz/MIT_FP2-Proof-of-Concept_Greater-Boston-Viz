@@ -3,12 +3,10 @@
   import { onMount } from 'svelte';
   import { currentYear } from './stores.js';
 
-  let mapContainerEl;
-  let mapSections = [];
+  let scrollySectionsEl;
 
   const MAP_YEARS = [2005, 2012, 2017, 2021, 2022, 2025];
   const ALL_YEARS = Array.from({ length: 26 }, (_, i) => 2000 + i);
-
   const YEAR_NARRATIVES = {
     2005: 'Initial price increases shown in the Harvard Square and Cambridgeport areas. These areas are accessible off the red line which has been in place for decades. The green line extension is not yet a major topic of discussion, and there are no significant price increases around the projected stops.',
     2012: 'Construction has broken ground on the green line extension. We see no significant price increases in the areas around the green line or their projected new stops. We actually see no real significant price increases over 2005 in any neighborhoods. This is unusual stagnation in a housing market and could be related to the 2008 financial crisis.',
@@ -18,41 +16,65 @@
     2025: 'With an active green line, prices in Somerville and among the green line stay slightly below the prices in Harvard Square and West Cambridge. Interestingly, Kendall Square, more accessible off the red line, has seen significant price increases.',
   };
 
+  // The active narrative card = most recent MAP_YEAR <= currentYear, or null if none reached
+  $: activeNarrativeYear = MAP_YEARS.reduce(
+    (best, yr) => (yr <= $currentYear ? yr : best),
+    null
+  );
+
   function handleYearChange(e) {
     currentYear.set(parseInt(e.target.value, 10));
   }
 
+  const SECTION_HEIGHT = 800; // must match .year-section min-height in CSS
+
   onMount(() => {
-    // Map scrolly observer
-    const mapObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const yr = parseInt(entry.target.dataset.year, 10);
-            currentYear.set(yr);
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
+    function handleScroll() {
+      if (!scrollySectionsEl) return;
+      const rect = scrollySectionsEl.getBoundingClientRect();
+      const scrolled = -rect.top;
+      const vh = window.innerHeight;
 
-    mapSections = Array.from(mapContainerEl.querySelectorAll('[data-year]'));
-    mapSections.forEach((section) => {
-      mapObserver.observe(section);
-    });
+      // Spacer section (index 0) anchors year 2000.
+      // MAP_YEARS sections follow after the spacer (offset by 1).
+      const anchors = [
+        { scrollPos: SECTION_HEIGHT / 2 - vh / 2, year: 2000 },
+        ...MAP_YEARS.map((yr, i) => ({
+          scrollPos: (i + 1) * SECTION_HEIGHT + SECTION_HEIGHT / 2 - vh / 2,
+          year: yr,
+        })),
+      ];
 
-    return () => {
-      mapObserver.disconnect();
-    };
+      if (scrolled <= anchors[0].scrollPos) {
+        currentYear.set(2000);
+        return;
+      }
+      if (scrolled >= anchors[anchors.length - 1].scrollPos) {
+        currentYear.set(anchors[anchors.length - 1].year);
+        return;
+      }
+      for (let i = 0; i < anchors.length - 1; i++) {
+        if (scrolled >= anchors[i].scrollPos && scrolled <= anchors[i + 1].scrollPos) {
+          const t = (scrolled - anchors[i].scrollPos) / (anchors[i + 1].scrollPos - anchors[i].scrollPos);
+          currentYear.set(Math.round(anchors[i].year + t * (anchors[i + 1].year - anchors[i].year)));
+          return;
+        }
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   });
 </script>
 
 <!-- MAP SECTION -->
-<div class="scrolly-container" bind:this={mapContainerEl}>
-  <div class="scrolly-sections">
+<div class="scrolly-container">
+  <div class="scrolly-sections" bind:this={scrollySectionsEl}>
+    <!-- spacer: gives scroll room for years 2000–2004 before first narrative -->
+    <div class="year-spacer"></div>
     {#each MAP_YEARS as yr}
       <section class="year-section" data-year={yr}>
-        <div class="narrative-card" class:active={$currentYear === yr}>
+        <div class="narrative-card" class:active={activeNarrativeYear === yr} class:future={yr > $currentYear}>
           <div class="narrative-card-year">{yr}</div>
           <p class="narrative-card-text">{YEAR_NARRATIVES[yr]}</p>
         </div>
@@ -101,6 +123,10 @@
     justify-content: center;
   }
 
+  .year-spacer {
+    min-height: 800px;
+  }
+
   .narrative-card {
     padding: 1.5rem 2rem;
     border-left: 3px solid #ddd;
@@ -112,6 +138,11 @@
   .narrative-card.active {
     opacity: 1;
     border-left-color: #2563eb;
+  }
+
+  .narrative-card.future {
+    opacity: 0;
+    pointer-events: none;
   }
 
   .narrative-card-year {
