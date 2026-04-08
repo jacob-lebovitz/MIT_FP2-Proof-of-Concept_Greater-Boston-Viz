@@ -3,6 +3,10 @@
   import { onMount } from 'svelte';
   import { base } from '$app/paths';
 
+  export let year = 2025;
+  export let hideSlider = false;
+  export let hideLineChart = false;
+
   const WIDTH = 680;
   const HEIGHT = 500;
   const MAP_W = 460;       // geographic projection width (map content stays left of this)
@@ -57,7 +61,6 @@ const ZIP_LABELS = {
   let greenLineFeatures = [];
   let stations = [];
   let projection, pathGen;
-  let year = 2025;
   let tooltip = { visible: false, x: 0, y: 0, zip: '', city: '', value: '' };
   let glTooltip = { visible: false, x: 0, y: 0, text: '' };
   let svgEl;
@@ -305,12 +308,14 @@ const ZIP_LABELS = {
   <h2>Home Values by ZIP Code</h2>
   <p class="subtitle">Cambridge · Somerville · Medford &nbsp;·&nbsp; {year}</p>
 
-  <div class="slider-row">
-    <span>Year:</span>
-    <input type="range" min={YEARS[0]} max={YEARS[YEARS.length - 1]} step="1" bind:value={year} />
-    <strong>{year}</strong>
-    <button on:click={resetZoom}>Reset zoom</button>
-  </div>
+  {#if !hideSlider}
+    <div class="slider-row">
+      <span>Year:</span>
+      <input type="range" min={YEARS[0]} max={YEARS[YEARS.length - 1]} step="1" bind:value={year} />
+      <strong>{year}</strong>
+      <button on:click={resetZoom}>Reset zoom</button>
+    </div>
+  {/if}
 
   {#if loading}
     <div class="loading">Loading map data…</div>
@@ -464,7 +469,7 @@ const ZIP_LABELS = {
   </svg>
 
   <!-- Line chart -->
-  {#if !loading}
+  {#if !loading && !hideLineChart}
   <h2 style="margin-top:2rem">Home Values Over Time by ZIP Code</h2>
   <svg width={TOTAL_W} height={370} class="line-chart"
     on:pointermove={onYearDrag}
