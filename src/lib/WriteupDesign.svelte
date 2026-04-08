@@ -34,7 +34,7 @@
 
       <li>This division was useful because it allowed us to move forward on multiple fronts at once. While some team members focused on gathering and structuring the core datasets, others could begin implementing the interactive map and testing how the historical and geographic components would fit together in a web-based interface.</li>
 
-      <li>We estimate that the project so far has taken roughly 36–40 people-hours in total, or about 8–10 hours per team member. Christian spent about 8–9 hours on population and demographic data, Jacob about 8–9 hours on household and housing data, Eric about 9–10 hours on repository setup and early map implementation, and Hiro about 9–10 hours on the interactive webpage and visualization layer.</li>
+      <li>We estimate that the project so far has taken roughly 36–40 people-hours in total, or about 8–10 hours per team member. Christian spent about 8–9 hours on population and demographic data, Jacob about 8–9 hours on household and housing data, Eric about 9–10 hours on repository setup and early map implementation, and Hiro about 9–12 hours on the interactive webpage and visualization layer.</li>
 
       <li>The most time-consuming part of the process was coordinating the relationship between the data and the interface. It was not enough to gather demographic, housing, and transit information; the data also had to be structured in a way that made temporal comparison, spatial comparison, and web implementation possible.</li>
 
