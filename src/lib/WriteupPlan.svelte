@@ -143,22 +143,31 @@
     max-width: 720px;
     line-height: 1.75;
     font-size: 1rem;
-    margin-top: 1rem;
+    margin-top: 3rem;
   }
 
-  section {
+  .writeup section {
     margin-bottom: 2.5rem;
   }
 
-  h2 {
-    font-size: 1.25rem;
+  .writeup h2 {
+    font-size: 1.15rem;
     font-weight: 700;
     margin-bottom: 0.75rem;
     border-bottom: 2px solid oklch(80% 3% 200);
     padding-bottom: 0.4rem;
   }
 
-  ul li strong {
-    font-weight: 600; /* Slightly less than h2, for emphasis */
+  .writeup ul {
+    padding-left: 1.4rem;
+    margin: 0;
+  }
+
+  .writeup li {
+    margin-bottom: 0.85rem;
+  }
+
+  .writeup li ul {
+    margin-top: 0.5rem;
   }
 </style>
