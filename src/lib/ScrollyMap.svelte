@@ -129,7 +129,7 @@
 
   .narrative-card {
     padding: 1.5rem 2rem;
-    border-left: 3px solid #ddd;
+    border-left: 3px solid light-dark(#ccc, #555);
     opacity: 0.4;
     transition: opacity 0.4s ease, border-color 0.4s ease;
     max-width: 380px;
@@ -156,7 +156,7 @@
     margin: 0;
     font-size: 0.95rem;
     line-height: 1.6;
-    color: #333;
+    color: light-dark(#333, #ccc);
   }
 
   .map-container {
@@ -251,11 +251,13 @@
     display: flex;
     align-items: center;
     gap: 1rem;
-    background: rgba(255, 255, 255, 0.95);
+    background: light-dark(rgba(255, 255, 255, 0.9), rgba(42, 42, 42, 0.9));
+    border: 1px solid light-dark(#aaa, #555);
     padding: 0.75rem 1rem;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(4px);
+    color: inherit;
   }
 
   .slider-input {
