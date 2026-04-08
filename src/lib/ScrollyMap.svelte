@@ -251,12 +251,12 @@
     display: flex;
     align-items: center;
     gap: 1rem;
-    background: light-dark(rgba(255, 255, 255, 0.9), rgba(42, 42, 42, 0.9));
-    border: 1px solid light-dark(#aaa, #555);
+    background: light-dark(rgba(255, 255, 255, 0.55), rgba(42, 42, 42, 0.9));
+    border: 1px solid light-dark(rgba(0, 0, 0, 0.08), #555);
     padding: 0.75rem 1rem;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(4px);
+    box-shadow: none;
+    backdrop-filter: blur(6px);
     color: inherit;
   }
 
