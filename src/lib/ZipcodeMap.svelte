@@ -237,6 +237,7 @@ const ZIP_LABELS = {
     const svgX = e.clientX - rect.left - LC_MARGIN.left;
     const yr = Math.round(xScale.invert(svgX));
     const val = d.values[String(yr)] ?? null;
+    hoveredZip = d.zip;
     lineTooltip = {
       visible: true,
       x: e.clientX - rect.left + 10,
@@ -249,6 +250,7 @@ const ZIP_LABELS = {
   }
 
   function handleLineMouseLeave() {
+    hoveredZip = null;
     lineTooltip = { ...lineTooltip, visible: false };
   }
 
@@ -329,11 +331,13 @@ const ZIP_LABELS = {
     <!-- Map paths -->
     {#each features as feature}
       {@const zip = feature.properties.ZCTA5CE20}
+      {@const zipStr = String(zip).padStart(5, '0')}
       <path
         d={pathGen?.(feature)}
         fill={anySelected && !selectedZips.has(zip) && !selectedCities.has(ZIP_TO_CITY[zip]) ? '#c8c8c8' : getColor(zip, year)}
-        stroke={selectedZips.has(zip) ? 'black' : 'white'}
-        stroke-width={selectedZips.has(zip) ? 6 / zoomK : 1.5 / zoomK}
+        stroke={hoveredZip === zipStr ? '#1d4ed8' : selectedZips.has(zip) ? 'black' : 'white'}
+        stroke-width={hoveredZip === zipStr ? 3 / zoomK : selectedZips.has(zip) ? 6 / zoomK : 1.5 / zoomK}
+        opacity={hoveredZip ? (hoveredZip === zipStr ? 1 : 0.35) : 1}
         role="button"
         aria-label={ZIP_LABELS[zip]}
         tabindex="0"
