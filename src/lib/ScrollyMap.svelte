@@ -22,8 +22,6 @@
     null
   );
 
-  $: activeIndex = activeNarrativeYear === null ? -1 : MAP_YEARS.indexOf(activeNarrativeYear);
-
   function handleYearChange(e) {
     currentYear.set(parseInt(e.target.value, 10));
   }
@@ -87,15 +85,6 @@
   <div class="map-container">
     <div class="map-inner">
       <ZipcodeMap year={$currentYear} hideSlider={true} hideLineChart={false} />
-
-      <!-- Scroll step indicator -->
-      {#if activeIndex >= 0}
-        <div class="step-indicator" aria-hidden="true">
-          <span class="step-num">{activeIndex + 1}</span>
-          <span class="step-div">/</span>
-          <span class="step-tot">{MAP_YEARS.length}</span>
-        </div>
-      {/if}
 
       <!-- Year slider - overlaid on map -->
       <div class="year-slider">
@@ -257,27 +246,6 @@
   .timeline-dot:hover .year-label {
     opacity: 1;
   }
-
-  .step-indicator {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    z-index: 10;
-    display: flex;
-    align-items: baseline;
-    gap: 0.2rem;
-    background: rgba(30, 30, 40, 0.85);
-    color: #e2e8f0;
-    padding: 0.4rem 0.75rem;
-    border-radius: 6px;
-    font-variant-numeric: tabular-nums;
-    font-size: 0.8rem;
-    letter-spacing: 0.05em;
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-  .step-indicator .step-num { font-weight: 700; color: #93c5fd; font-size: 0.95rem; }
-  .step-indicator .step-div { opacity: 0.5; }
 
   .year-slider {
     position: absolute;

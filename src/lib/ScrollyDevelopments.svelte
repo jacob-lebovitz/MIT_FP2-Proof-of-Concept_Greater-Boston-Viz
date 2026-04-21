@@ -56,8 +56,6 @@
     MAP_YEARS[0]
   );
 
-  $: activeIndex = MAP_YEARS.indexOf(activeNarrativeYear);
-
   function handleYearChange(e) {
     developmentsYear.set(parseInt(e.target.value, 10));
   }
@@ -106,13 +104,10 @@
 <div class="scrolly-container">
   <div class="scrolly-sections" bind:this={scrollySectionsEl}>
     <div class="year-spacer"></div>
-    {#each MAP_YEARS as yr, i}
+    {#each MAP_YEARS as yr}
       <section class="year-section" data-year={yr}>
         <div class="narrative-card" class:active={activeNarrativeYear === yr} class:future={yr > $developmentsYear}>
-          <div class="card-meta">
-            <span class="step">{i + 1} / {MAP_YEARS.length}</span>
-            <span class="card-year">{yr}</span>
-          </div>
+          <div class="card-year">{yr}</div>
           <h3 class="card-title">{YEAR_NARRATIVES[yr].title}</h3>
           <p class="card-body">{YEAR_NARRATIVES[yr].body}</p>
         </div>
@@ -123,13 +118,6 @@
   <div class="map-container">
     <div class="map-inner">
       <DevelopmentsMap year={$developmentsYear} hideSlider={true} />
-
-      <!-- Scroll step indicator -->
-      <div class="step-indicator" aria-hidden="true">
-        <span class="step-num">{activeIndex + 1}</span>
-        <span class="step-div">/</span>
-        <span class="step-tot">{MAP_YEARS.length}</span>
-      </div>
 
       <div class="year-slider">
         <input
@@ -187,26 +175,12 @@
     pointer-events: none;
   }
 
-  .card-meta {
-    display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
-    margin-bottom: 0.35rem;
-  }
-
-  .step {
-    font-size: 0.7rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: light-dark(#64748b, #94a3b8);
-    font-weight: 600;
-  }
-
   .card-year {
     font-size: 1.75rem;
     font-weight: 700;
     color: #2563eb;
     line-height: 1;
+    margin-bottom: 0.35rem;
   }
 
   .card-title {
@@ -235,33 +209,6 @@
     display: inline-block;
     width: 100%;
   }
-
-  .step-indicator {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    z-index: 10;
-    display: flex;
-    align-items: baseline;
-    gap: 0.2rem;
-    background: rgba(30, 30, 40, 0.85);
-    color: #e2e8f0;
-    padding: 0.4rem 0.75rem;
-    border-radius: 6px;
-    font-variant-numeric: tabular-nums;
-    font-size: 0.8rem;
-    letter-spacing: 0.05em;
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .step-indicator .step-num {
-    font-weight: 700;
-    color: #93c5fd;
-    font-size: 0.95rem;
-  }
-
-  .step-indicator .step-div { opacity: 0.5; }
 
   .year-slider {
     position: absolute;
