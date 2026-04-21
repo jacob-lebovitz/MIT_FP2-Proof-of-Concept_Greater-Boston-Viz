@@ -4,7 +4,7 @@
   import { onMount } from 'svelte';
   import { base } from '$app/paths';
 
-  export let year = 2025;
+  export let year = 2011;
   export let hideSlider = false;
 
   const WIDTH = 680;
@@ -15,6 +15,13 @@
   const TOTAL_W = LEGEND_X + LEGEND_W + 10;
 
   const YEARS = Array.from({ length: 26 }, (_, i) => 2000 + i);
+
+  // Matches ZipcodeMap.svelte
+  const CITY_BASE_COLORS = {
+    Cambridge: [37, 99, 235],
+    Somerville: [234, 88, 12],
+    Medford: [22, 163, 74],
+  };
 
   const BRANCH_COLORS = {
     Trunk: '#00843D', B: '#E87722', C: '#00B2A9', D: '#DA291C', E: '#7C4D79',
@@ -71,28 +78,22 @@
   $: visibleGreenLine = greenLineFeatures.filter(f => f.properties.year_opened <= year);
   $: visibleStations = stations.filter(s => s.year_opened <= year);
 
-  // Developments up to current year, positioned via projection
+  // Developments with year_created <= year
   $: visibleDevs = developments
-    .filter(d => d.year_completed <= year && projection)
+    .filter(d => d.year_created <= year && projection)
     .map(d => {
       const p = projection([d.lon, d.lat]);
       return p ? { ...d, cx: p[0], cy: p[1] } : null;
     })
     .filter(Boolean)
-    // Render smallest-on-top so big bubbles don't hide singletons
     .sort((a, b) => b.units - a.units);
 
-  // Size scale — sqrt so area is proportional to unit count
   $: maxUnits = d3.max(developments, d => d.units) ?? 1;
-  $: radiusScale = d3.scaleSqrt().domain([1, maxUnits]).range([2.5, 18]);
+  $: radiusScale = d3.scaleSqrt().domain([1, maxUnits]).range([2.5, 16]);
 
-  // Fill by recency vs. current year (newer = more saturated)
-  const bubbleFill = '#d946ef';       // magenta/purple
-  const bubbleFillOld = '#a78bfa';    // lighter purple
-
-  function devFill(d) {
-    const age = year - d.year_completed;
-    return age <= 2 ? bubbleFill : bubbleFillOld;
+  function cityRgb(city) {
+    const [r, g, b] = CITY_BASE_COLORS[city] ?? [120, 120, 120];
+    return `rgb(${r},${g},${b})`;
   }
 
   function handleDevMouseMove(e, d) {
@@ -101,15 +102,14 @@
       visible: true,
       x: e.clientX - rect.left + 14,
       y: e.clientY - rect.top - 50,
-      html: `<strong>${d.name || 'Unnamed'}</strong>` +
-            `<div>${d.municipal}${d.zip ? ' · ' + d.zip : ''}</div>` +
-            `<div>${d.units} units (${d.affordable_units} affordable)</div>` +
-            `<div>Completed ${d.year_completed}</div>`,
+      html:
+        `<strong>${d.name || 'Unnamed'}</strong>` +
+        `<div>${d.city} · ${d.zip}</div>` +
+        `<div>${d.units} units${d.affordable_units ? ` (${d.affordable_units} affordable)` : ''}</div>` +
+        `<div>Added ${d.year_created}${d.year_completed ? ` · completed ${d.year_completed}` : ''}</div>`,
     };
   }
-  function handleDevMouseLeave() {
-    tooltip = { ...tooltip, visible: false };
-  }
+  function handleDevMouseLeave() { tooltip = { ...tooltip, visible: false }; }
 
   function handleGLMouseMove(e, feature) {
     const rect = e.currentTarget.closest('svg').getBoundingClientRect();
@@ -121,18 +121,14 @@
       text: `${p.name} (${p.year_opened})`,
     };
   }
-  function handleGLMouseLeave() {
-    glTooltip = { ...glTooltip, visible: false };
-  }
+  function handleGLMouseLeave() { glTooltip = { ...glTooltip, visible: false }; }
 
-  // Running totals for legend
-  $: totalUnitsThisYear = d3.sum(developments.filter(d => d.year_completed === year), d => d.units);
-  $: totalUnitsToDate = d3.sum(developments.filter(d => d.year_completed <= year), d => d.units);
+  $: totalUnitsToDate = d3.sum(developments.filter(d => d.year_created <= year), d => d.units);
 </script>
 
 <div class="map-wrap">
   <h2>New Housing Developments</h2>
-  <p class="subtitle">Completed by {year} · {visibleDevs.length} projects · {totalUnitsToDate.toLocaleString()} units</p>
+  <p class="subtitle">Cambridge · Somerville · Medford &nbsp;·&nbsp; added by {year} &nbsp;·&nbsp; {visibleDevs.length} projects · {totalUnitsToDate.toLocaleString()} units</p>
 
   {#if !hideSlider}
     <div class="slider-row">
@@ -150,12 +146,12 @@
   <div class="map-svg-wrap">
     <svg width={TOTAL_W} height={HEIGHT} bind:this={svgEl} style="display:{loading ? 'none' : 'block'}">
       <g transform={zoomTransform}>
-        <!-- Zip context (muted) -->
+        <!-- ZIP context (muted, matches mapped area only) -->
         {#each features as feature}
-          <path d={pathGen?.(feature)} fill="#eef2f7" stroke="#cbd5e1" stroke-width={1 / zoomK} />
+          <path d={pathGen?.(feature)} fill="#f5f5f5" stroke="#bcc4cf" stroke-width={1 / zoomK} />
         {/each}
 
-        <!-- Green Line (B branch excluded to match ZipcodeMap) -->
+        <!-- Green Line (B branch excluded, same as ZipcodeMap) -->
         {#each visibleGreenLine.filter(s => s.properties.branch !== 'B') as segment}
           <path
             d={pathGen?.(segment)}
@@ -191,15 +187,15 @@
           {/if}
         {/each}
 
-        <!-- Development bubbles -->
-        {#each visibleDevs as d (d.name + d.lat + d.lon + d.year_completed)}
+        <!-- Development bubbles, colored by city -->
+        {#each visibleDevs as d (d.name + d.lat + d.lon + d.year_created)}
           <circle
             cx={d.cx}
             cy={d.cy}
             r={radiusScale(d.units) / Math.sqrt(zoomK)}
-            fill={devFill(d)}
+            fill={cityRgb(d.city)}
             fill-opacity="0.55"
-            stroke={devFill(d)}
+            stroke={cityRgb(d.city)}
             stroke-width={1 / zoomK}
             role="button"
             aria-label={d.name}
@@ -208,30 +204,22 @@
             on:mouseleave={handleDevMouseLeave}
           />
         {/each}
-      </g><!-- end zoomable group -->
+      </g>
 
-      <!-- Legend -->
+      <!-- Compact legend -->
       <g transform="translate({LEGEND_X}, 20)">
-        <text font-size="12" font-weight="bold" fill="currentColor">Development size (units)</text>
-        {#each [10, 50, 200] as u, i}
-          {@const cx = 20}
-          {@const cy = 40 + i * 44}
-          <circle cx={cx} cy={cy} r={radiusScale(u)} fill={bubbleFill} fill-opacity="0.55" stroke={bubbleFill} />
-          <text x={cx + 30} y={cy + 4} font-size="11" fill="currentColor">{u} units</text>
+        <text font-size="12" font-weight="bold" fill="currentColor">City</text>
+        {#each Object.entries(CITY_BASE_COLORS) as [city, [r, g, b]], i}
+          <circle cx={9} cy={20 + i * 18} r="6" fill="rgb({r},{g},{b})" fill-opacity="0.7" stroke="rgb({r},{g},{b})" />
+          <text x={24} y={24 + i * 18} font-size="11" fill="currentColor">{city}</text>
         {/each}
 
-        <text font-size="12" font-weight="bold" fill="currentColor" y={180}>Recency</text>
-        <circle cx={20} cy={200} r="6" fill={bubbleFill} fill-opacity="0.6" stroke={bubbleFill} />
-        <text x={50} y={204} font-size="11" fill="currentColor">Completed ≤ 2 yrs ago</text>
-        <circle cx={20} cy={220} r="6" fill={bubbleFillOld} fill-opacity="0.6" stroke={bubbleFillOld} />
-        <text x={50} y={224} font-size="11" fill="currentColor">Older</text>
-
-        <text font-size="11" fill="currentColor" y={258}>
-          <tspan font-weight="bold">{totalUnitsThisYear.toLocaleString()}</tspan> units completed in {year}
-        </text>
-        <text font-size="11" fill="currentColor" y={276}>
-          <tspan font-weight="bold">{totalUnitsToDate.toLocaleString()}</tspan> units cumulative
-        </text>
+        <text font-size="12" font-weight="bold" fill="currentColor" y={92}>Units (area)</text>
+        {#each [10, 50, 200] as u, i}
+          {@const cy = 110 + i * 22}
+          <circle cx={12} cy={cy} r={radiusScale(u)} fill="none" stroke="currentColor" stroke-width="1" opacity="0.7" />
+          <text x={30} y={cy + 4} font-size="11" fill="currentColor">{u}</text>
+        {/each}
       </g>
 
       <!-- Green Line tooltip -->
@@ -255,10 +243,7 @@
 <style>
   .map-wrap { margin: 1.5rem 0; }
 
-  .map-svg-wrap {
-    position: relative;
-    display: inline-block;
-  }
+  .map-svg-wrap { position: relative; display: inline-block; }
 
   .reset-zoom-btn {
     position: absolute;
@@ -275,28 +260,16 @@
   }
 
   .loading {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 200px;
-    font-size: 1rem;
-    color: #888;
+    display: flex; align-items: center; justify-content: center;
+    height: 200px; font-size: 1rem; color: #888;
   }
 
   h2 { margin-bottom: 0.2rem; }
-
-  .subtitle {
-    color: #888;
-    margin: 0 0 0.75rem;
-    font-size: 0.9rem;
-  }
+  .subtitle { color: #888; margin: 0 0 0.75rem; font-size: 0.9rem; }
 
   .slider-row {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 0.75rem;
-    font-size: 0.95rem;
+    display: flex; align-items: center; gap: 0.6rem;
+    margin-bottom: 0.75rem; font-size: 0.95rem;
   }
 
   input[type=range] { width: 260px; cursor: pointer; }
@@ -308,29 +281,20 @@
     background: light-dark(#f0f0f0, #1e1e1e);
     cursor: grab;
   }
-
   svg:active { cursor: grabbing; }
 
   button {
-    padding: 3px 10px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    border: 1px solid light-dark(#aaa, #555);
-    border-radius: 4px;
-    background: light-dark(white, #2a2a2a);
-    color: inherit;
+    padding: 3px 10px; font-size: 0.85rem; cursor: pointer;
+    border: 1px solid light-dark(#aaa, #555); border-radius: 4px;
+    background: light-dark(white, #2a2a2a); color: inherit;
   }
 
   circle { transition: opacity 0.15s; }
   circle[role="button"]:hover { fill-opacity: 0.85; cursor: pointer; }
 
   .tooltip {
-    background: rgba(0,0,0,0.82);
-    color: #fff;
-    padding: 6px 10px;
-    border-radius: 5px;
-    font-size: 12px;
-    line-height: 1.5;
-    pointer-events: none;
+    background: rgba(0,0,0,0.82); color: #fff;
+    padding: 6px 10px; border-radius: 5px;
+    font-size: 12px; line-height: 1.5; pointer-events: none;
   }
 </style>
