@@ -6,6 +6,7 @@
 
   export let year = 2011;
   export let hideSlider = false;
+  export let hideHeader = false;
 
   const WIDTH = 680;
   const HEIGHT = 500;
@@ -124,11 +125,14 @@
   function handleGLMouseLeave() { glTooltip = { ...glTooltip, visible: false }; }
 
   $: totalUnitsToDate = d3.sum(developments.filter(d => d.year_created <= year), d => d.units);
+  $: totalAffordableToDate = d3.sum(developments.filter(d => d.year_created <= year), d => d.affordable_units || 0);
 </script>
 
 <div class="map-wrap">
-  <h2>New Housing Developments</h2>
-  <p class="subtitle">Cambridge · Somerville · Medford &nbsp;·&nbsp; added by {year} &nbsp;·&nbsp; {visibleDevs.length} projects · {totalUnitsToDate.toLocaleString()} units</p>
+  {#if !hideHeader}
+    <h2>New Housing Developments</h2>
+    <p class="subtitle">Cambridge · Somerville · Medford &nbsp;·&nbsp; added by {year}</p>
+  {/if}
 
   {#if !hideSlider}
     <div class="slider-row">
@@ -206,17 +210,17 @@
         {/each}
       </g>
 
-      <!-- Compact legend -->
+      <!-- Compact legend with small-caps section labels -->
       <g transform="translate({LEGEND_X}, 20)">
-        <text font-size="12" font-weight="bold" fill="currentColor">City</text>
+        <text class="legend-label" font-size="10" fill="currentColor">CITY</text>
         {#each Object.entries(CITY_BASE_COLORS) as [city, [r, g, b]], i}
-          <circle cx={9} cy={20 + i * 18} r="6" fill="rgb({r},{g},{b})" fill-opacity="0.7" stroke="rgb({r},{g},{b})" />
-          <text x={24} y={24 + i * 18} font-size="11" fill="currentColor">{city}</text>
+          <circle cx={9} cy={22 + i * 18} r="6" fill="rgb({r},{g},{b})" fill-opacity="0.7" stroke="rgb({r},{g},{b})" />
+          <text x={24} y={26 + i * 18} font-size="11" fill="currentColor">{city}</text>
         {/each}
 
-        <text font-size="12" font-weight="bold" fill="currentColor" y={92}>Units (area)</text>
+        <text class="legend-label" font-size="10" fill="currentColor" y={94}>UNITS (AREA)</text>
         {#each [10, 50, 200] as u, i}
-          {@const cy = 110 + i * 22}
+          {@const cy = 112 + i * 22}
           <circle cx={12} cy={cy} r={radiusScale(u)} fill="none" stroke="currentColor" stroke-width="1" opacity="0.7" />
           <text x={30} y={cy + 4} font-size="11" fill="currentColor">{u}</text>
         {/each}
@@ -237,6 +241,24 @@
       {/if}
     </svg>
     <button class="reset-zoom-btn" on:click={resetZoom}>Reset zoom</button>
+
+    <!-- Big-number stat overlay: cumulative projects / units / affordable -->
+    <div class="stat-overlay" aria-hidden="true">
+      <div class="stat-col">
+        <div class="stat-num">{visibleDevs.length}</div>
+        <div class="stat-lbl">PROJECTS</div>
+      </div>
+      <div class="stat-div"></div>
+      <div class="stat-col">
+        <div class="stat-num">{totalUnitsToDate.toLocaleString()}</div>
+        <div class="stat-lbl">UNITS</div>
+      </div>
+      <div class="stat-div"></div>
+      <div class="stat-col">
+        <div class="stat-num">{totalAffordableToDate.toLocaleString()}</div>
+        <div class="stat-lbl">AFFORDABLE</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -289,12 +311,74 @@
     background: light-dark(white, #2a2a2a); color: inherit;
   }
 
-  circle { transition: opacity 0.15s; }
-  circle[role="button"]:hover { fill-opacity: 0.85; cursor: pointer; }
+  circle {
+    transition: fill-opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                r 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  circle[role="button"]:hover { fill-opacity: 0.9; cursor: pointer; }
 
+  .legend-label {
+    letter-spacing: 0.12em;
+    font-weight: 600;
+    opacity: 0.75;
+  }
+
+  /* Unified tooltip style — matches the ZIP map */
   .tooltip {
-    background: rgba(0,0,0,0.82); color: #fff;
-    padding: 6px 10px; border-radius: 5px;
-    font-size: 12px; line-height: 1.5; pointer-events: none;
+    background: rgba(30, 30, 40, 0.92);
+    color: #f1f5f9;
+    padding: 7px 11px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.55;
+    pointer-events: none;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  }
+  .tooltip strong { color: #fff; }
+
+  /* Big-number stat overlay */
+  .stat-overlay {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    align-items: stretch;
+    gap: 0.85rem;
+    padding: 0.55rem 0.9rem;
+    background: rgba(30, 30, 40, 0.85);
+    color: #e2e8f0;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    font-variant-numeric: tabular-nums;
+    z-index: 10;
+  }
+
+  .stat-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 3.4rem;
+  }
+
+  .stat-num {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #93c5fd;
+    line-height: 1.1;
+  }
+
+  .stat-lbl {
+    font-size: 0.62rem;
+    letter-spacing: 0.13em;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+
+  .stat-div {
+    width: 1px;
+    background: rgba(255,255,255,0.1);
   }
 </style>

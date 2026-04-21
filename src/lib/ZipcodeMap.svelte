@@ -660,12 +660,15 @@ const ZIP_LABELS = {
   path:hover { opacity: 0.8; stroke-width: 2.5; }
 
   .tooltip {
-    background: rgba(0,0,0,0.82);
-    color: #fff;
-    padding: 6px 10px;
-    border-radius: 5px;
+    background: rgba(30, 30, 40, 0.92);
+    color: #f1f5f9;
+    padding: 7px 11px;
+    border-radius: 6px;
     font-size: 12px;
-    line-height: 1.6;
+    line-height: 1.55;
     pointer-events: none;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
   }
+  .tooltip strong { color: #fff; }
 </style>
