@@ -1,5 +1,6 @@
 <script>
   import ZipcodeMap from './ZipcodeMap.svelte';
+  import DevelopmentsMap from './DevelopmentsMap.svelte';
   import { onMount } from 'svelte';
   import { currentYear } from './stores.js';
 
@@ -85,7 +86,8 @@
   <div class="map-container">
     <div class="map-inner">
       <ZipcodeMap year={$currentYear} hideSlider={true} hideLineChart={false} />
-      
+      <DevelopmentsMap year={$currentYear} hideSlider={true} />
+
       <!-- Year slider - overlaid on map -->
       <div class="year-slider">
         <input 

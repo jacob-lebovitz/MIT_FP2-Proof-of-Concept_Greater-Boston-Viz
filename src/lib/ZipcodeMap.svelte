@@ -117,6 +117,11 @@ const ZIP_LABELS = {
     zoomTransform = 'translate(0,0) scale(1)';
   }
 
+  function resetSelection() {
+    selectedZips = new Set();
+    selectedCities = new Set();
+  }
+
   $: visibleGreenLine = greenLineFeatures.filter(f => f.properties.year_opened <= year);
   $: visibleStations = stations.filter(s => s.year_opened <= year);
 
@@ -318,6 +323,7 @@ const ZIP_LABELS = {
       <input type="range" min={YEARS[0]} max={YEARS[YEARS.length - 1]} step="1" bind:value={year} />
       <strong>{year}</strong>
       <button on:click={resetZoom}>Reset zoom</button>
+      <button on:click={resetSelection} disabled={!anySelected}>Reset selection</button>
     </div>
   {/if}
 
@@ -475,6 +481,7 @@ const ZIP_LABELS = {
     {/if}
   </svg>
   <button class="reset-zoom-btn" on:click={resetZoom}>Reset zoom</button>
+  <button class="reset-selection-btn" on:click={resetSelection} disabled={!anySelected}>Reset selection</button>
   </div>
 
   <!-- Line chart -->
@@ -580,10 +587,10 @@ const ZIP_LABELS = {
     display: inline-block;
   }
 
-  .reset-zoom-btn {
+  .reset-zoom-btn,
+  .reset-selection-btn {
     position: absolute;
     bottom: 10px;
-    left: 10px;
     padding: 4px 10px;
     font-size: 0.8rem;
     cursor: pointer;
@@ -592,6 +599,13 @@ const ZIP_LABELS = {
     background: light-dark(rgba(255,255,255,0.9), rgba(42,42,42,0.9));
     color: inherit;
     z-index: 10;
+  }
+
+  .reset-zoom-btn { left: 10px; }
+  .reset-selection-btn { left: 110px; }
+  .reset-selection-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
   }
 
   .loading {
