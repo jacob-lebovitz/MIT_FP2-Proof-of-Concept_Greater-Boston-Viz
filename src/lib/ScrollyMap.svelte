@@ -85,7 +85,7 @@
   <div class="map-container">
     <div class="map-inner">
       <ZipcodeMap year={$currentYear} hideSlider={true} hideLineChart={false} />
-      
+
       <!-- Year slider - overlaid on map -->
       <div class="year-slider">
         <input 
@@ -131,13 +131,17 @@
     padding: 1.5rem 2rem;
     border-left: 3px solid light-dark(#ccc, #555);
     opacity: 0.4;
-    transition: opacity 0.4s ease, border-color 0.4s ease;
+    transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
     max-width: 380px;
+    transform: translateX(-4px);
   }
 
   .narrative-card.active {
     opacity: 1;
     border-left-color: #2563eb;
+    transform: translateX(0);
   }
 
   .narrative-card.future {
