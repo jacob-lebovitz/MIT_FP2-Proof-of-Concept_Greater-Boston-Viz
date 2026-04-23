@@ -100,6 +100,7 @@
   }
 
   $: visibleGreenLine = greenLineFeatures.filter(f => f.properties.year_opened <= year);
+  $: futureGreenLine = greenLineFeatures.filter(f => f.properties.year_opened > year && f.properties.branch !== 'B');
   $: visibleStations = stations.filter(s => s.year_opened <= year);
 
   // Developments with year_created <= year
@@ -187,6 +188,21 @@
             stroke="#ddd"
             stroke-width={street.properties.highway === 'primary' ? 1.5 / zoomK : 0.8 / zoomK}
             opacity="0.4"
+            pointer-events="none"
+          />
+        {/each}
+
+        <!-- Future Green Line segments (planned but not yet opened) — translucent ghost -->
+        {#each futureGreenLine as segment}
+          <path
+            d={pathGen?.(segment)}
+            fill="none"
+            stroke="#00843D"
+            stroke-width={3 / zoomK}
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-dasharray="{6 / zoomK},{4 / zoomK}"
+            opacity="0.28"
             pointer-events="none"
           />
         {/each}
