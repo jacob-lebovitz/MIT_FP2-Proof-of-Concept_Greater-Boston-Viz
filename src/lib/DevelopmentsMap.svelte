@@ -34,6 +34,7 @@
   let loading = true;
   let greenLineFeatures = [];
   let stations = [];
+  let streetData = [];  // New: for street-level detail
   let projection, pathGen;
   let tooltip = { visible: false, x: 0, y: 0, html: '' };
   let glTooltip = { visible: false, x: 0, y: 0, text: '' };
@@ -56,6 +57,28 @@
     projection = d3.geoMercator().fitExtent([[0, 0], [MAP_W, HEIGHT]], { type: 'FeatureCollection', features });
     pathGen = d3.geoPath().projection(projection);
     loading = false;
+
+    // Load street data from Overpass API for street-level detail
+    try {
+      const bbox = '42.35,-71.15,42.43,-71.07'; // Greater Boston area bounding box
+      const overpassUrl = `https://overpass-api.de/api/interpreter?data=[bbox:${bbox}];(way["highway"~"^(primary|secondary|tertiary|residential|living_street)$"];);out geom;`;
+      const response = await fetch(overpassUrl);
+      if (response.ok) {
+        const data = await response.json();
+        // Convert Overpass JSON to GeoJSON
+        if (data.elements) {
+          streetData = data.elements
+            .filter(el => el.type === 'way' && el.geometry)
+            .map(way => ({
+              type: 'LineString',
+              coordinates: way.geometry.map(node => [node.lon, node.lat]),
+              properties: { highway: way.tags?.highway || 'road' }
+            }));
+        }
+      }
+    } catch (e) {
+      console.log('Street data not available, continuing without street layer');
+    }
 
     zoomBehavior = d3.zoom()
       .scaleExtent([1, 8])
@@ -150,9 +173,22 @@
   <div class="map-svg-wrap">
     <svg width={TOTAL_W} height={HEIGHT} bind:this={svgEl} style="display:{loading ? 'none' : 'block'}">
       <g transform={zoomTransform}>
-        <!-- ZIP context (muted, matches mapped area only) -->
+        <!-- ZIP code background (muted, provides area context) -->
         {#each features as feature}
           <path d={pathGen?.(feature)} fill="#f5f5f5" stroke="#bcc4cf" stroke-width={1 / zoomK} />
+        {/each}
+
+        <!-- Street-level detail layer (subtle underlayer) -->
+        {#each streetData as street}
+          {@const streetPath = d3.geoPath().projection(projection)}
+          <path
+            d={streetPath({ type: 'LineString', coordinates: street.coordinates })}
+            fill="none"
+            stroke="#ddd"
+            stroke-width={street.properties.highway === 'primary' ? 1.5 / zoomK : 0.8 / zoomK}
+            opacity="0.4"
+            pointer-events="none"
+          />
         {/each}
 
         <!-- Green Line (B branch excluded, same as ZipcodeMap) -->

@@ -206,6 +206,22 @@ const ZIP_LABELS = {
     .y(([, val]) => yScale(val))
     .defined(([, val]) => val != null);
 
+  $: sortedFeatures = [...features].sort((a, b) => {
+    const aZipStr = String(a.properties.ZCTA5CE20).padStart(5, '0');
+    const bZipStr = String(b.properties.ZCTA5CE20).padStart(5, '0');
+    const aIsHovered = hoveredZip === aZipStr;
+    const bIsHovered = hoveredZip === bZipStr;
+    const aIsSelected = selectedZips.has(a.properties.ZCTA5CE20);
+    const bIsSelected = selectedZips.has(b.properties.ZCTA5CE20);
+    
+    // Sort: hovered last (top), then selected, then normal
+    if (aIsHovered && !bIsHovered) return 1;
+    if (!aIsHovered && bIsHovered) return -1;
+    if (aIsSelected && !bIsSelected) return 1;
+    if (!aIsSelected && bIsSelected) return -1;
+    return 0;
+  });
+
   $: lineData = housing.map(d => ({
     zip: d.zip,
     city: d.city,
@@ -267,7 +283,7 @@ const ZIP_LABELS = {
     const zipStr = String(zipNum).padStart(5, '0');
     const entry = housingByZip[zipStr];
     const val = entry?.values?.[String(yr)];
-    return val != null ? colorScale(val) : '#ccc';
+    return val != null ? colorScale(val) : 'url(#missingDataPattern)';
   }
 
   function getLabelColor(zipNum) {
@@ -333,17 +349,26 @@ const ZIP_LABELS = {
 
   <div class="map-svg-wrap">
   <svg width={TOTAL_W} height={HEIGHT} bind:this={svgEl} style="display:{loading ? 'none' : 'block'}">
+    <defs>
+      <pattern id="missingDataPattern" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+        <line x1="0" y1="0" x2="0" y2="8" stroke="#999" stroke-width="2" />
+      </pattern>
+    </defs>
     <g transform={zoomTransform}>
-    <!-- Map paths -->
-    {#each features as feature}
+    <!-- Map paths: sorted for proper z-ordering (hovered and selected on top) -->
+    {#each sortedFeatures as feature (feature.properties.ZCTA5CE20)}
       {@const zip = feature.properties.ZCTA5CE20}
       {@const zipStr = String(zip).padStart(5, '0')}
+      {@const isHovered = hoveredZip === zipStr}
+      {@const isSelected = selectedZips.has(zip)}
       <path
         d={pathGen?.(feature)}
-        fill={anySelected && !selectedZips.has(zip) && !selectedCities.has(ZIP_TO_CITY[zip]) ? '#c8c8c8' : getColor(zip, year)}
-        stroke={hoveredZip === zipStr ? '#1d4ed8' : selectedZips.has(zip) ? 'black' : 'white'}
-        stroke-width={hoveredZip === zipStr ? 3 / zoomK : selectedZips.has(zip) ? 6 / zoomK : 1.5 / zoomK}
-        opacity={hoveredZip ? (hoveredZip === zipStr ? 1 : 0.35) : 1}
+        fill={anySelected && !isSelected && !selectedCities.has(ZIP_TO_CITY[zip]) ? '#c8c8c8' : getColor(zip, year)}
+        stroke={isHovered ? '#1d4ed8' : isSelected ? '#2563eb' : 'white'}
+        stroke-width={isHovered ? 4 / zoomK : isSelected ? 3.5 / zoomK : 1.5 / zoomK}
+        stroke-linejoin="round"
+        opacity={hoveredZip && !isHovered ? 0.35 : 1}
+        filter={isSelected && !isHovered ? 'drop-shadow(0 0 3px rgba(37, 99, 235, 0.5))' : 'none'}
         role="button"
         aria-label={ZIP_LABELS[zip]}
         tabindex="0"
@@ -354,8 +379,9 @@ const ZIP_LABELS = {
       />
     {/each}
 
-    <!-- Green Line segments (B branch orange line commented out for now) -->
-    {#each visibleGreenLine.filter(s => s.properties.branch !== 'B') as segment}
+    <!-- Green Line segments - all future segments shown as translucent -->
+    {#each greenLineFeatures.filter(s => s.properties.branch !== 'B') as segment}
+      {@const isFuture = segment.properties.year_opened > year}
       <path
         d={pathGen?.(segment)}
         fill="none"
@@ -363,6 +389,7 @@ const ZIP_LABELS = {
         stroke-width={3 / zoomK}
         stroke-linecap="round"
         stroke-linejoin="round"
+        opacity={isFuture ? 0.25 : 1}
         role="img"
         aria-label={segment.properties.name}
         on:mousemove={(e) => handleGLMouseMove(e, segment)}
@@ -438,7 +465,13 @@ const ZIP_LABELS = {
           {fmtLegend(lo)} – {fmtLegend(hi)}
         </text>
       {/each}
-      <text font-size="11" font-weight="bold" fill="currentColor" y={16 + N_BUCKETS * 22 + 16}>City Labels</text>
+      <!-- Missing data entry -->
+      <rect x={0} y={16 + N_BUCKETS * 22} width="18" height="18"
+        fill="url(#missingDataPattern)" stroke="#999" stroke-width="0.5" />
+      <text x={24} y={16 + N_BUCKETS * 22 + 13} font-size="11" fill="currentColor">
+        No data
+      </text>
+      <text font-size="11" font-weight="bold" fill="currentColor" y={16 + (N_BUCKETS + 1) * 22 + 16}>City Labels</text>
       {#each Object.entries(CITY_BASE_COLORS) as [city, [r, g, b]], i}
         <g
           role="button"
@@ -448,12 +481,12 @@ const ZIP_LABELS = {
           on:click={() => toggleLegendCity(city)}
           on:keydown={(e) => e.key === 'Enter' && toggleLegendCity(city)}
         >
-          <circle cx={9} cy={16 + N_BUCKETS * 22 + 32 + i * 20} r="6"
+          <circle cx={9} cy={16 + (N_BUCKETS + 1) * 22 + 32 + i * 20} r="6"
             fill="rgb({r},{g},{b})"
             stroke={selectedCities.has(city) ? '#000' : 'none'}
             stroke-width="2"
           />
-          <text x={24} y={16 + N_BUCKETS * 22 + 37 + i * 20} font-size="11"
+          <text x={24} y={16 + (N_BUCKETS + 1) * 22 + 37 + i * 20} font-size="11"
             fill="currentColor"
             font-weight={selectedCities.has(city) ? 'bold' : 'normal'}
           >{city}</text>
@@ -656,7 +689,13 @@ const ZIP_LABELS = {
     color: inherit;
   }
 
-  path { cursor: pointer; transition: opacity 0.1s; }
+  path { 
+    cursor: pointer; 
+    transition: opacity 0.1s;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  path:focus, path:focus-visible { outline: none; }
   path:hover { opacity: 0.8; stroke-width: 2.5; }
 
   .tooltip {
