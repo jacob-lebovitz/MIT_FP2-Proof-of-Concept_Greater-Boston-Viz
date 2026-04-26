@@ -20,9 +20,9 @@
 
   // Matches ZipcodeMap.svelte
   const CITY_BASE_COLORS = {
-    Cambridge: [37, 99, 235],
-    Somerville: [234, 88, 12],
-    Medford: [22, 163, 74],
+    Cambridge: [37, 99, 235],   // blue
+    Somerville: [220, 38, 38],  // red
+    Medford: [202, 138, 4],     // yellow (deep amber for legibility on white)
   };
 
   const BRANCH_COLORS = {
@@ -193,7 +193,7 @@
           />
         {/each}
 
-        <!-- Future Green Line segments (planned but not yet opened) — translucent ghost -->
+        <!-- Future Green Line segments (planned but not yet opened) — solid translucent preview -->
         {#each futureGreenLine as segment}
           <path
             d={pathGen?.(segment)}
@@ -202,8 +202,7 @@
             stroke-width={3 / zoomK}
             stroke-linecap="round"
             stroke-linejoin="round"
-            stroke-dasharray="{6 / zoomK},{4 / zoomK}"
-            opacity="0.28"
+            opacity="0.35"
             pointer-events="none"
           />
         {/each}
