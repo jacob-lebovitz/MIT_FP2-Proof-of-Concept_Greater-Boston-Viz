@@ -34,8 +34,8 @@ const ZIP_LABELS = {
 
   const CITY_BASE_COLORS = {
     Cambridge: [37, 99, 235],    // blue
-    Somerville: [234, 88, 12],   // orange
-    Medford: [22, 163, 74],      // green
+    Somerville: [220, 38, 38],   // red
+    Medford: [202, 138, 4],      // yellow (deep amber for legibility on white)
   };
 
   const GLX_MILESTONES = {
@@ -361,14 +361,15 @@ const ZIP_LABELS = {
       {@const zipStr = String(zip).padStart(5, '0')}
       {@const isHovered = hoveredZip === zipStr}
       {@const isSelected = selectedZips.has(zip)}
+      {@const [cr, cg, cb] = CITY_BASE_COLORS[ZIP_TO_CITY[zip]] ?? [120, 120, 120]}
       <path
         d={pathGen?.(feature)}
         fill={anySelected && !isSelected && !selectedCities.has(ZIP_TO_CITY[zip]) ? '#c8c8c8' : getColor(zip, year)}
-        stroke={isHovered ? '#1d4ed8' : isSelected ? '#2563eb' : 'white'}
+        stroke={isHovered || isSelected ? `rgb(${cr},${cg},${cb})` : 'white'}
         stroke-width={isHovered ? 4 / zoomK : isSelected ? 3.5 / zoomK : 1.5 / zoomK}
         stroke-linejoin="round"
         opacity={hoveredZip && !isHovered ? 0.35 : 1}
-        filter={isSelected && !isHovered ? 'drop-shadow(0 0 3px rgba(37, 99, 235, 0.5))' : 'none'}
+        filter={isSelected && !isHovered ? `drop-shadow(0 0 3px rgba(${cr}, ${cg}, ${cb}, 0.5))` : 'none'}
         role="button"
         aria-label={ZIP_LABELS[zip]}
         tabindex="0"
@@ -440,11 +441,11 @@ const ZIP_LABELS = {
 
     </g><!-- end zoomable group -->
 
-    <!-- GLX Milestone annotation -->
+    <!-- GLX Milestone annotation: anchored to the bottom of the SVG so it never overlaps the city legend -->
     {#if GLX_MILESTONES[year]}
       {@const milestoneLines = GLX_MILESTONES[year].match(/.{1,32}(\s|$)/g)?.map(l => l.trim()) ?? []}
       {@const boxH = 28 + milestoneLines.length * 15}
-      <g transform="translate({LEGEND_X}, 280)">
+      <g transform="translate({LEGEND_X}, {HEIGHT - boxH - 12})">
         <rect x={0} y={0} width={LEGEND_W} height={boxH}
           rx="5" ry="5"
           fill="#1a4a2e" opacity="0.9" />
