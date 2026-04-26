@@ -1,5 +1,6 @@
 <script>
 // test comment for action
+// test 2
   import * as d3 from 'd3';
   import { onMount } from 'svelte';
   import { base } from '$app/paths';
