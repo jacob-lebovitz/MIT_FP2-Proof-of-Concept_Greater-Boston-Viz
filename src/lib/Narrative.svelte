@@ -30,10 +30,8 @@
   <p class="lede">
     Across two decades and three cities, Cambridge, Somerville, and Medford added
     housing throughout the Green Line Extension's slow march from lawsuit to ribbon-cutting.
-    Prices climbed everywhere in Greater Boston, but the largest jumps tracked the
-    <strong>Red Line</strong> (Harvard Square, Kendall) — not the new GLX corridor.
-    Meanwhile, supply along the future GLX route was already growing before a single
-    train arrived.
+    Prices climbed everywhere in Greater Boston since 2012 (the start of construction), but the largest jumps tracked the
+    <strong>Red Line</strong> (Harvard Square, Kendall), not the new GLX corridor.
   </p>
 
   <div class="stat-grid" aria-label="Summary statistics">
@@ -59,27 +57,22 @@
   <ul class="findings">
     <li>
       <strong>The "transit premium" myth got smaller, not bigger.</strong>
-      ZIPs along the GLX (Somerville, Medford) stayed cheaper than Cambridge's
-      Red Line neighborhoods through 2025. Service opening did not produce a
-      sudden price spike at the new stops.
+      Housing prices along the green line rose, but not unlikely neighboring zipcodes. Transit development did not result in drastically higher prices. 
     </li>
     <li>
       <strong>Supply responded to anticipation, not the ribbon-cutting.</strong>
       Somerville's biggest development years (2014, 2016, 2019) all happened
-      <em>during</em> GLX construction. Once trains were running, the pipeline thinned —
+      <em>during</em> construction. Once trains were running, the pipeline thinned, as
       2022–2024 combined added fewer units than 2019 alone.
     </li>
     <li>
       <strong>Affordability rose with the rules, not the trains.</strong>
-      Affordable units more than tripled between 2015 and 2020, after Cambridge
-      and Somerville tightened inclusionary zoning. The trend continued past
-      2022, and affordable stock now makes up roughly one in seven units on the map.
+      Affordable units more than tripled between 2015 and 2020, due to new inclusionary zoning policies. The trend continued past
+      2022, and it allowed for maining a mixed-income demographic.
     </li>
     <li>
       <strong>Cambridge built fewer, larger projects; Somerville built many smaller ones.</strong>
-      Cambridge holds about half of unit volume from a third of the projects —
-      labs and mixed-use towers near Kendall. Somerville's pattern is denser
-      infill across the corridor.
+      Both zip codes investing in housing developments near Green Line stations, though they were of different size and function.
     </li>
   </ul>
 
@@ -87,26 +80,25 @@
   <ul class="findings">
     <li>
       <strong>Inclusionary zoning percentages on new approvals.</strong>
-      A higher mandated affordable share is the single most visible lever in
-      this dataset for keeping new supply mixed-income.
+      Zoning policies allowed for affordability to be maintained with new developments.
     </li>
     <li>
       <strong>Pre-emptive permitting around future transit.</strong>
-      Most of the GLX-corridor units arrived before service. Cities that
+      Most of the expansion units arrived before service. Cities that
       upzone <em>during</em> infrastructure construction capture more supply
       than those that wait until trains run.
     </li>
     <li>
-      <strong>Red Line ZIPs, not Green Line ones.</strong>
+      <strong>Stable pricing along Green Line route.</strong>
       The strongest price pressure in this map sits around Harvard, Porter, and
-      Kendall. Affordability policy in the GLX corridor needs to be planned with
+      Kendall. Affordability policy in the GLX area needs to be planned with
       Red Line displacement risk in mind, not just GLX-corridor risk.
     </li>
   </ul>
 
   <p class="closer">
-    The headline you'll often hear — "new transit gentrifies the neighborhood" —
-    isn't what this data shows. New transit, paired with
+    The headline you'll often hear is "new transit gentrifies the neighborhood."
+    This is not what this data shows. New transit, paired with
     inclusionary zoning and an active permitting pipeline, expanded the housing
     stock and grew the share of homes set aside as affordable. That's a more
     boring story, but a more useful one for the next corridor.
