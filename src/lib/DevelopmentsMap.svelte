@@ -28,12 +28,17 @@
     Trunk: '#00843D', B: '#E87722', C: '#00B2A9', D: '#DA291C', E: '#7C4D79',
     'GLX-D': '#00843D', 'GLX-E': '#00843D',
   };
+  const RED_LINE_COLOR = '#DA291C';
 
   let features = [];
   let developments = [];
   let loading = true;
   let greenLineFeatures = [];
   let stations = [];
+  let surroundingFeatures = [];
+  let redLineFeatures = [];
+  let redLineStations = [];
+  let charlesRiverFeatures = [];
   let projection, pathGen;
   let tooltip = { visible: false, x: 0, y: 0, html: '' };
   let glTooltip = { visible: false, x: 0, y: 0, text: '' };
@@ -43,16 +48,24 @@
   let zoomBehavior;
 
   onMount(async () => {
-    const [geojson, devData, glGeojson, stationData] = await Promise.all([
+    const [geojson, devData, glGeojson, stationData, surroundingGeojson, rlGeojson, rlStationData, charlesGeojson] = await Promise.all([
       d3.json(`${base}/target-zip-codes.geojson`),
       d3.json(`${base}/housing_developments.json`),
       d3.json(`${base}/mbta_green_line.geojson`),
       d3.json(`${base}/mbta_green_line_stations.json`),
+      d3.json(`${base}/surrounding-context.geojson`),
+      d3.json(`${base}/mbta_red_line.geojson`),
+      d3.json(`${base}/mbta_red_line_stations.json`),
+      d3.json(`${base}/charles_river.geojson`),
     ]);
     features = geojson.features;
     developments = devData;
     greenLineFeatures = glGeojson.features;
     stations = stationData;
+    surroundingFeatures = surroundingGeojson.features;
+    redLineFeatures = rlGeojson.features;
+    redLineStations = rlStationData;
+    charlesRiverFeatures = charlesGeojson.features;
     projection = d3.geoMercator().fitExtent([[0, 0], [MAP_W, HEIGHT]], { type: 'FeatureCollection', features });
     pathGen = d3.geoPath().projection(projection);
     loading = false;
@@ -151,6 +164,16 @@
   <div class="map-svg-wrap">
     <svg width={TOTAL_W} height={HEIGHT} bind:this={svgEl} style="display:{loading ? 'none' : 'block'}">
       <g transform={zoomTransform}>
+        <!-- Surrounding towns context (light background) -->
+        {#each surroundingFeatures as feature}
+          <path d={pathGen?.(feature)} fill="light-dark(#e8eaf0, #252530)" stroke="light-dark(#c8ccd8, #3a3a4a)" stroke-width={0.5 / zoomK} pointer-events="none" />
+        {/each}
+
+        <!-- Charles River -->
+        {#each charlesRiverFeatures as feature}
+          <path d={pathGen?.(feature)} fill="#60a5fa" fill-opacity="0.35" stroke="#3b82f6" stroke-width={1 / zoomK} stroke-opacity="0.5" pointer-events="none" />
+        {/each}
+
         <!-- ZIP context (muted, matches mapped area only) -->
         {#each features as feature}
           <path d={pathGen?.(feature)} fill="#f5f5f5" stroke="#bcc4cf" stroke-width={1 / zoomK} />
@@ -203,6 +226,36 @@
                 glTooltip = { visible: true, x: e.clientX - rect.left + 14, y: e.clientY - rect.top - 44, text: `${station.name} (${station.year_opened})` };
               }}
               on:mouseleave={handleGLMouseLeave}
+            />
+          {/if}
+        {/each}
+
+        <!-- Red Line segments -->
+        {#each redLineFeatures as segment}
+          <path
+            d={pathGen?.(segment)}
+            fill="none"
+            stroke={RED_LINE_COLOR}
+            stroke-width={3 / zoomK}
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            role="img"
+            aria-label={segment.properties.name}
+            on:mousemove={(e) => handleGLMouseMove(e, { properties: { name: segment.properties.name, year_opened: 'Red Line' } })}
+            on:mouseleave={handleGLMouseLeave}
+          />
+        {/each}
+
+        <!-- Red Line stations -->
+        {#each redLineStations as station}
+          {@const pos = projection?.([station.lon, station.lat])}
+          {#if pos}
+            <circle
+              cx={pos[0]} cy={pos[1]} r={4 / zoomK}
+              fill="white"
+              stroke={RED_LINE_COLOR}
+              stroke-width={2 / zoomK}
+              pointer-events="none"
             />
           {/if}
         {/each}
