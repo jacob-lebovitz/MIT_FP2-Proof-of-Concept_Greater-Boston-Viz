@@ -71,23 +71,7 @@ const ZIP_LABELS = {
   let zoomTransform = 'translate(0,0) scale(1)';
   let zoomK = 1;
   let zoomBehavior;
-  let selectedZips = new Set();
-  let selectedCities = new Set();
   let hoveredZip = null;
-
-  function toggleZip(zip) {
-    const s = new Set(selectedZips);
-    s.has(zip) ? s.delete(zip) : s.add(zip);
-    selectedZips = s;
-  }
-
-  function toggleLegendCity(city) {
-    const s = new Set(selectedCities);
-    s.has(city) ? s.delete(city) : s.add(city);
-    selectedCities = s;
-  }
-
-  $: anySelected = selectedZips.size > 0 || selectedCities.size > 0;
 
   onMount(async () => {
     const [geojson, housingData, glGeojson, stationData, surroundingGeojson, rlGeojson, rlStationData, charlesGeojson] = await Promise.all([
@@ -131,12 +115,8 @@ const ZIP_LABELS = {
     zoomTransform = 'translate(0,0) scale(1)';
   }
 
-  function resetSelection() {
-    selectedZips = new Set();
-    selectedCities = new Set();
-  }
-
   $: visibleGreenLine = greenLineFeatures.filter(f => f.properties.year_opened <= year);
+  $: futureGreenLine = greenLineFeatures.filter(f => f.properties.year_opened > year && f.properties.branch !== 'B');
   $: visibleStations = stations.filter(s => s.year_opened <= year);
 
   function handleGLMouseMove(e, feature) {
@@ -281,7 +261,12 @@ const ZIP_LABELS = {
     const zipStr = String(zipNum).padStart(5, '0');
     const entry = housingByZip[zipStr];
     const val = entry?.values?.[String(yr)];
-    return val != null ? colorScale(val) : '#ccc';
+    return val != null ? colorScale(val) : 'url(#nodata-hatch)';
+  }
+
+  function hasData(zipNum, yr) {
+    const zipStr = String(zipNum).padStart(5, '0');
+    return housingByZip[zipStr]?.values?.[String(yr)] != null;
   }
 
   function getLabelColor(zipNum) {
@@ -337,7 +322,6 @@ const ZIP_LABELS = {
       <input type="range" min={YEARS[0]} max={YEARS[YEARS.length - 1]} step="1" bind:value={year} />
       <strong>{year}</strong>
       <button on:click={resetZoom}>Reset zoom</button>
-      <button on:click={resetSelection} disabled={!anySelected}>Reset selection</button>
     </div>
   {/if}
 
@@ -347,15 +331,46 @@ const ZIP_LABELS = {
 
   <div class="map-svg-wrap">
   <svg width={TOTAL_W} height={HEIGHT} bind:this={svgEl} style="display:{loading ? 'none' : 'block'}">
+    <defs>
+      <pattern id="nodata-hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+        <rect width="6" height="6" fill="light-dark(#e5e7eb, #2d2d33)" />
+        <line x1="0" y1="0" x2="0" y2="6" stroke="light-dark(#9ca3af, #555)" stroke-width="1.2" />
+      </pattern>
+      <pattern id="surrounding-hatch" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)">
+        <rect width="5" height="5" fill="light-dark(#eef0f3, #232328)" />
+        <line x1="0" y1="0" x2="0" y2="5" stroke="light-dark(#cbd0d6, #3a3a42)" stroke-width="0.8" />
+      </pattern>
+    </defs>
     <g transform={zoomTransform}>
-    <!-- Surrounding towns context (light background) -->
+    <!-- Surrounding towns context (subtle hatched background) -->
     {#each surroundingFeatures as feature}
-      <path d={pathGen?.(feature)} fill="light-dark(#e8eaf0, #252530)" stroke="light-dark(#c8ccd8, #3a3a4a)" stroke-width={0.5 / zoomK} pointer-events="none" />
+      <path d={pathGen?.(feature)} fill="url(#surrounding-hatch)" stroke="light-dark(#b8bdc4, #4a4a52)" stroke-width={0.7 / zoomK} stroke-linejoin="round" pointer-events="none" />
+    {/each}
+
+    <!-- Surrounding town labels -->
+    {#each surroundingFeatures as feature}
+      {@const c = pathGen?.centroid(feature)}
+      {#if c}
+        <text
+          x={c[0]} y={c[1]}
+          text-anchor="middle"
+          dominant-baseline="middle"
+          font-size={9 / zoomK}
+          fill="light-dark(#6b7280, #9ca3af)"
+          font-weight="500"
+          letter-spacing="0.05em"
+          paint-order="stroke"
+          stroke="light-dark(#eef0f3, #232328)"
+          stroke-width={2.5 / zoomK}
+          pointer-events="none"
+          style="text-transform: uppercase;"
+        >{feature.properties.name}</text>
+      {/if}
     {/each}
 
     <!-- Charles River -->
     {#each charlesRiverFeatures as feature}
-      <path d={pathGen?.(feature)} fill="#60a5fa" fill-opacity="0.35" stroke="#3b82f6" stroke-width={1 / zoomK} stroke-opacity="0.5" pointer-events="none" />
+      <path d={pathGen?.(feature)} fill="#7dd3fc" fill-opacity="0.45" stroke="#0284c7" stroke-width={0.8 / zoomK} stroke-opacity="0.45" pointer-events="none" />
     {/each}
 
     <!-- Map paths -->
@@ -364,17 +379,28 @@ const ZIP_LABELS = {
       {@const zipStr = String(zip).padStart(5, '0')}
       <path
         d={pathGen?.(feature)}
-        fill={anySelected && !selectedZips.has(zip) && !selectedCities.has(ZIP_TO_CITY[zip]) ? '#c8c8c8' : getColor(zip, year)}
-        stroke={hoveredZip === zipStr ? '#1d4ed8' : selectedZips.has(zip) ? 'black' : 'white'}
-        stroke-width={hoveredZip === zipStr ? 3 / zoomK : selectedZips.has(zip) ? 6 / zoomK : 1.5 / zoomK}
-        opacity={hoveredZip ? (hoveredZip === zipStr ? 1 : 0.35) : 1}
-        role="button"
+        fill={getColor(zip, year)}
+        stroke={hoveredZip === zipStr ? '#1d4ed8' : 'white'}
+        stroke-width={hoveredZip === zipStr ? 2.5 / zoomK : 1.5 / zoomK}
+        role="img"
         aria-label={ZIP_LABELS[zip]}
-        tabindex="0"
         on:mousemove={(e) => handleMouseMove(e, feature)}
         on:mouseleave={handleMouseLeave}
-        on:click={() => toggleZip(zip)}
-        on:keydown={(e) => e.key === 'Enter' && toggleZip(zip)}
+      />
+    {/each}
+
+    <!-- Future Green Line segments (planned but not yet opened) — translucent ghost -->
+    {#each futureGreenLine as segment}
+      <path
+        d={pathGen?.(segment)}
+        fill="none"
+        stroke="#00843D"
+        stroke-width={3 / zoomK}
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-dasharray="{6 / zoomK},{4 / zoomK}"
+        opacity="0.28"
+        pointer-events="none"
       />
     {/each}
 
@@ -471,7 +497,7 @@ const ZIP_LABELS = {
     {#if GLX_MILESTONES[year]}
       {@const milestoneLines = GLX_MILESTONES[year].match(/.{1,32}(\s|$)/g)?.map(l => l.trim()) ?? []}
       {@const boxH = 28 + milestoneLines.length * 15}
-      <g transform="translate({LEGEND_X}, 280)">
+      <g transform="translate({LEGEND_X}, 310)">
         <rect x={0} y={0} width={LEGEND_W} height={boxH}
           rx="5" ry="5"
           fill="#1a4a2e" opacity="0.9" />
@@ -492,26 +518,13 @@ const ZIP_LABELS = {
           {fmtLegend(lo)} – {fmtLegend(hi)}
         </text>
       {/each}
-      <text font-size="11" font-weight="bold" fill="currentColor" y={16 + N_BUCKETS * 22 + 16}>City Labels</text>
+      <rect x={0} y={16 + N_BUCKETS * 22} width="18" height="18"
+        fill="url(#nodata-hatch)" stroke="#aaa" stroke-width="0.5" />
+      <text x={24} y={16 + N_BUCKETS * 22 + 13} font-size="11" fill="currentColor">No data</text>
+      <text font-size="11" font-weight="bold" fill="currentColor" y={16 + (N_BUCKETS + 1) * 22 + 16}>City Labels</text>
       {#each Object.entries(CITY_BASE_COLORS) as [city, [r, g, b]], i}
-        <g
-          role="button"
-          tabindex="0"
-          aria-label="Filter {city}"
-          style="cursor:pointer"
-          on:click={() => toggleLegendCity(city)}
-          on:keydown={(e) => e.key === 'Enter' && toggleLegendCity(city)}
-        >
-          <circle cx={9} cy={16 + N_BUCKETS * 22 + 32 + i * 20} r="6"
-            fill="rgb({r},{g},{b})"
-            stroke={selectedCities.has(city) ? '#000' : 'none'}
-            stroke-width="2"
-          />
-          <text x={24} y={16 + N_BUCKETS * 22 + 37 + i * 20} font-size="11"
-            fill="currentColor"
-            font-weight={selectedCities.has(city) ? 'bold' : 'normal'}
-          >{city}</text>
-        </g>
+        <circle cx={9} cy={16 + (N_BUCKETS + 1) * 22 + 32 + i * 20} r="6" fill="rgb({r},{g},{b})" />
+        <text x={24} y={16 + (N_BUCKETS + 1) * 22 + 37 + i * 20} font-size="11" fill="currentColor">{city}</text>
       {/each}
     </g>
 
@@ -535,7 +548,6 @@ const ZIP_LABELS = {
     {/if}
   </svg>
   <button class="reset-zoom-btn" on:click={resetZoom}>Reset zoom</button>
-  <button class="reset-selection-btn" on:click={resetSelection} disabled={!anySelected}>Reset selection</button>
   </div>
 
   <!-- Line chart -->
@@ -587,16 +599,12 @@ const ZIP_LABELS = {
           d={lineGen(d.points)}
           fill="none"
           stroke={getLineColor(d.city)}
-          stroke-width={hoveredZip ? (d.zip === hoveredZip ? 3.5 : 1) : anySelected ? (selectedZips.has(zipStrToNum(d.zip)) || selectedCities.has(d.city) ? 3 : 1.5) : 1.5}
-          opacity={hoveredZip ? (d.zip === hoveredZip ? 1 : 0.1) : anySelected ? (selectedZips.has(zipStrToNum(d.zip)) || selectedCities.has(d.city) ? 1 : 0.12) : 0.8}
-          role="button"
+          stroke-width={hoveredZip === d.zip ? 3.5 : 1.5}
+          opacity={hoveredZip ? (d.zip === hoveredZip ? 1 : 0.15) : 0.8}
+          role="img"
           aria-label="{d.zip}"
-          tabindex="0"
-          style="cursor:pointer"
           on:mousemove={(e) => handleLineMouseMove(e, housingByZip[d.zip])}
           on:mouseleave={handleLineMouseLeave}
-          on:click={() => toggleZip(zipStrToNum(d.zip))}
-          on:keydown={(e) => e.key === 'Enter' && toggleZip(zipStrToNum(d.zip))}
         />
       {/each}
 
@@ -641,10 +649,10 @@ const ZIP_LABELS = {
     display: inline-block;
   }
 
-  .reset-zoom-btn,
-  .reset-selection-btn {
+  .reset-zoom-btn {
     position: absolute;
     bottom: 10px;
+    left: 10px;
     padding: 4px 10px;
     font-size: 0.8rem;
     cursor: pointer;
@@ -653,13 +661,6 @@ const ZIP_LABELS = {
     background: light-dark(rgba(255,255,255,0.9), rgba(42,42,42,0.9));
     color: inherit;
     z-index: 10;
-  }
-
-  .reset-zoom-btn { left: 10px; }
-  .reset-selection-btn { left: 110px; }
-  .reset-selection-btn:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
   }
 
   .loading {
@@ -691,9 +692,10 @@ const ZIP_LABELS = {
 
   svg {
     display: block;
-    border: 1px solid light-dark(#ddd, #444);
-    border-radius: 8px;
-    background: light-dark(#f0f0f0, #1e1e1e);
+    border: 1px solid light-dark(#e5e7eb, #3a3a42);
+    border-radius: 10px;
+    background: light-dark(#fafbfc, #1a1b20);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
     cursor: grab;
   }
 

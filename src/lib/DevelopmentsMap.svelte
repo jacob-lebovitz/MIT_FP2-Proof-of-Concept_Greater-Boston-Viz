@@ -163,20 +163,47 @@
 
   <div class="map-svg-wrap">
     <svg width={TOTAL_W} height={HEIGHT} bind:this={svgEl} style="display:{loading ? 'none' : 'block'}">
+      <defs>
+        <pattern id="dev-surrounding-hatch" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)">
+          <rect width="5" height="5" fill="light-dark(#eef0f3, #232328)" />
+          <line x1="0" y1="0" x2="0" y2="5" stroke="light-dark(#cbd0d6, #3a3a42)" stroke-width="0.8" />
+        </pattern>
+      </defs>
       <g transform={zoomTransform}>
-        <!-- Surrounding towns context (light background) -->
+        <!-- Surrounding towns context (subtle hatched background) -->
         {#each surroundingFeatures as feature}
-          <path d={pathGen?.(feature)} fill="light-dark(#e8eaf0, #252530)" stroke="light-dark(#c8ccd8, #3a3a4a)" stroke-width={0.5 / zoomK} pointer-events="none" />
+          <path d={pathGen?.(feature)} fill="url(#dev-surrounding-hatch)" stroke="light-dark(#b8bdc4, #4a4a52)" stroke-width={0.7 / zoomK} stroke-linejoin="round" pointer-events="none" />
+        {/each}
+
+        <!-- Surrounding town labels -->
+        {#each surroundingFeatures as feature}
+          {@const c = pathGen?.centroid(feature)}
+          {#if c}
+            <text
+              x={c[0]} y={c[1]}
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size={9 / zoomK}
+              fill="light-dark(#6b7280, #9ca3af)"
+              font-weight="500"
+              letter-spacing="0.05em"
+              paint-order="stroke"
+              stroke="light-dark(#eef0f3, #232328)"
+              stroke-width={2.5 / zoomK}
+              pointer-events="none"
+              style="text-transform: uppercase;"
+            >{feature.properties.name}</text>
+          {/if}
         {/each}
 
         <!-- Charles River -->
         {#each charlesRiverFeatures as feature}
-          <path d={pathGen?.(feature)} fill="#60a5fa" fill-opacity="0.35" stroke="#3b82f6" stroke-width={1 / zoomK} stroke-opacity="0.5" pointer-events="none" />
+          <path d={pathGen?.(feature)} fill="#7dd3fc" fill-opacity="0.45" stroke="#0284c7" stroke-width={0.8 / zoomK} stroke-opacity="0.45" pointer-events="none" />
         {/each}
 
         <!-- ZIP context (muted, matches mapped area only) -->
         {#each features as feature}
-          <path d={pathGen?.(feature)} fill="#f5f5f5" stroke="#bcc4cf" stroke-width={1 / zoomK} />
+          <path d={pathGen?.(feature)} fill="light-dark(#fafbfc, #2a2c33)" stroke="light-dark(#d1d5db, #44464f)" stroke-width={1 / zoomK} />
         {/each}
 
         <!-- Future Green Line segments (planned but not yet opened) — translucent ghost -->
@@ -367,9 +394,10 @@
 
   svg {
     display: block;
-    border: 1px solid light-dark(#ddd, #444);
-    border-radius: 8px;
-    background: light-dark(#f0f0f0, #1e1e1e);
+    border: 1px solid light-dark(#e5e7eb, #3a3a42);
+    border-radius: 10px;
+    background: light-dark(#fafbfc, #1a1b20);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
     cursor: grab;
   }
   svg:active { cursor: grabbing; }
