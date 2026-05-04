@@ -6,13 +6,14 @@
   export let year = 2025;
   export let hideSlider = false;
   export let hideLineChart = false;
+  export let compact = false;            // when true, hides in-SVG legend & milestone box (parent provides them)
 
-  const WIDTH = 680;
-  const HEIGHT = 500;
-  const MAP_W = 460;       // geographic projection width (map content stays left of this)
+  const WIDTH = 1100;
+  const HEIGHT = 740;
+  const MAP_W = compact ? 1100 : 880;    // geographic projection width
   const LEGEND_X = MAP_W + 10;
-  const LEGEND_W = 180;
-  const TOTAL_W = LEGEND_X + LEGEND_W + 10;
+  const LEGEND_W = compact ? 0 : 200;
+  const TOTAL_W = compact ? MAP_W : LEGEND_X + LEGEND_W + 10;
 
   // Zip codes present in both GeoJSON and housing data
 const ZIP_LABELS = {
@@ -157,7 +158,7 @@ const ZIP_LABELS = {
   $: housingByZip = Object.fromEntries(housing.map(d => [d.zip, d]));
 
   // Line chart constants
-  const LC_MARGIN = { top: 155, right: 50, bottom: 40, left: 70 };
+  const LC_MARGIN = { top: 60, right: 50, bottom: 40, left: 70 };
   const LC_W = TOTAL_W - LC_MARGIN.left - LC_MARGIN.right;
   const LC_H = 370 - LC_MARGIN.top - LC_MARGIN.bottom;
 
@@ -212,6 +213,7 @@ const ZIP_LABELS = {
   }
 
   let lineTooltip = { visible: false, x: 0, y: 0, zip: '', city: '', value: '' };
+  let annotTooltip = { visible: false, x: 0, y: 0, label: '', isEvent: false };
   let isDraggingYear = false;
 
   function startYearDrag(e) {
@@ -330,7 +332,7 @@ const ZIP_LABELS = {
   {/if}
 
   <div class="map-svg-wrap">
-  <svg width={TOTAL_W} height={HEIGHT} bind:this={svgEl} style="display:{loading ? 'none' : 'block'}">
+  <svg viewBox="0 0 {TOTAL_W} {HEIGHT}" preserveAspectRatio="xMidYMid meet" bind:this={svgEl} style="display:{loading ? 'none' : 'block'}; width:100%; height:auto; max-height:{HEIGHT}px">
     <defs>
       <pattern id="nodata-hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
         <rect width="6" height="6" fill="light-dark(#e5e7eb, #2d2d33)" />
@@ -355,13 +357,13 @@ const ZIP_LABELS = {
           x={c[0]} y={c[1]}
           text-anchor="middle"
           dominant-baseline="middle"
-          font-size={9 / zoomK}
+          font-size={13 / zoomK}
           fill="light-dark(#6b7280, #9ca3af)"
           font-weight="500"
-          letter-spacing="0.05em"
+          letter-spacing="0.06em"
           paint-order="stroke"
           stroke="light-dark(#eef0f3, #232328)"
-          stroke-width={2.5 / zoomK}
+          stroke-width={3 / zoomK}
           pointer-events="none"
           style="text-transform: uppercase;"
         >{feature.properties.name}</text>
@@ -395,11 +397,11 @@ const ZIP_LABELS = {
         d={pathGen?.(segment)}
         fill="none"
         stroke="#00843D"
-        stroke-width={3 / zoomK}
+        stroke-width={4.5 / zoomK}
         stroke-linecap="round"
         stroke-linejoin="round"
-        stroke-dasharray="{6 / zoomK},{4 / zoomK}"
-        opacity="0.28"
+        stroke-dasharray="{8 / zoomK},{5 / zoomK}"
+        opacity="0.32"
         pointer-events="none"
       />
     {/each}
@@ -410,7 +412,7 @@ const ZIP_LABELS = {
         d={pathGen?.(segment)}
         fill="none"
         stroke={BRANCH_COLORS[segment.properties.branch] ?? '#00843D'}
-        stroke-width={3 / zoomK}
+        stroke-width={4.5 / zoomK}
         stroke-linecap="round"
         stroke-linejoin="round"
         role="img"
@@ -425,10 +427,10 @@ const ZIP_LABELS = {
       {@const pos = projection?.([station.lon, station.lat])}
       {#if pos}
         <circle
-          cx={pos[0]} cy={pos[1]} r={5 / zoomK}
+          cx={pos[0]} cy={pos[1]} r={6 / zoomK}
           fill="white"
           stroke={BRANCH_COLORS[station.branch] ?? '#00843D'}
-          stroke-width={2 / zoomK}
+          stroke-width={2.5 / zoomK}
           role="img"
           aria-label={station.name}
           on:mousemove={(e) => {
@@ -446,7 +448,7 @@ const ZIP_LABELS = {
         d={pathGen?.(segment)}
         fill="none"
         stroke={RED_LINE_COLOR}
-        stroke-width={3 / zoomK}
+        stroke-width={4.5 / zoomK}
         stroke-linecap="round"
         stroke-linejoin="round"
         role="img"
@@ -461,10 +463,10 @@ const ZIP_LABELS = {
       {@const pos = projection?.([station.lon, station.lat])}
       {#if pos}
         <circle
-          cx={pos[0]} cy={pos[1]} r={4 / zoomK}
+          cx={pos[0]} cy={pos[1]} r={5 / zoomK}
           fill="white"
           stroke={RED_LINE_COLOR}
-          stroke-width={2 / zoomK}
+          stroke-width={2.5 / zoomK}
           pointer-events="none"
         />
       {/if}
@@ -480,7 +482,7 @@ const ZIP_LABELS = {
           y={c[1] + (LABEL_OFFSET[zip]?.[1] ?? 0)}
           text-anchor="middle"
           dominant-baseline="middle"
-          font-size={10 / zoomK}
+          font-size={14 / zoomK}
           fill={getLabelColor(zip)}
           font-weight="bold"
           paint-order="stroke"
@@ -493,21 +495,7 @@ const ZIP_LABELS = {
 
     </g><!-- end zoomable group -->
 
-    <!-- GLX Milestone annotation -->
-    {#if GLX_MILESTONES[year]}
-      {@const milestoneLines = GLX_MILESTONES[year].match(/.{1,32}(\s|$)/g)?.map(l => l.trim()) ?? []}
-      {@const boxH = 28 + milestoneLines.length * 15}
-      <g transform="translate({LEGEND_X}, 310)">
-        <rect x={0} y={0} width={LEGEND_W} height={boxH}
-          rx="5" ry="5"
-          fill="#1a4a2e" opacity="0.9" />
-        <text x={8} y={16} font-size="10" font-weight="bold" fill="#6fcf97">Green Line Extension Milestone</text>
-        {#each milestoneLines as line, i}
-          <text x={8} y={32 + i * 15} font-size="10" fill="white">{line}</text>
-        {/each}
-      </g>
-    {/if}
-
+    {#if !compact}
     <!-- Legend -->
     <g transform="translate({LEGEND_X}, 20)">
       <text font-size="12" font-weight="bold" fill="currentColor">Home Value</text>
@@ -527,6 +515,7 @@ const ZIP_LABELS = {
         <text x={24} y={16 + (N_BUCKETS + 1) * 22 + 37 + i * 20} font-size="11" fill="currentColor">{city}</text>
       {/each}
     </g>
+    {/if}
 
     <!-- Green Line tooltip -->
     {#if glTooltip.visible}
@@ -553,26 +542,21 @@ const ZIP_LABELS = {
   <!-- Line chart -->
   {#if !loading && !hideLineChart}
   <h2 style="margin-top:2rem">Home Values Over Time by ZIP Code</h2>
-  <svg width={TOTAL_W} height={370} class="line-chart"
+  <svg viewBox="0 0 {TOTAL_W} 370" preserveAspectRatio="xMidYMid meet" class="line-chart"
+    style="width:100%; height:auto; max-height:420px"
     on:pointermove={onYearDrag}
     on:pointerup={stopYearDrag}
     on:pointerleave={stopYearDrag}
   >
     <g transform="translate({LC_MARGIN.left},{LC_MARGIN.top})">
 
-      <!-- GLX Milestone annotations -->
-      {#each GLX_ANNOTATIONS as a, i}
-        {@const info = annotAssignments[i]}
+      <!-- GLX Milestone annotation guide lines (subtle) -->
+      {#each GLX_ANNOTATIONS as a}
         {@const ax = xScale(a.year)}
-        {@const ay = ANNOT_ROW_Y[info.row]}
         {@const isEvent = a.type === 'event'}
-        <line x1={ax} x2={ax} y1={ay + 18} y2={LC_H}
+        <line x1={ax} x2={ax} y1={-18} y2={LC_H}
           stroke={isEvent ? '#f87171' : '#6fcf97'}
-          stroke-width="1" stroke-dasharray="4,3" opacity="0.6" />
-        <rect x={ax - info.boxW / 2} y={ay} width={info.boxW} height={16} rx="3"
-          fill={isEvent ? '#7f1d1d' : '#1a4a2e'} opacity="0.88" />
-        <text x={ax} y={ay + 11} text-anchor="middle" font-size="9"
-          fill={isEvent ? '#fca5a5' : '#6fcf97'}>{info.fullLabel}</text>
+          stroke-width="1" stroke-dasharray="3,3" opacity="0.25" />
       {/each}
 
       <!-- Grid lines -->
@@ -593,7 +577,7 @@ const ZIP_LABELS = {
       <line x1={0} x2={LC_W} y1={LC_H} y2={LC_H} stroke="currentColor" opacity="0.4" />
       <line x1={0} x2={0} y1={0} y2={LC_H} stroke="currentColor" opacity="0.4" />
 
-      <!-- Lines per ZIP (dimmed first, highlighted on top) -->
+      <!-- Visible lines per ZIP (dimmed first, highlighted on top) -->
       {#each lineData as d}
         <path
           d={lineGen(d.points)}
@@ -601,8 +585,22 @@ const ZIP_LABELS = {
           stroke={getLineColor(d.city)}
           stroke-width={hoveredZip === d.zip ? 3.5 : 1.5}
           opacity={hoveredZip ? (d.zip === hoveredZip ? 1 : 0.15) : 0.8}
+          pointer-events="none"
+        />
+      {/each}
+
+      <!-- Wide invisible hit-area paths for easy hovering -->
+      {#each lineData as d}
+        <path
+          d={lineGen(d.points)}
+          fill="none"
+          stroke="transparent"
+          stroke-width="14"
+          stroke-linecap="round"
+          stroke-linejoin="round"
           role="img"
           aria-label="{d.zip}"
+          style="cursor:pointer"
           on:mousemove={(e) => handleLineMouseMove(e, housingByZip[d.zip])}
           on:mouseleave={handleLineMouseLeave}
         />
@@ -623,6 +621,47 @@ const ZIP_LABELS = {
         on:pointerdown={startYearDrag}
       />
       <text x={xScale(year) + 4} y={-6} text-anchor="start" font-size="10" font-weight="bold" fill="currentColor">{year}</text>
+
+      <!-- Annotation hover icons (one per milestone, above the chart) -->
+      {#each GLX_ANNOTATIONS as a}
+        {@const ax = xScale(a.year)}
+        {@const isEvent = a.type === 'event'}
+        <g class="annot-icon" style="cursor:help"
+          on:mousemove={(e) => {
+            const rect = e.currentTarget.closest('svg').getBoundingClientRect();
+            annotTooltip = {
+              visible: true,
+              x: e.clientX - rect.left + 12,
+              y: e.clientY - rect.top - 16,
+              label: `${a.year}: ${a.label}`,
+              isEvent,
+            };
+          }}
+          on:mouseleave={() => annotTooltip = { ...annotTooltip, visible: false }}
+        >
+          <circle cx={ax} cy={-22} r="8" fill="transparent" />
+          <circle cx={ax} cy={-22} r="6"
+            fill={isEvent ? '#f87171' : '#6fcf97'}
+            stroke={isEvent ? '#7f1d1d' : '#1a4a2e'}
+            stroke-width="1.5"
+            opacity="0.85"
+          />
+          <text x={ax} y={-19} text-anchor="middle" font-size="9" font-weight="bold"
+            fill={isEvent ? '#7f1d1d' : '#1a4a2e'} pointer-events="none">i</text>
+        </g>
+      {/each}
+
+      <!-- Annotation tooltip -->
+      {#if annotTooltip.visible}
+        <foreignObject
+          x={annotTooltip.x - LC_MARGIN.left}
+          y={annotTooltip.y - LC_MARGIN.top}
+          width="240" height="50">
+          <div class="tooltip annot-tip" class:event={annotTooltip.isEvent}>
+            <strong>{annotTooltip.label}</strong>
+          </div>
+        </foreignObject>
+      {/if}
 
       <!-- Line tooltip -->
       {#if lineTooltip.visible}
@@ -727,4 +766,10 @@ const ZIP_LABELS = {
     box-shadow: 0 4px 14px rgba(0,0,0,0.25);
   }
   .tooltip strong { color: #fff; }
+  .annot-tip { background: #1a4a2e; }
+  .annot-tip.event { background: #7f1d1d; }
+  .annot-icon:hover circle:nth-child(2) {
+    transform-origin: center;
+    transform: scale(1.18);
+  }
 </style>

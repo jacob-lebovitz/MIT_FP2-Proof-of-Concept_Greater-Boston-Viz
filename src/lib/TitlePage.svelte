@@ -1,13 +1,38 @@
 <div class="title-page">
-  <div class="title-content">
-    <div class="eyebrow">Greater Boston Housing &amp; Transit</div>
-    <h1 class="main-title">Does Transit Access<br/>Drive Up Housing Costs?</h1>
+  <div class="title-content content-narrow">
+    <div class="eyebrow">A 25-year story · Cambridge, Somerville &amp; Medford</div>
+    <h1 class="main-title">
+      The Green Line was supposed to push prices up.<br/>
+      <span class="accent">It didn't.</span>
+    </h1>
     <p class="subtitle">
-      Tracking home values, new developments, and the Green Line Extension
-      across Cambridge, Somerville, and Medford — 2000 to 2025.
+      For two decades, residents along the planned Green Line Extension feared the same fate as Red Line neighborhoods —
+      premium prices, displacement, lost affordability. Opponents sued; supporters fought; the project nearly died in 2015
+      and only opened in 2022. This is what actually happened to home values and new housing along the corridor —
+      and why it's not the story most people expected.
     </p>
+
+    <div class="history-strip">
+      <div class="hist-item">
+        <div class="hist-year">2005</div>
+        <div class="hist-text">Conservation Law Foundation sues over the long-stalled extension.</div>
+      </div>
+      <div class="hist-item">
+        <div class="hist-year">2012</div>
+        <div class="hist-text">Construction breaks ground after a 2007 settlement.</div>
+      </div>
+      <div class="hist-item">
+        <div class="hist-year">2015</div>
+        <div class="hist-text">Project nearly cancelled — costs balloon to $3B.</div>
+      </div>
+      <div class="hist-item">
+        <div class="hist-year">2022</div>
+        <div class="hist-text">Union Square &amp; Medford branch open after a redesign.</div>
+      </div>
+    </div>
+
     <div class="scroll-cue" aria-hidden="true">
-      <span>Scroll to explore</span>
+      <span>Scroll to follow the prices</span>
       <div class="arrow">↓</div>
     </div>
   </div>
@@ -36,21 +61,21 @@
   .title-content {
     position: relative;
     z-index: 1;
-    max-width: 680px;
-    padding: 4rem 0 6rem;
+    padding: 4rem 1rem 6rem;
+    width: 100%;
   }
 
   .eyebrow {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     letter-spacing: 0.18em;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     color: #00843D;
     margin-bottom: 1.25rem;
   }
 
   .main-title {
-    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-size: clamp(2.2rem, 5.5vw, 3.6rem);
     font-weight: 800;
     line-height: 1.1;
     margin: 0 0 1.5rem;
@@ -58,12 +83,42 @@
     color: light-dark(#0f172a, #f1f5f9);
   }
 
+  .main-title .accent { color: #00843D; }
+
   .subtitle {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     line-height: 1.7;
     color: light-dark(#475569, #94a3b8);
-    max-width: 540px;
-    margin: 0 0 3rem;
+    margin: 0 0 2.4rem;
+  }
+
+  .history-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 3rem;
+    padding-block: 1.2rem;
+    border-top: 1px solid light-dark(#e2e8f0, #2d3748);
+    border-bottom: 1px solid light-dark(#e2e8f0, #2d3748);
+  }
+
+  .hist-item {
+    border-left: 3px solid #00843D;
+    padding-left: 0.7rem;
+  }
+
+  .hist-year {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #00843D;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.15rem;
+  }
+
+  .hist-text {
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: light-dark(#475569, #94a3b8);
   }
 
   .scroll-cue {
@@ -71,10 +126,11 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.4rem;
-    font-size: 0.82rem;
-    letter-spacing: 0.1em;
-    color: light-dark(#64748b, #64748b);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    color: light-dark(#64748b, #94a3b8);
     text-transform: uppercase;
+    font-weight: 600;
   }
 
   .arrow {
@@ -97,8 +153,5 @@
     pointer-events: none;
   }
 
-  .bg-line svg {
-    width: 100%;
-    height: 100%;
-  }
+  .bg-line svg { width: 100%; height: 100%; }
 </style>

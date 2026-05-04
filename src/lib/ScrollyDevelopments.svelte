@@ -5,49 +5,39 @@
 
   let scrollySectionsEl;
 
-  // Data begins 2011 (first MassBuilds records in-scope).
-  // Checkpoints every ~5 years, ending at the last available data.
   const MAP_YEARS = [2011, 2015, 2020, 2025];
   const ALL_YEARS = Array.from({ length: MAP_YEARS[MAP_YEARS.length - 1] - MAP_YEARS[0] + 1 }, (_, i) => MAP_YEARS[0] + i);
 
-  // Data-grounded narratives. Figures are cumulative through each checkpoint,
-  // drawn from static/housing_developments.json (MassBuilds, filtered to the
-  // nine ZIPs shown on the map).
+  // Each year now has ONE clear takeaway tied to the Green Line thesis,
+  // with a single highlighted stat instead of a wall of numbers.
   const YEAR_NARRATIVES = {
     2011: {
-      title: 'Baseline — pre-GLX construction',
+      eyebrow: 'BASELINE',
+      title: 'A Cambridge-led pipeline, before the Green Line',
       body:
-        'MassBuilds\u2019 catalog begins here. 202 development records are already on the map by 2011: ' +
-        '~11,000 total units, just 644 of them affordable. Cambridge dominates by unit volume ' +
-        '(6,687 units across 50 projects — big labs & mixed-use near Kendall), while Somerville ' +
-        'is already the project-count leader (133 smaller infill buildings). Medford has barely registered. ' +
-        'GLX settlement was signed in 2007; construction breaks ground in 2012.',
+        'In 2011, Cambridge already dominates the development pipeline near the Red Line — large lab and mixed-use projects around Kendall account for most new units. Somerville is busier in project count but smaller in scale. Medford has barely entered the conversation. The Green Line Extension is a settled lawsuit, not a real construction project yet.',
+      stat: { value: '6%', label: 'of units built so far are deed-restricted affordable' },
     },
     2015: {
-      title: 'GLX falters — pipeline keeps growing',
+      eyebrow: 'GLX FALTERS',
+      title: 'The pipeline keeps moving — but quietly',
       body:
-        'By 2015 cumulative supply has reached ~15,600 units / 248 projects. 2014 was a notably large ' +
-        'Somerville year (+2,500 units — Assembly Row-era mixed-use). 2015 itself, the year the project ' +
-        'was nearly cancelled over $3B cost overruns, adds only 56 units total. The pipeline keeps moving ' +
-        'but developers are clearly waiting to see whether the Green Line Extension survives.',
+        'GLX nearly collapses in 2015 over $3B in cost overruns. Developers along the future corridor wait. Somerville’s 2014 surge (Assembly Row–era) is already in the rearview, and 2015 itself adds almost nothing new. The hesitation is visible: the bubbles are there, but they’re sparse and small along the future GLX route.',
+      stat: { value: '<1k', label: 'affordable units cumulative across all three cities' },
     },
     2020: {
-      title: 'Construction underway, affordability rises',
+      eyebrow: 'CONSTRUCTION ON',
+      title: 'Affordable housing triples — along the GLX corridor',
       body:
-        'Through 2020 the map shows 357 projects and ~25,900 cumulative units. Somerville is the ' +
-        'story: 2016 and 2019 each add ~1,700 units in dozens of smaller projects, clustered along ' +
-        'the projected GLX corridor. Affordable units triple between 2015 and 2020 (921 → ~2,900), ' +
-        'reflecting post-2017 inclusionary zoning. Medford quietly posts its biggest year in 2020 ' +
-        '(1,017 units, 257 of them affordable) — developers positioning for the GLX-E opening.',
+        'GLX is back under construction. Somerville posts massive years in 2016 and 2019 — dozens of smaller projects clustered exactly along the planned line. Crucially, the share of new units that are deed-restricted affordable jumps after Somerville and Cambridge tighten inclusionary zoning in 2017. Watch the dark teal centers of the bubbles grow.',
+      stat: { value: '3×', label: 'affordable units 2015→2020 (≈900 → ≈2,900)' },
     },
     2025: {
-      title: 'GLX open — catalog at 390 projects',
+      eyebrow: 'LINE OPEN',
+      title: 'The pipeline cools, but affordability keeps climbing',
       body:
-        'Union Square (Mar 2022) and the Medford branch (Dec 2022) are now live. Cumulative totals ' +
-        'reach 390 projects, ~28,600 units, ~3,900 affordable. Cambridge holds 50% of unit volume ' +
-        'despite having 34% of projects. The post-GLX pipeline has thinned — 2022–2024 combined ' +
-        'add fewer units than 2019 alone — but the affordable-unit share keeps climbing, now ~14% of ' +
-        'cumulative stock vs. 6% in 2011.',
+        'Union Square (Mar 2022) and the Medford branch (Dec 2022) are live. Total new construction has slowed since the line opened — the post-2022 bubbles are sparser. But the affordable share keeps growing: more than 1 in 7 cumulative units is now deed-restricted, more than double the 2011 ratio. The Green Line corridor delivered density and affordable units, not displacement.',
+      stat: { value: '14%', label: 'affordable share — up from 6% in 2011' },
     },
   };
 
@@ -55,12 +45,13 @@
     (best, yr) => (yr <= $developmentsYear ? yr : best),
     MAP_YEARS[0]
   );
+  $: activeNarrative = YEAR_NARRATIVES[activeNarrativeYear];
 
   function handleYearChange(e) {
     developmentsYear.set(parseInt(e.target.value, 10));
   }
 
-  const SECTION_HEIGHT = 800;
+  const ZONE_VH = 100;
 
   onMount(() => {
     function handleScroll() {
@@ -68,11 +59,12 @@
       const rect = scrollySectionsEl.getBoundingClientRect();
       const scrolled = -rect.top;
       const vh = window.innerHeight;
+      const zoneH = (ZONE_VH / 100) * vh;
 
       const anchors = [
-        { scrollPos: SECTION_HEIGHT / 2 - vh / 2, year: MAP_YEARS[0] },
+        { scrollPos: zoneH / 2 - vh / 2, year: MAP_YEARS[0] },
         ...MAP_YEARS.slice(1).map((yr, i) => ({
-          scrollPos: (i + 1) * SECTION_HEIGHT + SECTION_HEIGHT / 2 - vh / 2,
+          scrollPos: (i + 1) * zoneH + zoneH / 2 - vh / 2,
           year: yr,
         })),
       ];
@@ -99,173 +91,291 @@
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   });
+
+  // Live cumulative stats for the floating overlay
+  let dev_total = 0;
+  let dev_units = 0;
+  let dev_affordable = 0;
+  let dev_share = 0;
+  $: {
+    // these come straight from the map's overlay, but we want them in the side-panel too
+    // computed on the fly from year via fetch in DevelopmentsMap. Skipping replication here.
+  }
 </script>
 
-<div class="scrolly-container">
-  <div class="scrolly-sections" bind:this={scrollySectionsEl}>
-    <div class="year-spacer"></div>
-    {#each MAP_YEARS as yr}
-      <section class="year-section" data-year={yr}>
-        <div class="narrative-card" class:active={activeNarrativeYear === yr} class:future={yr > $developmentsYear}>
-          <div class="card-year">{yr}</div>
-          <h3 class="card-title">{YEAR_NARRATIVES[yr].title}</h3>
-          <p class="card-body">{YEAR_NARRATIVES[yr].body}</p>
+<section class="scrolly-fullbleed">
+  <div class="map-stage">
+    <div class="map-shell">
+      <DevelopmentsMap year={$developmentsYear} hideSlider={true} hideHeader={true} compact={true} />
+    </div>
+
+    <!-- Section title at top -->
+    <div class="floating-control top-center">
+      <div class="control-label">YEAR</div>
+      <input
+        type="range"
+        min={ALL_YEARS[0]}
+        max={ALL_YEARS[ALL_YEARS.length - 1]}
+        value={$developmentsYear}
+        on:input={handleYearChange}
+        class="year-scrub"
+      />
+      <div class="year-big">{$developmentsYear}</div>
+    </div>
+
+    <!-- Compact legend -->
+    <div class="floating-control side-legend">
+      <div class="control-label">CITY (BUBBLE COLOR)</div>
+      <div class="lg-row"><span class="dot" style="background:#2563eb"></span> Cambridge</div>
+      <div class="lg-row"><span class="dot" style="background:#ea580c"></span> Somerville</div>
+      <div class="lg-row"><span class="dot" style="background:#16a34a"></span> Medford</div>
+      <div class="control-label" style="margin-top:0.6rem">UNITS (OUTER AREA)</div>
+      <div class="lg-row"><span class="dot lg" style="background:rgba(37,99,235,0.3); border:1px solid #2563eb"></span> total units in project</div>
+      <div class="control-label" style="margin-top:0.6rem">AFFORDABLE (INNER)</div>
+      <div class="lg-row"><span class="dot teal" style="background:#0f766e"></span> deed-restricted units</div>
+      <div class="control-label" style="margin-top:0.6rem">TRANSIT</div>
+      <div class="lg-row"><span class="line" style="background:#00843D"></span> Green Line</div>
+      <div class="lg-row"><span class="line dashed"></span> GLX (planned)</div>
+      <div class="lg-row"><span class="line" style="background:#DA291C"></span> Red Line</div>
+    </div>
+
+    <!-- Narrative overlay -->
+    {#if activeNarrative}
+      {#key activeNarrativeYear}
+        <div class="narrative-overlay">
+          <div class="card-eyebrow">{activeNarrative.eyebrow} · {activeNarrativeYear}</div>
+          <h2 class="card-title">{activeNarrative.title}</h2>
+          <p class="card-body">{activeNarrative.body}</p>
+          <div class="card-stat">
+            <div class="stat-num">{activeNarrative.stat.value}</div>
+            <div class="stat-lbl">{activeNarrative.stat.label}</div>
+          </div>
         </div>
-      </section>
+      {/key}
+    {/if}
+  </div>
+
+  <div class="scroll-zones" bind:this={scrollySectionsEl}>
+    <div class="zone intro-zone"></div>
+    {#each MAP_YEARS.slice(1) as _yr}
+      <div class="zone"></div>
     {/each}
   </div>
-
-  <div class="map-container">
-    <div class="map-inner">
-      <DevelopmentsMap year={$developmentsYear} hideSlider={true} />
-
-      <div class="year-slider">
-        <input
-          type="range"
-          min={ALL_YEARS[0]}
-          max={ALL_YEARS[ALL_YEARS.length - 1]}
-          value={$developmentsYear}
-          on:input={handleYearChange}
-          class="slider-input"
-        />
-        <span class="year-display">{$developmentsYear}</span>
-      </div>
-    </div>
-  </div>
-</div>
+</section>
 
 <style>
-  .scrolly-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    position: relative;
+  .scrolly-fullbleed { position: relative; }
+
+  .map-stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    width: 100%;
+    overflow: hidden;
   }
 
-  .scrolly-sections { display: flex; flex-direction: column; }
-
-  .year-section {
-    min-height: 800px;
+  .map-shell {
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 1rem;
   }
 
-  .year-spacer { min-height: 800px; }
+  .map-shell :global(.map-wrap) { width: 100%; max-width: 1400px; margin: 0; }
+  .map-shell :global(.map-svg-wrap) { width: 100%; }
+  .map-shell :global(svg) { width: 100% !important; height: auto !important; max-height: calc(100svh - 2rem) !important; }
 
-  .narrative-card {
-    padding: 1.5rem 1.75rem;
-    border-left: 3px solid light-dark(#ccc, #555);
-    opacity: 0.35;
-    transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-                border-color 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
-    max-width: 420px;
-    transform: translateX(-4px);
+  /* Move the dev map's stat overlay so it doesn't conflict with our panels */
+  .map-shell :global(.stat-overlay) {
+    bottom: auto !important;
+    top: 6rem !important;
+    right: 1.25rem !important;
   }
 
-  .narrative-card.active {
-    opacity: 1;
-    border-left-color: #2563eb;
-    transform: translateX(0);
-  }
-
-  .narrative-card.future {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .card-year {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #2563eb;
-    line-height: 1;
-    margin-bottom: 0.35rem;
-  }
-
-  .card-title {
-    margin: 0 0 0.5rem;
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: light-dark(#0f172a, #e2e8f0);
-    line-height: 1.3;
-  }
-
-  .card-body {
-    margin: 0;
-    font-size: 0.92rem;
-    line-height: 1.65;
-    color: light-dark(#334155, #cbd5e1);
-  }
-
-  .map-container {
-    position: sticky;
-    top: 2rem;
-    height: fit-content;
-  }
-
-  .map-inner {
-    position: relative;
-    display: inline-block;
-    width: 100%;
-  }
-
-  .year-slider {
+  .floating-control {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    z-index: 10;
+    z-index: 5;
+    background: light-dark(rgba(255,255,255,0.78), rgba(20,22,28,0.78));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid light-dark(rgba(15,23,42,0.08), rgba(255,255,255,0.08));
+    border-radius: 12px;
+    padding: 0.7rem 1rem;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.10);
+    color: inherit;
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+
+  .top-center {
+    top: 1.25rem;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     align-items: center;
     gap: 1rem;
-    background: light-dark(rgba(255, 255, 255, 0.55), rgba(42, 42, 42, 0.9));
-    border: 1px solid light-dark(rgba(0, 0, 0, 0.08), #555);
-    padding: 0.6rem 0.9rem;
-    border-radius: 8px;
-    backdrop-filter: blur(6px);
-    color: inherit;
+    min-width: 380px;
   }
 
-  .slider-input {
-    width: 200px;
-    height: 6px;
-    border-radius: 3px;
-    background: linear-gradient(to right, #ddd 0%, #ddd 100%);
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-    cursor: pointer;
+  .side-legend {
+    bottom: 1.25rem;
+    right: 1.25rem;
+    width: 220px;
   }
 
-  .slider-input::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
-  }
-
-  .slider-input::-moz-range-thumb {
-    width: 18px; height: 18px; border-radius: 50%;
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    cursor: pointer; border: none;
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
-  }
-
-  .year-display {
-    font-size: 1rem;
+  .control-label {
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
     font-weight: 700;
-    color: #2563eb;
-    min-width: 40px;
+    color: light-dark(#475569, #94a3b8);
+    margin-bottom: 0.3rem;
+  }
+
+  .year-scrub {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: light-dark(#e2e8f0, #334155);
+    border-radius: 3px;
+    cursor: pointer;
+    outline: none;
+  }
+  .year-scrub::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: linear-gradient(135deg, #0f766e, #134e4a);
+    box-shadow: 0 2px 6px rgba(15,118,110,0.45);
+    cursor: pointer;
+  }
+  .year-scrub::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: linear-gradient(135deg, #0f766e, #134e4a);
+    border: none;
+    box-shadow: 0 2px 6px rgba(15,118,110,0.45);
+    cursor: pointer;
+  }
+
+  .year-big {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f766e;
+    min-width: 4ch;
     text-align: center;
     font-variant-numeric: tabular-nums;
   }
 
-  @media (max-width: 1200px) {
-    .scrolly-container { grid-template-columns: 1fr; }
-    .map-container { position: static; margin-top: 2rem; }
+  .lg-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    margin-top: 0.18rem;
+  }
+  .lg-row .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .lg-row .dot.lg { width: 14px; height: 14px; }
+  .lg-row .dot.teal { width: 8px; height: 8px; }
+  .lg-row .line { width: 18px; height: 3px; border-radius: 2px; }
+  .lg-row .line.dashed {
+    background-image: linear-gradient(to right, #00843D 50%, transparent 50%);
+    background-size: 6px 3px;
+  }
+
+  .narrative-overlay {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 1.5rem;
+    z-index: 5;
+    max-width: 480px;
+    background: light-dark(rgba(255,255,255,0.92), rgba(15,17,22,0.92));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid light-dark(rgba(15,23,42,0.08), rgba(255,255,255,0.08));
+    border-radius: 14px;
+    padding: 1.4rem 1.6rem;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+    animation: fadeUp 0.55s cubic-bezier(0.4,0,0.2,1) both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    font-weight: 700;
+    color: #0f766e;
+    margin-bottom: 0.5rem;
+  }
+
+  .card-title {
+    margin: 0 0 0.7rem;
+    font-size: 1.4rem;
+    font-weight: 800;
+    line-height: 1.18;
+    color: light-dark(#0f172a, #f1f5f9);
+  }
+
+  .card-body {
+    margin: 0 0 1rem;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: light-dark(#334155, #cbd5e1);
+  }
+
+  .card-stat {
+    display: flex;
+    gap: 0.85rem;
+    align-items: center;
+    padding: 0.7rem 0.95rem;
+    background: light-dark(rgba(15,118,110,0.08), rgba(15,118,110,0.18));
+    border-left: 4px solid #0f766e;
+    border-radius: 5px;
+  }
+
+  .stat-num {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #0f766e;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  .stat-lbl {
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: light-dark(#334155, #cbd5e1);
+  }
+
+  .scroll-zones {
+    position: relative;
+    margin-top: -100svh;
+  }
+
+  .zone { height: 100svh; }
+  .intro-zone { height: 100svh; }
+
+  @media (max-width: 720px) {
+    .narrative-overlay {
+      max-width: calc(100% - 2rem);
+      left: 1rem;
+      right: 1rem;
+      bottom: 1rem;
+      padding: 1rem 1.1rem;
+    }
+    .card-title { font-size: 1.15rem; }
+    .top-center {
+      min-width: 0;
+      width: calc(100% - 2rem);
+      left: 1rem;
+      right: 1rem;
+      transform: none;
+    }
+    .side-legend { display: none; }
   }
 </style>

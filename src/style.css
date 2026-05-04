@@ -4,13 +4,20 @@
 
 body {
     font: 100%/1.5 system-ui;
-    max-width: 100ch;
     margin-inline: auto;
     writing-mode: horizontal-tb;
-    padding: 1em;
+    padding: 0;
     accent-color: var(--color-accent); /* Apply accent color to form elements, checkboxes, etc. */
- 
 }
+
+body > nav,
+body > .color-scheme-switch,
+.content-narrow {
+    max-width: 70ch;
+    margin-inline: auto;
+    padding-inline: 1em;
+}
+body > nav { padding-block: 0; }
 
 p {
     margin-bottom: 2em;
