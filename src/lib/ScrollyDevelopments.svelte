@@ -13,31 +13,31 @@
   const YEAR_NARRATIVES = {
     2011: {
       eyebrow: 'BASELINE',
-      title: 'A Cambridge-led pipeline, before the Green Line',
+      title: 'Baseline - pre-Green Line Extension construction',
       body:
-        'In 2011, Cambridge already dominates the development pipeline near the Red Line — large lab and mixed-use projects around Kendall account for most new units. Somerville is busier in project count but smaller in scale. Medford has barely entered the conversation. The Green Line Extension is a settled lawsuit, not a real construction project yet.',
-      stat: { value: '6%', label: 'of units built so far are deed-restricted affordable' },
+        'MassBuilds data begins here. By 2011, there are already 202 development records in scope: about 11,000 total units, including 644 affordable units. Cambridge leads by unit volume, while Somerville leads in project count with smaller infill projects. Medford has minimal activity at this point.',
+      stat: { value: '644', label: 'cumulative affordable units by 2011' },
     },
     2015: {
-      eyebrow: 'GLX FALTERS',
-      title: 'The pipeline keeps moving — but quietly',
+      eyebrow: 'Green Line Extension FALTERS',
+      title: 'Green Line Extension falters - pipeline keeps growing',
       body:
-        'GLX nearly collapses in 2015 over $3B in cost overruns. Developers along the future corridor wait. Somerville’s 2014 surge (Assembly Row–era) is already in the rearview, and 2015 itself adds almost nothing new. The hesitation is visible: the bubbles are there, but they’re sparse and small along the future GLX route.',
-      stat: { value: '<1k', label: 'affordable units cumulative across all three cities' },
+        'By 2015 cumulative supply reaches roughly 15,600 units across 248 projects. The prior year includes a large Somerville surge, but 2015 itself adds very little new production. The development pipeline continues, though activity appears cautious while the Green Line Extension faces major uncertainty.',
+      stat: { value: '248', label: 'cumulative projects by 2015' },
     },
     2020: {
       eyebrow: 'CONSTRUCTION ON',
-      title: 'Affordable housing triples — along the GLX corridor',
+      title: 'Construction underway, affordability rises',
       body:
-        'GLX is back under construction. Somerville posts massive years in 2016 and 2019 — dozens of smaller projects clustered exactly along the planned line. Crucially, the share of new units that are deed-restricted affordable jumps after Somerville and Cambridge tighten inclusionary zoning in 2017. Watch the dark teal centers of the bubbles grow.',
-      stat: { value: '3×', label: 'affordable units 2015→2020 (≈900 → ≈2,900)' },
+        'Through 2020, the map reaches about 357 projects and roughly 25,900 cumulative units. Somerville drives much of the growth with clustered projects along the projected Green Line Extension corridor. Affordable units grow sharply from 2015 to 2020, consistent with post-2017 inclusionary zoning effects.',
+      stat: { value: '3x', label: 'growth in affordable units from 2015 to 2020' },
     },
     2025: {
       eyebrow: 'LINE OPEN',
-      title: 'The pipeline cools, but affordability keeps climbing',
+      title: 'Green Line Extension open - catalog at 390 projects',
       body:
-        'Union Square (Mar 2022) and the Medford branch (Dec 2022) are live. Total new construction has slowed since the line opened — the post-2022 bubbles are sparser. But the affordable share keeps growing: more than 1 in 7 cumulative units is now deed-restricted, more than double the 2011 ratio. The Green Line corridor delivered density and affordable units, not displacement.',
-      stat: { value: '14%', label: 'affordable share — up from 6% in 2011' },
+        'With Union Square and the Medford branch open, cumulative totals reach about 390 projects, 28,600 units, and 3,900 affordable units. Cambridge still holds the largest share of total units, while post-opening annual production is lower than peak pre-opening years. The affordable share continues to climb.',
+      stat: { value: '14%', label: 'affordable share of cumulative units by 2025' },
     },
   };
 
@@ -135,7 +135,7 @@
       <div class="lg-row"><span class="dot teal" style="background:#0f766e"></span> deed-restricted units</div>
       <div class="control-label" style="margin-top:0.6rem">TRANSIT</div>
       <div class="lg-row"><span class="line" style="background:#00843D"></span> Green Line</div>
-      <div class="lg-row"><span class="line dashed"></span> GLX (planned)</div>
+      <div class="lg-row"><span class="line dashed"></span> Green Line Extension (planned)</div>
       <div class="lg-row"><span class="line" style="background:#DA291C"></span> Red Line</div>
     </div>
 

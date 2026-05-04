@@ -39,7 +39,7 @@ const ZIP_LABELS = {
     Medford: [22, 163, 74],      // green
   };
 
-  const GLX_MILESTONES = {
+  const GREEN_LINE_EXTENSION_MILESTONES = {
     2005: 'Conservation Law Foundation sued the state for stalling the Green Line Extension project.',
     2007: 'Conservation Law Foundation & state settled — commitment to complete Green Line Extension by 2014.',
     2012: 'Green Line Extension construction broke ground.',
@@ -51,7 +51,7 @@ const ZIP_LABELS = {
 
   const BRANCH_COLORS = {
     Trunk: '#00843D', B: '#E87722', C: '#00B2A9', D: '#DA291C', E: '#7C4D79',
-    'GLX-D': '#00843D', 'GLX-E': '#00843D',
+    'Green Line Extension-D': '#00843D', 'Green Line Extension-E': '#00843D',
   };
 
   const RED_LINE_COLOR = '#DA291C';
@@ -164,23 +164,23 @@ const ZIP_LABELS = {
 
   const ANNOT_ROW_Y = [-44, -66, -88, -110, -134]; // row 0 = closest to chart
 
-  const GLX_ANNOTATIONS = [
-    { year: 2005, label: 'Conservation Law Foundation sued state', type: 'glx' },
-    { year: 2007, label: 'Settlement — commit to finish by 2014', type: 'glx' },
+  const GREEN_LINE_EXTENSION_ANNOTATIONS = [
+    { year: 2005, label: 'Conservation Law Foundation sued state', type: 'greenLineExtension' },
+    { year: 2007, label: 'Settlement — commit to finish by 2014', type: 'greenLineExtension' },
     { year: 2008, label: 'Global Financial Crisis', type: 'event' },
-    { year: 2012, label: 'Construction broke ground', type: 'glx' },
-    { year: 2015, label: 'Nearly cancelled ($3B cost overrun)', type: 'glx' },
-    { year: 2017, label: 'Redesigned & restarted', type: 'glx' },
-    { year: 2018, label: 'Construction restarted', type: 'glx' },
+    { year: 2012, label: 'Construction broke ground', type: 'greenLineExtension' },
+    { year: 2015, label: 'Nearly cancelled ($3B cost overrun)', type: 'greenLineExtension' },
+    { year: 2017, label: 'Redesigned & restarted', type: 'greenLineExtension' },
+    { year: 2018, label: 'Construction restarted', type: 'greenLineExtension' },
     { year: 2020, label: 'COVID-19 pandemic', type: 'event' },
-    { year: 2022, label: 'Union Sq & Medford branch opened', type: 'glx' },
+    { year: 2022, label: 'Union Sq & Medford branch opened', type: 'greenLineExtension' },
   ];
 
   // Greedy row assignment: place each annotation in the lowest row with no overlap
   $: annotAssignments = (() => {
-    if (!xScale) return GLX_ANNOTATIONS.map(() => ({ row: 0, boxW: 100, fullLabel: '' }));
+    if (!xScale) return GREEN_LINE_EXTENSION_ANNOTATIONS.map(() => ({ row: 0, boxW: 100, fullLabel: '' }));
     const rowEnds = new Array(5).fill(-Infinity);
-    return GLX_ANNOTATIONS.map(a => {
+    return GREEN_LINE_EXTENSION_ANNOTATIONS.map(a => {
       const fullLabel = `${a.year}: ${a.label}`;
       const boxW = fullLabel.length * 5.6 + 14;
       const ax = xScale(a.year);
@@ -550,8 +550,8 @@ const ZIP_LABELS = {
   >
     <g transform="translate({LC_MARGIN.left},{LC_MARGIN.top})">
 
-      <!-- GLX Milestone annotation guide lines (subtle) -->
-      {#each GLX_ANNOTATIONS as a}
+      <!-- Green Line Extension Milestone annotation guide lines (subtle) -->
+      {#each GREEN_LINE_EXTENSION_ANNOTATIONS as a}
         {@const ax = xScale(a.year)}
         {@const isEvent = a.type === 'event'}
         <line x1={ax} x2={ax} y1={-18} y2={LC_H}
@@ -623,10 +623,10 @@ const ZIP_LABELS = {
       <text x={xScale(year) + 4} y={-6} text-anchor="start" font-size="10" font-weight="bold" fill="currentColor">{year}</text>
 
       <!-- Annotation hover icons (one per milestone, above the chart) -->
-      {#each GLX_ANNOTATIONS as a}
+      {#each GREEN_LINE_EXTENSION_ANNOTATIONS as a}
         {@const ax = xScale(a.year)}
         {@const isEvent = a.type === 'event'}
-        <g class="annot-icon" style="cursor:help"
+        <g class="annot-icon" style="cursor:help" role="img" aria-label="Milestone annotation"
           on:mousemove={(e) => {
             const rect = e.currentTarget.closest('svg').getBoundingClientRect();
             annotTooltip = {

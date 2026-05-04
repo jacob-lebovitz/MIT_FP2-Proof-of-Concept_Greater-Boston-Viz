@@ -13,39 +13,39 @@
   // surfaces a finding-level callout so the takeaways are distributed.
   const YEAR_NARRATIVES = {
     2005: {
-      eyebrow: 'BEFORE THE LINE',
-      title: 'Two corridors, two prices',
+      eyebrow: 'EARLY PATTERNS',
+      title: 'Red Line premium, before Green Line Extension momentum',
       body:
-        'The Red Line through Cambridge is decades old. Harvard, Porter and Davis Square have already commanded a price premium for years. Along the future Green Line corridor — Union Square, Magoun, Ball Square — prices sit visibly lower. The Conservation Law Foundation has just sued the state for stalling the Green Line Extension, but on the ground, the line’s arrival still feels theoretical.',
-      finding: 'Red Line ZIPs already cost $100K+ more than future GLX ZIPs.',
+        'Initial price increases appear in Harvard Square and Cambridgeport, both already served by the Red Line for decades. The Green Line Extension is not yet a major topic of discussion, and areas around projected Green Line Extension stops do not show notable price increases.',
+      finding: 'Price growth is concentrated in established Red Line areas, not projected Green Line Extension stops.',
     },
     2012: {
-      eyebrow: 'BREAKING GROUND',
-      title: 'Construction begins, prices don’t flinch',
+      eyebrow: 'GROUND BREAKING',
+      title: 'Construction starts amid market stagnation',
       body:
-        'Construction officially breaks ground on the Green Line Extension. The corridor is no longer hypothetical — bulldozers are visible. If transit announcements drove home values, this is when we’d expect Somerville to spike. Instead the whole region is still recovering from the 2008 financial crisis, and prices along the future GLX route move in lockstep with everywhere else.',
-      finding: 'No measurable GLX premium at groundbreaking — prices move with the regional cycle.',
+        'Construction has broken ground on the Green Line Extension, but there is still no significant price increase around projected stops. More broadly, prices are mostly flat compared with 2005, likely reflecting the lingering effects of the 2008 financial crisis.',
+      finding: 'Even with Green Line Extension construction underway, surrounding prices show little distinct acceleration.',
     },
     2017: {
-      eyebrow: 'CRISIS & REDESIGN',
-      title: 'Costs spike. Prices spike. But not where you’d expect.',
+      eyebrow: 'CONSTRUCTION ERA',
+      title: 'Prices rise, led by Red Line neighborhoods',
       body:
-        'After the project nearly collapses in 2015 over $3B in cost overruns, GLX is redesigned and restarted in 2017. Prices climb sharply — but the climb is centered on Harvard Square and West Cambridge, areas already served by the Red Line. The future Green Line ZIPs gain less than their Red Line neighbors.',
-      finding: 'The 2015–17 boom favors Red Line–served ZIPs over GLX corridor ZIPs.',
+        'The Green Line Extension remains under construction, and prices rise significantly across the study area. The strongest gains are still in Harvard Square and Cambridgeport, both tied to Red Line access, while projected Green Line Extension-stop areas rise more modestly.',
+      finding: 'Regional appreciation is visible, but peak gains remain strongest in Red Line corridors.',
     },
     2022: {
-      eyebrow: 'OPENING DAY',
-      title: 'Union Square. Medford branch. Live.',
+      eyebrow: 'SERVICE OPENS',
+      title: 'Green Line Extension active, but hierarchy persists',
       body:
-        'March 2022: Union Square opens. December 2022: the Medford branch follows. After two decades of litigation and false starts, the Green Line Extension is real. Prices in Somerville and Medford do rise — but they rise less than Cambridge’s Red Line stations did over the same period.',
-      finding: 'GLX ZIPs gain ~30% less than Red Line ZIPs from 2017–2022.',
+        'The Green Line Extension is now active in all neighborhoods. Prices continue rising, but the highest levels remain in west Cambridge and other established high-demand areas.',
+      finding: 'Green Line Extension activation does not immediately overturn the existing Cambridge-led price hierarchy.',
     },
     2025: {
-      eyebrow: 'THREE YEARS IN',
-      title: 'The narrative the GLX never delivered',
+      eyebrow: 'THREE YEARS LATER',
+      title: 'Green Line Extension corridors remain relatively less expensive',
       body:
-        'Three years after opening, GLX neighborhoods remain the most affordable in the immediate study area. Kendall Square — anchored on the Red Line and a tech-hub story — has seen the largest price gains of any ZIP in the dataset. The Green Line Extension simply hasn’t produced the displacement that transit-equity opponents predicted.',
-      finding: 'Kendall (Red Line) overtakes everything; GLX corridor stays comparatively affordable.',
+        'With the Green Line Extension active, Somerville and nearby Green Line neighborhoods remain slightly below Harvard Square and west Cambridge on prices. Kendall Square, with strong Red Line access, continues to post especially large gains.',
+      finding: 'Even post-Green Line Extension, top-end price escalation remains strongest around Red Line anchors.',
     },
   };
 
@@ -133,7 +133,7 @@
       <div class="lg-row"><span class="dot" style="background:#16a34a"></span> Medford</div>
       <div class="control-label" style="margin-top:0.6rem">TRANSIT</div>
       <div class="lg-row"><span class="line" style="background:#00843D"></span> Green Line (built)</div>
-      <div class="lg-row"><span class="line dashed" style="background:#00843D"></span> GLX (planned)</div>
+      <div class="lg-row"><span class="line dashed" style="background:#00843D"></span> Green Line Extension (planned)</div>
       <div class="lg-row"><span class="line" style="background:#DA291C"></span> Red Line</div>
     </div>
 

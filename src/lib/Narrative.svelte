@@ -22,13 +22,13 @@
     The Green Line Extension is one specific corridor and one specific transit project. We're not making
     the broader claim that all transit-oriented development avoids displacement — the Red Line itself is
     visible evidence that new transit can drive significant price growth, and Kendall Square's gains over
-    the past decade are some of the largest in the dataset. But for the GLX corridor specifically, two
+    the past decade are some of the largest in the dataset. But for the Green Line Extension corridor specifically, two
     decades of fear and litigation predicted a pattern the data simply does not show.
   </p>
   <p>
     Prices in Somerville and Medford rose, but they rose less than their Red Line neighbors. New housing
     was built — most of it concentrated along the corridor itself. The deed-restricted affordable share
-    more than doubled, from 6% in 2011 to 14% by 2025. Whatever the GLX did to the neighborhoods it now
+    more than doubled, from 6% in 2011 to 14% by 2025. Whatever the Green Line Extension did to the neighborhoods it now
     serves, it didn't deliver the displacement crisis its opponents warned about.
   </p>
   <p class="caveat">

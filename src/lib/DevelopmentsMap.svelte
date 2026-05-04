@@ -27,7 +27,7 @@
 
   const BRANCH_COLORS = {
     Trunk: '#00843D', B: '#E87722', C: '#00B2A9', D: '#DA291C', E: '#7C4D79',
-    'GLX-D': '#00843D', 'GLX-E': '#00843D',
+    'Green Line Extension-D': '#00843D', 'Green Line Extension-E': '#00843D',
   };
   const RED_LINE_COLOR = '#DA291C';
 
