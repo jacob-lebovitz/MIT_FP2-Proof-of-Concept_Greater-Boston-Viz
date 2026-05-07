@@ -2,7 +2,21 @@
   export let position; // 'before' | 'between' | 'after'
 </script>
 
-{#if position === 'between'}
+{#if position === 'before'}
+<!-- ============================================================
+     NARRATIVE — BEFORE THE VISUALIZATION
+     ============================================================ -->
+
+<div class="narrative before">
+  <h2>Transit Access Does Not Destroy Neighborhoods</h2>
+  <p>
+    The following tools allow us to visualization price changes over time
+    across Cambridge and Somerville. Feel free to follow the narrative and
+    then play around with the tools. Hover over regions to see specific prices by
+    zip code and their associated green line stop.
+  </p>
+</div>
+{:else if position === 'between'}
 <section class="bridge content-narrow">
   <div class="bridge-eyebrow">PART TWO · NEW HOUSING</div>
   <h2 class="bridge-title">If prices didn't surge, what about supply?</h2>
@@ -15,29 +29,93 @@
   </p>
 </section>
 {:else if position === 'after'}
-<section class="afterword content-narrow">
-  <div class="afterword-eyebrow">THE TAKEAWAY</div>
-  <h2 class="afterword-title">A counter-example to the displacement default</h2>
-  <p>
-    The Green Line Extension is one specific corridor and one specific transit project. We're not making
-    the broader claim that all transit-oriented development avoids displacement — the Red Line itself is
-    visible evidence that new transit can drive significant price growth, and Kendall Square's gains over
-    the past decade are some of the largest in the dataset. But for the Green Line Extension corridor specifically, two
-    decades of fear and litigation predicted a pattern the data simply does not show.
+<!-- ============================================================
+     NARRATIVE — AFTER THE VISUALIZATION
+     Closing summary, key takeaway, and policy lens.
+     ============================================================ -->
+
+<div class="narrative after">
+  <div class="kicker">The takeaway</div>
+  <h2>New transit didn't price out these neighborhoods — it built more of them.</h2>
+
+  <p class="lede">
+    Across two decades and three cities, Cambridge, Somerville, and Medford added
+    housing throughout the Green Line Extension's slow march from lawsuit to ribbon-cutting.
+    Prices climbed everywhere in Greater Boston since 2012 (the start of construction), but the largest jumps tracked the
+    <strong>Red Line</strong> (Harvard Square, Kendall), not the new GLX corridor.
   </p>
-  <p>
-    Prices in Somerville and Medford rose, but they rose less than their Red Line neighbors. New housing
-    was built — most of it concentrated along the corridor itself. The deed-restricted affordable share
-    more than doubled, from 6% in 2011 to 14% by 2025. Whatever the Green Line Extension did to the neighborhoods it now
-    serves, it didn't deliver the displacement crisis its opponents warned about.
+
+  <div class="stat-grid" aria-label="Summary statistics">
+    <div class="stat-card">
+      <div class="stat-num">390</div>
+      <div class="stat-lbl">Projects mapped<br/>(2011–2025)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">~28,600</div>
+      <div class="stat-lbl">New housing units<br/>cumulatively added</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">~3,900</div>
+      <div class="stat-lbl">Of those are<br/>income-restricted</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">6% → 14%</div>
+      <div class="stat-lbl">Affordable share of<br/>cumulative stock</div>
+    </div>
+  </div>
+
+  <h3>What we actually saw</h3>
+  <ul class="findings">
+    <li>
+      <strong>The "transit premium" myth got smaller, not bigger.</strong>
+      Housing prices along the green line rose, but not unlikely neighboring zipcodes. Transit development did not result in drastically higher prices. 
+    </li>
+    <li>
+      <strong>Supply responded to anticipation, not the ribbon-cutting.</strong>
+      Somerville's biggest development years (2014, 2016, 2019) all happened
+      <em>during</em> construction. Once trains were running, the pipeline thinned, as
+      2022–2024 combined added fewer units than 2019 alone.
+    </li>
+    <li>
+      <strong>Affordability rose with the rules, not the trains.</strong>
+      Affordable units more than tripled between 2015 and 2020, due to new inclusionary zoning policies. The trend continued past
+      2022, and it allowed for maining a mixed-income demographic.
+    </li>
+    <li>
+      <strong>Cambridge built fewer, larger projects; Somerville built many smaller ones.</strong>
+      Both zip codes investing in housing developments near Green Line stations, though they were of different size and function.
+    </li>
+  </ul>
+
+  <h3>If you live here, watch these signals</h3>
+  <ul class="findings">
+    <li>
+      <strong>Inclusionary zoning percentages on new approvals.</strong>
+      Zoning policies allowed for affordability to be maintained with new developments.
+    </li>
+    <li>
+      <strong>Pre-emptive permitting around future transit.</strong>
+      Most of the expansion units arrived before service. Cities that
+      upzone <em>during</em> infrastructure construction capture more supply
+      than those that wait until trains run.
+    </li>
+    <li>
+      <strong>Stable pricing along Green Line route.</strong>
+      The strongest price pressure in this map sits around Harvard, Porter, and
+      Kendall. Affordability policy in the GLX area needs to be planned with
+      Red Line displacement risk in mind, not just GLX-corridor risk.
+    </li>
+  </ul>
+
+  <p class="closer">
+    The headline you'll often hear is "new transit gentrifies the neighborhood."
+    This is not what this data shows. New transit, paired with
+    inclusionary zoning and an active permitting pipeline, expanded the housing
+    stock and grew the share of homes set aside as affordable. That's a more
+    boring story, but a more useful one for the next corridor.
   </p>
-  <p class="caveat">
-    A note on units of analysis: this visualization uses ZIP codes because that's the unit our price data
-    is published in. ZIP codes are not a meaningful unit for housing or transit policy — they're postal
-    routes. A version of this analysis at the census-tract level would be more rigorous and is a natural
-    next step.
-  </p>
-</section>
+</div>
+
 {/if}
 
 <style>
@@ -77,5 +155,98 @@
     border-top: 1px solid light-dark(#e2e8f0, #2d3748);
     font-size: 0.92rem;
     color: light-dark(#64748b, #94a3b8);
+  }
+
+  .after {
+    margin: 4rem auto 3rem;
+    padding: 2.5rem 2rem;
+    border-top: 1px solid light-dark(rgba(0,0,0,0.08), rgba(255,255,255,0.1));
+  }
+
+  h2 {
+    font-size: 1.6rem;
+    margin: 0.2rem 0 1rem;
+    line-height: 1.25;
+  }
+
+  .after h2 {
+    font-size: 1.85rem;
+    max-width: 28ch;
+  }
+
+  h3 {
+    font-size: 1.05rem;
+    margin: 2rem 0 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: light-dark(#475569, #94a3b8);
+  }
+
+  .kicker {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #2563eb;
+    margin-bottom: 0.4rem;
+  }
+
+  .lede {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: light-dark(#1f2937, #e2e8f0);
+    margin: 0 0 1.5rem;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.85rem;
+    margin: 1.5rem 0 2rem;
+  }
+
+  .stat-card {
+    padding: 1rem 1.1rem;
+    border-radius: 10px;
+    background: light-dark(#f8fafc, rgba(255,255,255,0.04));
+    border: 1px solid light-dark(rgba(0,0,0,0.06), rgba(255,255,255,0.08));
+  }
+
+  .stat-num {
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #2563eb;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 0.35rem;
+  }
+
+  .stat-lbl {
+    font-size: 0.78rem;
+    line-height: 1.35;
+    color: light-dark(#475569, #94a3b8);
+    letter-spacing: 0.02em;
+  }
+
+  .findings {
+    margin: 0.5rem 0 0;
+    padding-left: 1.25rem;
+  }
+
+  .findings li {
+    margin-bottom: 0.85rem;
+    line-height: 1.65;
+  }
+
+  .findings strong {
+    color: light-dark(#0f172a, #f1f5f9);
+  }
+
+  .closer {
+    margin-top: 1.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid light-dark(rgba(0,0,0,0.08), rgba(255,255,255,0.08));
+    font-size: 1rem;
+    color: light-dark(#334155, #cbd5e1);
   }
 </style>

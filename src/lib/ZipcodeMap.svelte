@@ -35,8 +35,8 @@ const ZIP_LABELS = {
 
   const CITY_BASE_COLORS = {
     Cambridge: [37, 99, 235],    // blue
-    Somerville: [234, 88, 12],   // orange
-    Medford: [22, 163, 74],      // green
+    Somerville: [220, 38, 38],   // red
+    Medford: [202, 138, 4],      // yellow (deep amber for legibility on white)
   };
 
   const GREEN_LINE_EXTENSION_MILESTONES = {
@@ -73,8 +73,27 @@ const ZIP_LABELS = {
   let zoomK = 1;
   let zoomBehavior;
   let hoveredZip = null;
+  let selectedZips = new Set();
+  let selectedCities = new Set();
 
-  onMount(async () => {
+  function toggleZip(zip) {
+    const s = new Set(selectedZips);
+    s.has(zip) ? s.delete(zip) : s.add(zip);
+    selectedZips = s;
+  }
+
+  function toggleLegendCity(city) {
+    const s = new Set(selectedCities);
+    s.has(city) ? s.delete(city) : s.add(city);
+    selectedCities = s;
+  }
+
+  $: anySelected = selectedZips.size > 0 || selectedCities.size > 0;
+
+  function resetSelection() {
+    selectedZips = new Set();
+    selectedCities = new Set();
+  }(async () => {
     const [geojson, housingData, glGeojson, stationData, surroundingGeojson, rlGeojson, rlStationData, charlesGeojson] = await Promise.all([
       d3.json(`${base}/target-zip-codes.geojson`),
       d3.json(`${base}/housing.json`),
@@ -201,6 +220,22 @@ const ZIP_LABELS = {
     .y(([, val]) => yScale(val))
     .defined(([, val]) => val != null);
 
+  $: sortedFeatures = [...features].sort((a, b) => {
+    const aZipStr = String(a.properties.ZCTA5CE20).padStart(5, '0');
+    const bZipStr = String(b.properties.ZCTA5CE20).padStart(5, '0');
+    const aIsHovered = hoveredZip === aZipStr;
+    const bIsHovered = hoveredZip === bZipStr;
+    const aIsSelected = selectedZips.has(a.properties.ZCTA5CE20);
+    const bIsSelected = selectedZips.has(b.properties.ZCTA5CE20);
+    
+    // Sort: hovered last (top), then selected, then normal
+    if (aIsHovered && !bIsHovered) return 1;
+    if (!aIsHovered && bIsHovered) return -1;
+    if (aIsSelected && !bIsSelected) return 1;
+    if (!aIsSelected && bIsSelected) return -1;
+    return 0;
+  });
+
   $: lineData = housing.map(d => ({
     zip: d.zip,
     city: d.city,
@@ -324,8 +359,7 @@ const ZIP_LABELS = {
       <input type="range" min={YEARS[0]} max={YEARS[YEARS.length - 1]} step="1" bind:value={year} />
       <strong>{year}</strong>
       <button on:click={resetZoom}>Reset zoom</button>
-    </div>
-  {/if}
+      <button on:click={resetSelection} disabled={!anySelected}>Reset selection</button>
 
   {#if loading}
     <div class="loading">Loading map data…</div>
@@ -375,19 +409,28 @@ const ZIP_LABELS = {
       <path d={pathGen?.(feature)} fill="#7dd3fc" fill-opacity="0.45" stroke="#0284c7" stroke-width={0.8 / zoomK} stroke-opacity="0.45" pointer-events="none" />
     {/each}
 
-    <!-- Map paths -->
-    {#each features as feature}
+    <!-- Map paths: sorted for proper z-ordering (hovered and selected on top) -->
+    {#each sortedFeatures as feature (feature.properties.ZCTA5CE20)}
       {@const zip = feature.properties.ZCTA5CE20}
       {@const zipStr = String(zip).padStart(5, '0')}
+      {@const isHovered = hoveredZip === zipStr}
+      {@const isSelected = selectedZips.has(zip)}
+      {@const [cr, cg, cb] = CITY_BASE_COLORS[ZIP_TO_CITY[zip]] ?? [120, 120, 120]}
       <path
         d={pathGen?.(feature)}
-        fill={getColor(zip, year)}
-        stroke={hoveredZip === zipStr ? '#1d4ed8' : 'white'}
-        stroke-width={hoveredZip === zipStr ? 2.5 / zoomK : 1.5 / zoomK}
-        role="img"
+        fill={anySelected && !isSelected && !selectedCities.has(ZIP_TO_CITY[zip]) ? '#c8c8c8' : getColor(zip, year)}
+        stroke={isHovered || isSelected ? `rgb(${cr},${cg},${cb})` : 'white'}
+        stroke-width={isHovered ? 4 / zoomK : isSelected ? 3.5 / zoomK : 1.5 / zoomK}
+        stroke-linejoin="round"
+        opacity={hoveredZip && !isHovered ? 0.35 : 1}
+        filter={isSelected && !isHovered ? `drop-shadow(0 0 3px rgba(${cr}, ${cg}, ${cb}, 0.5))` : 'none'}
+        role="button"
         aria-label={ZIP_LABELS[zip]}
+        tabindex="0"
         on:mousemove={(e) => handleMouseMove(e, feature)}
         on:mouseleave={handleMouseLeave}
+        on:click={() => toggleZip(zip)}
+        on:keydown={(e) => e.key === 'Enter' && toggleZip(zip)}
       />
     {/each}
 
@@ -406,8 +449,9 @@ const ZIP_LABELS = {
       />
     {/each}
 
-    <!-- Green Line segments (B branch orange line commented out for now) -->
-    {#each visibleGreenLine.filter(s => s.properties.branch !== 'B') as segment}
+    <!-- Green Line segments - all future segments shown as translucent -->
+    {#each greenLineFeatures.filter(s => s.properties.branch !== 'B') as segment}
+      {@const isFuture = segment.properties.year_opened > year}
       <path
         d={pathGen?.(segment)}
         fill="none"
@@ -415,6 +459,7 @@ const ZIP_LABELS = {
         stroke-width={4.5 / zoomK}
         stroke-linecap="round"
         stroke-linejoin="round"
+        opacity={isFuture ? 0.25 : 1}
         role="img"
         aria-label={segment.properties.name}
         on:mousemove={(e) => handleGLMouseMove(e, segment)}
@@ -495,6 +540,21 @@ const ZIP_LABELS = {
 
     </g><!-- end zoomable group -->
 
+    <!-- GLX Milestone annotation: anchored to the bottom of the SVG so it never overlaps the city legend -->
+    {#if GREEN_LINE_EXTENSION_MILESTONES[year]}
+      {@const milestoneLines = GREEN_LINE_EXTENSION_MILESTONES[year].match(/.{1,32}(\s|$)/g)?.map(l => l.trim()) ?? []}
+      {@const boxH = 28 + milestoneLines.length * 15}
+      <g transform="translate({LEGEND_X}, {HEIGHT - boxH - 12})">
+        <rect x={0} y={0} width={LEGEND_W} height={boxH}
+          rx="5" ry="5"
+          fill="#1a4a2e" opacity="0.9" />
+        <text x={8} y={16} font-size="10" font-weight="bold" fill="#6fcf97">Green Line Extension Milestone</text>
+        {#each milestoneLines as line, i}
+          <text x={8} y={32 + i * 15} font-size="10" fill="white">{line}</text>
+        {/each}
+      </g>
+    {/if}
+
     {#if !compact}
     <!-- Legend -->
     <g transform="translate({LEGEND_X}, 20)">
@@ -511,8 +571,24 @@ const ZIP_LABELS = {
       <text x={24} y={16 + N_BUCKETS * 22 + 13} font-size="11" fill="currentColor">No data</text>
       <text font-size="11" font-weight="bold" fill="currentColor" y={16 + (N_BUCKETS + 1) * 22 + 16}>City Labels</text>
       {#each Object.entries(CITY_BASE_COLORS) as [city, [r, g, b]], i}
-        <circle cx={9} cy={16 + (N_BUCKETS + 1) * 22 + 32 + i * 20} r="6" fill="rgb({r},{g},{b})" />
-        <text x={24} y={16 + (N_BUCKETS + 1) * 22 + 37 + i * 20} font-size="11" fill="currentColor">{city}</text>
+        <g
+          role="button"
+          tabindex="0"
+          aria-label="Filter {city}"
+          style="cursor:pointer"
+          on:click={() => toggleLegendCity(city)}
+          on:keydown={(e) => e.key === 'Enter' && toggleLegendCity(city)}
+        >
+          <circle cx={9} cy={16 + (N_BUCKETS + 1) * 22 + 32 + i * 20} r="6"
+            fill="rgb({r},{g},{b})"
+            stroke={selectedCities.has(city) ? '#000' : 'none'}
+            stroke-width="2"
+          />
+          <text x={24} y={16 + (N_BUCKETS + 1) * 22 + 37 + i * 20} font-size="11"
+            fill="currentColor"
+            font-weight={selectedCities.has(city) ? 'bold' : 'normal'}
+          >{city}</text>
+        </g>
       {/each}
     </g>
     {/if}
@@ -751,7 +827,13 @@ const ZIP_LABELS = {
     color: inherit;
   }
 
-  path { cursor: pointer; transition: opacity 0.1s; }
+  path { 
+    cursor: pointer; 
+    transition: opacity 0.1s;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  path:focus, path:focus-visible { outline: none; }
   path:hover { opacity: 0.8; stroke-width: 2.5; }
 
   .tooltip {
