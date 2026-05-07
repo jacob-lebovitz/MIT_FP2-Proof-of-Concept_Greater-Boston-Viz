@@ -93,7 +93,9 @@ const ZIP_LABELS = {
   function resetSelection() {
     selectedZips = new Set();
     selectedCities = new Set();
-  }(async () => {
+  }
+
+  onMount(async () => {
     const [geojson, housingData, glGeojson, stationData, surroundingGeojson, rlGeojson, rlStationData, charlesGeojson] = await Promise.all([
       d3.json(`${base}/target-zip-codes.geojson`),
       d3.json(`${base}/housing.json`),
