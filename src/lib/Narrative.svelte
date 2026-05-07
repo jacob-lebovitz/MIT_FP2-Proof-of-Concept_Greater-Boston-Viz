@@ -1,5 +1,5 @@
 <script>
-  export let position; // 'before' or 'after'
+  export let position; // 'before' | 'between' | 'after'
 </script>
 
 {#if position === 'before'}
@@ -16,7 +16,18 @@
     zip code and their associated green line stop.
   </p>
 </div>
-
+{:else if position === 'between'}
+<section class="bridge content-narrow">
+  <div class="bridge-eyebrow">PART TWO · NEW HOUSING</div>
+  <h2 class="bridge-title">If prices didn't surge, what about supply?</h2>
+  <p>
+    Price is only half the displacement story. The other half is whether new housing actually got built —
+    and whether enough of it was deed-restricted affordable to absorb pressure on existing residents.
+    Below: every development project added between 2011 and 2025, drawn from MassBuilds and filtered to the
+    nine ZIPs in the corridor. Each bubble is one project. The outer ring is total units. The dark teal
+    inner circle is the deed-restricted affordable share.
+  </p>
+</section>
 {:else if position === 'after'}
 <!-- ============================================================
      NARRATIVE — AFTER THE VISUALIZATION
@@ -108,14 +119,42 @@
 {/if}
 
 <style>
-  .narrative {
-    max-width: 720px;
-    line-height: 1.7;
-    font-size: 1rem;
+  .bridge, .afterword {
+    padding-block: 5rem 4rem;
   }
 
-  .before {
-    margin-bottom: 2rem;
+  .bridge-eyebrow, .afterword-eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    font-weight: 700;
+    color: #00843D;
+    margin-bottom: 1rem;
+  }
+  .afterword-eyebrow { color: #0f766e; }
+
+  .bridge-title, .afterword-title {
+    font-size: clamp(1.7rem, 3.2vw, 2.4rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin: 0 0 1.2rem;
+    color: light-dark(#0f172a, #f1f5f9);
+    text-wrap: balance;
+  }
+
+  p {
+    font-size: 1.02rem;
+    line-height: 1.75;
+    color: light-dark(#334155, #cbd5e1);
+    margin: 0 0 1.1rem;
+  }
+
+  .caveat {
+    margin-top: 1.5rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid light-dark(#e2e8f0, #2d3748);
+    font-size: 0.92rem;
+    color: light-dark(#64748b, #94a3b8);
   }
 
   .after {

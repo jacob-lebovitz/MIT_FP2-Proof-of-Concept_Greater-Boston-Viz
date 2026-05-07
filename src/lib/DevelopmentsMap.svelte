@@ -8,13 +8,14 @@
   export let year = 2011;
   export let hideSlider = false;
   export let hideHeader = false;
+  export let compact = false;
 
-  const WIDTH = 680;
-  const HEIGHT = 500;
-  const MAP_W = 460;
+  const WIDTH = 1100;
+  const HEIGHT = 740;
+  const MAP_W = compact ? 1100 : 880;
   const LEGEND_X = MAP_W + 10;
-  const LEGEND_W = 180;
-  const TOTAL_W = LEGEND_X + LEGEND_W + 10;
+  const LEGEND_W = compact ? 0 : 200;
+  const TOTAL_W = compact ? MAP_W : LEGEND_X + LEGEND_W + 10;
 
   const YEARS = Array.from({ length: 26 }, (_, i) => 2000 + i);
 
@@ -27,14 +28,19 @@
 
   const BRANCH_COLORS = {
     Trunk: '#00843D', B: '#E87722', C: '#00B2A9', D: '#DA291C', E: '#7C4D79',
-    'GLX-D': '#00843D', 'GLX-E': '#00843D',
+    'Green Line Extension-D': '#00843D', 'Green Line Extension-E': '#00843D',
   };
+  const RED_LINE_COLOR = '#DA291C';
 
   let features = [];
   let developments = [];
   let loading = true;
   let greenLineFeatures = [];
   let stations = [];
+  let surroundingFeatures = [];
+  let redLineFeatures = [];
+  let redLineStations = [];
+  let charlesRiverFeatures = [];
   let streetData = [];  // New: for street-level detail
   let projection, pathGen;
   let tooltip = { visible: false, x: 0, y: 0, html: '' };
@@ -45,16 +51,24 @@
   let zoomBehavior;
 
   onMount(async () => {
-    const [geojson, devData, glGeojson, stationData] = await Promise.all([
+    const [geojson, devData, glGeojson, stationData, surroundingGeojson, rlGeojson, rlStationData, charlesGeojson] = await Promise.all([
       d3.json(`${base}/target-zip-codes.geojson`),
       d3.json(`${base}/housing_developments.json`),
       d3.json(`${base}/mbta_green_line.geojson`),
       d3.json(`${base}/mbta_green_line_stations.json`),
+      d3.json(`${base}/surrounding-context.geojson`),
+      d3.json(`${base}/mbta_red_line.geojson`),
+      d3.json(`${base}/mbta_red_line_stations.json`),
+      d3.json(`${base}/charles_river.geojson`),
     ]);
     features = geojson.features;
     developments = devData;
     greenLineFeatures = glGeojson.features;
     stations = stationData;
+    surroundingFeatures = surroundingGeojson.features;
+    redLineFeatures = rlGeojson.features;
+    redLineStations = rlStationData;
+    charlesRiverFeatures = charlesGeojson.features;
     projection = d3.geoMercator().fitExtent([[0, 0], [MAP_W, HEIGHT]], { type: 'FeatureCollection', features });
     pathGen = d3.geoPath().projection(projection);
     loading = false;
@@ -131,7 +145,7 @@
       html:
         `<strong>${d.name || 'Unnamed'}</strong>` +
         `<div>${d.city} · ${d.zip}</div>` +
-        `<div>${d.units} units${d.affordable_units ? ` (${d.affordable_units} affordable)` : ''}</div>` +
+        `<div>${d.units} units${d.affordable_units ? ` <span style="color:#5eead4">· ${d.affordable_units} affordable</span>` : ''}</div>` +
         `<div>Added ${d.year_created}${d.year_completed ? ` · completed ${d.year_completed}` : ''}</div>`,
     };
   }
@@ -173,11 +187,48 @@
   {/if}
 
   <div class="map-svg-wrap">
-    <svg width={TOTAL_W} height={HEIGHT} bind:this={svgEl} style="display:{loading ? 'none' : 'block'}">
+    <svg viewBox="0 0 {TOTAL_W} {HEIGHT}" preserveAspectRatio="xMidYMid meet" bind:this={svgEl} style="display:{loading ? 'none' : 'block'}; width:100%; height:auto; max-height:{HEIGHT}px">
+      <defs>
+        <pattern id="dev-surrounding-hatch" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)">
+          <rect width="5" height="5" fill="light-dark(#eef0f3, #232328)" />
+          <line x1="0" y1="0" x2="0" y2="5" stroke="light-dark(#cbd0d6, #3a3a42)" stroke-width="0.8" />
+        </pattern>
+      </defs>
       <g transform={zoomTransform}>
-        <!-- ZIP code background (muted, provides area context) -->
+        <!-- Surrounding towns context (subtle hatched background) -->
+        {#each surroundingFeatures as feature}
+          <path d={pathGen?.(feature)} fill="url(#dev-surrounding-hatch)" stroke="light-dark(#b8bdc4, #4a4a52)" stroke-width={0.7 / zoomK} stroke-linejoin="round" pointer-events="none" />
+        {/each}
+
+        <!-- Surrounding town labels -->
+        {#each surroundingFeatures as feature}
+          {@const c = pathGen?.centroid(feature)}
+          {#if c}
+            <text
+              x={c[0]} y={c[1]}
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size={13 / zoomK}
+              fill="light-dark(#6b7280, #9ca3af)"
+              font-weight="500"
+              letter-spacing="0.06em"
+              paint-order="stroke"
+              stroke="light-dark(#eef0f3, #232328)"
+              stroke-width={3 / zoomK}
+              pointer-events="none"
+              style="text-transform: uppercase;"
+            >{feature.properties.name}</text>
+          {/if}
+        {/each}
+
+        <!-- Charles River -->
+        {#each charlesRiverFeatures as feature}
+          <path d={pathGen?.(feature)} fill="#7dd3fc" fill-opacity="0.45" stroke="#0284c7" stroke-width={0.8 / zoomK} stroke-opacity="0.45" pointer-events="none" />
+        {/each}
+
+        <!-- ZIP context (muted, matches mapped area only) -->
         {#each features as feature}
-          <path d={pathGen?.(feature)} fill="#f5f5f5" stroke="#bcc4cf" stroke-width={1 / zoomK} />
+          <path d={pathGen?.(feature)} fill="light-dark(#fafbfc, #2a2c33)" stroke="light-dark(#d1d5db, #44464f)" stroke-width={1 / zoomK} />
         {/each}
 
         <!-- Street-level detail layer (subtle underlayer) -->
@@ -199,10 +250,11 @@
             d={pathGen?.(segment)}
             fill="none"
             stroke="#00843D"
-            stroke-width={3 / zoomK}
+            stroke-width={4.5 / zoomK}
             stroke-linecap="round"
             stroke-linejoin="round"
-            opacity="0.35"
+            stroke-dasharray="{8 / zoomK},{5 / zoomK}"
+            opacity="0.32"
             pointer-events="none"
           />
         {/each}
@@ -213,7 +265,7 @@
             d={pathGen?.(segment)}
             fill="none"
             stroke={BRANCH_COLORS[segment.properties.branch] ?? '#00843D'}
-            stroke-width={3 / zoomK}
+            stroke-width={4.5 / zoomK}
             stroke-linecap="round"
             stroke-linejoin="round"
             role="img"
@@ -228,10 +280,10 @@
           {@const pos = projection?.([station.lon, station.lat])}
           {#if pos}
             <circle
-              cx={pos[0]} cy={pos[1]} r={4 / zoomK}
+              cx={pos[0]} cy={pos[1]} r={6 / zoomK}
               fill="white"
               stroke={BRANCH_COLORS[station.branch] ?? '#00843D'}
-              stroke-width={2 / zoomK}
+              stroke-width={2.5 / zoomK}
               role="img"
               aria-label={station.name}
               on:mousemove={(e) => {
@@ -243,14 +295,48 @@
           {/if}
         {/each}
 
-        <!-- Development bubbles, colored by city -->
+        <!-- Red Line segments -->
+        {#each redLineFeatures as segment}
+          <path
+            d={pathGen?.(segment)}
+            fill="none"
+            stroke={RED_LINE_COLOR}
+            stroke-width={4.5 / zoomK}
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            role="img"
+            aria-label={segment.properties.name}
+            on:mousemove={(e) => handleGLMouseMove(e, { properties: { name: segment.properties.name, year_opened: 'Red Line' } })}
+            on:mouseleave={handleGLMouseLeave}
+          />
+        {/each}
+
+        <!-- Red Line stations -->
+        {#each redLineStations as station}
+          {@const pos = projection?.([station.lon, station.lat])}
+          {#if pos}
+            <circle
+              cx={pos[0]} cy={pos[1]} r={5 / zoomK}
+              fill="white"
+              stroke={RED_LINE_COLOR}
+              stroke-width={2.5 / zoomK}
+              pointer-events="none"
+            />
+          {/if}
+        {/each}
+
+        <!-- Development bubbles: outer = total units (city color), inner = affordable units (dark teal) -->
         {#each visibleDevs as d (d.name + d.lat + d.lon + d.year_created)}
+          {@const r = radiusScale(d.units) / Math.sqrt(zoomK)}
+          {@const aff = d.affordable_units || 0}
+          {@const rAff = aff > 0 ? radiusScale(aff) / Math.sqrt(zoomK) : 0}
+          <!-- total units -->
           <circle
             cx={d.cx}
             cy={d.cy}
-            r={radiusScale(d.units) / Math.sqrt(zoomK)}
+            r={r}
             fill={cityRgb(d.city)}
-            fill-opacity="0.55"
+            fill-opacity="0.30"
             stroke={cityRgb(d.city)}
             stroke-width={1 / zoomK}
             role="button"
@@ -259,14 +345,28 @@
             on:mousemove={(e) => handleDevMouseMove(e, d)}
             on:mouseleave={handleDevMouseLeave}
           />
+          <!-- affordable units (filled inner circle, sized by sqrt of affordable count) -->
+          {#if aff > 0}
+            <circle
+              cx={d.cx}
+              cy={d.cy}
+              r={rAff}
+              fill="#0f766e"
+              fill-opacity="0.85"
+              stroke="#134e4a"
+              stroke-width={0.6 / zoomK}
+              pointer-events="none"
+            />
+          {/if}
         {/each}
       </g>
 
+      {#if !compact}
       <!-- Compact legend with small-caps section labels -->
       <g transform="translate({LEGEND_X}, 20)">
         <text class="legend-label" font-size="10" fill="currentColor">CITY</text>
         {#each Object.entries(CITY_BASE_COLORS) as [city, [r, g, b]], i}
-          <circle cx={9} cy={22 + i * 18} r="6" fill="rgb({r},{g},{b})" fill-opacity="0.7" stroke="rgb({r},{g},{b})" />
+          <circle cx={9} cy={22 + i * 18} r="6" fill="rgb({r},{g},{b})" fill-opacity="0.30" stroke="rgb({r},{g},{b})" />
           <text x={24} y={26 + i * 18} font-size="11" fill="currentColor">{city}</text>
         {/each}
 
@@ -276,7 +376,12 @@
           <circle cx={12} cy={cy} r={radiusScale(u)} fill="none" stroke="currentColor" stroke-width="1" opacity="0.7" />
           <text x={30} y={cy + 4} font-size="11" fill="currentColor">{u}</text>
         {/each}
+
+        <text class="legend-label" font-size="10" fill="currentColor" y={188}>AFFORDABLE UNITS</text>
+        <circle cx={12} cy={206} r="6" fill="#0f766e" fill-opacity="0.85" stroke="#134e4a" />
+        <text x={30} y={210} font-size="11" fill="currentColor">inner circle</text>
       </g>
+      {/if}
 
       <!-- Green Line tooltip -->
       {#if glTooltip.visible}
@@ -292,10 +397,12 @@
         </foreignObject>
       {/if}
     </svg>
+    {#if !compact}
     <button class="reset-zoom-btn" on:click={resetZoom}>Reset zoom</button>
+    {/if}
 
     <!-- Big-number stat overlay: cumulative projects / units / affordable -->
-    <div class="stat-overlay" aria-hidden="true">
+    <div class="stat-overlay" class:compact aria-hidden="true">
       <div class="stat-col">
         <div class="stat-num">{visibleDevs.length}</div>
         <div class="stat-lbl">PROJECTS</div>
@@ -350,9 +457,10 @@
 
   svg {
     display: block;
-    border: 1px solid light-dark(#ddd, #444);
-    border-radius: 8px;
-    background: light-dark(#f0f0f0, #1e1e1e);
+    border: 1px solid light-dark(#e5e7eb, #3a3a42);
+    border-radius: 10px;
+    background: light-dark(#fafbfc, #1a1b20);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
     cursor: grab;
   }
   svg:active { cursor: grabbing; }

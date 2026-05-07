@@ -176,9 +176,9 @@
     {
       "type": "Feature",
       "properties": {
-        "segment_id": "glx_lechmere_union_sq",
-        "name": "Lechmere → Union Square (GLX Union Branch)",
-        "branch": "GLX-D",
+        "segment_id": "green_line_extension_lechmere_union_sq",
+        "name": "Lechmere → Union Square (Green Line Extension Union Branch)",
+        "branch": "Green Line Extension-D",
         "year_opened": 2022,
         "notes": "Opened March 21, 2022. New elevated Lechmere + Union Square station"
       },
@@ -195,9 +195,9 @@
     {
       "type": "Feature",
       "properties": {
-        "segment_id": "glx_lechmere_medford",
-        "name": "Lechmere → East Somerville → Gilman Sq → Magoun Sq → Ball Sq → Medford/Tufts (GLX Medford Branch)",
-        "branch": "GLX-E",
+        "segment_id": "green_line_extension_lechmere_medford",
+        "name": "Lechmere → East Somerville → Gilman Sq → Magoun Sq → Ball Sq → Medford/Tufts (Green Line Extension Medford Branch)",
+        "branch": "Green Line Extension-E",
         "year_opened": 2022,
         "notes": "Opened December 12, 2022. 3.7 miles; 5 new stations"
       },
