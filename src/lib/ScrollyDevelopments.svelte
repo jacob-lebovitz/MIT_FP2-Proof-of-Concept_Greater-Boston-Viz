@@ -186,6 +186,7 @@
   .map-shell :global(.map-wrap) { width: 100%; max-width: 1400px; margin: 0; }
   .map-shell :global(.map-svg-wrap) { width: 100%; }
   .map-shell :global(svg) { width: 100% !important; height: auto !important; max-height: calc(100svh - 2rem) !important; cursor: default !important; }
+  .map-shell :global(.selection-control) { z-index: 8; }
 
   /* Move the dev map's stat overlay so it doesn't conflict with our panels */
   .map-shell :global(.stat-overlay) {
@@ -285,10 +286,12 @@
 
   .narrative-overlay {
     position: absolute;
-    top: 5.1rem;
+    top: 5.9rem;
     left: 1.25rem;
     z-index: 5;
     max-width: 360px;
+    max-height: calc(100svh - 7.25rem);
+    overflow-y: auto;
     background: light-dark(rgba(255,255,255,0.92), rgba(15,17,22,0.92));
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
