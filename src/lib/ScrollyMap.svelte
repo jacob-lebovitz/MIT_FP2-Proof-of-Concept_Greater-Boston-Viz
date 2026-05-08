@@ -13,6 +13,7 @@
   const N_BUCKETS = 7;
   const PRICE_COLORS = d3.schemeBlues[N_BUCKETS];
   let priceLegendBuckets = [];
+  let manualYearOffset = 0;
 
   // Narrative tightly scoped to the Green Line thesis. Each card now also
   // surfaces a finding-level callout so the takeaways are distributed.
@@ -85,10 +86,6 @@
   );
   $: activeNarrative = activeNarrativeYear ? YEAR_NARRATIVES[activeNarrativeYear] : null;
 
-  function handleYearChange(e) {
-    currentYear.set(parseInt(e.target.value, 10));
-  }
-
   function fmtLegend(v) {
     if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
     return '$' + Math.round(v / 1000) + 'k';
@@ -96,6 +93,47 @@
 
   // Each scroll-trigger zone is one viewport tall.
   const ZONE_VH = 100;
+
+  function clampYear(yr) {
+    return Math.max(ALL_YEARS[0], Math.min(ALL_YEARS[ALL_YEARS.length - 1], yr));
+  }
+
+  function getAnchors(vh) {
+    const zoneH = (ZONE_VH / 100) * vh;
+    return [
+      { scrollPos: zoneH / 2 - vh / 2, year: 2000 },
+      ...MAP_YEARS.map((yr, i) => ({
+        scrollPos: (i + 1) * zoneH + zoneH / 2 - vh / 2,
+        year: yr,
+      })),
+    ];
+  }
+
+  function getBaseYearFromScroll(scrolled, vh) {
+    const anchors = getAnchors(vh);
+    if (scrolled <= anchors[0].scrollPos) return anchors[0].year;
+    if (scrolled >= anchors[anchors.length - 1].scrollPos) return anchors[anchors.length - 1].year;
+
+    for (let i = 0; i < anchors.length - 1; i++) {
+      if (scrolled >= anchors[i].scrollPos && scrolled <= anchors[i + 1].scrollPos) {
+        const t = (scrolled - anchors[i].scrollPos) / (anchors[i + 1].scrollPos - anchors[i].scrollPos);
+        return anchors[i].year + t * (anchors[i + 1].year - anchors[i].year);
+      }
+    }
+    return anchors[0].year;
+  }
+
+  function getCurrentScrolled() {
+    if (!scrollySectionsEl) return 0;
+    return -scrollySectionsEl.getBoundingClientRect().top;
+  }
+
+  function handleYearChange(e) {
+    const newYear = parseInt(e.target.value, 10);
+    const baseYear = getBaseYearFromScroll(getCurrentScrolled(), window.innerHeight);
+    manualYearOffset = newYear - baseYear;
+    currentYear.set(newYear);
+  }
 
   onMount(() => {
     d3.json(`${base}/housing.json`).then((housing) => {
@@ -114,32 +152,7 @@
       const rect = scrollySectionsEl.getBoundingClientRect();
       const scrolled = -rect.top;
       const vh = window.innerHeight;
-      const zoneH = (ZONE_VH / 100) * vh;
-
-      // anchors: zone 0 (intro/spacer) -> 2000; zone i (i>=1) -> MAP_YEARS[i-1]
-      const anchors = [
-        { scrollPos: zoneH / 2 - vh / 2, year: 2000 },
-        ...MAP_YEARS.map((yr, i) => ({
-          scrollPos: (i + 1) * zoneH + zoneH / 2 - vh / 2,
-          year: yr,
-        })),
-      ];
-
-      if (scrolled <= anchors[0].scrollPos) {
-        currentYear.set(2000);
-        return;
-      }
-      if (scrolled >= anchors[anchors.length - 1].scrollPos) {
-        currentYear.set(anchors[anchors.length - 1].year);
-        return;
-      }
-      for (let i = 0; i < anchors.length - 1; i++) {
-        if (scrolled >= anchors[i].scrollPos && scrolled <= anchors[i + 1].scrollPos) {
-          const t = (scrolled - anchors[i].scrollPos) / (anchors[i + 1].scrollPos - anchors[i].scrollPos);
-          currentYear.set(Math.round(anchors[i].year + t * (anchors[i + 1].year - anchors[i].year)));
-          return;
-        }
-      }
+      currentYear.set(clampYear(Math.round(getBaseYearFromScroll(scrolled, vh) + manualYearOffset)));
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true });
