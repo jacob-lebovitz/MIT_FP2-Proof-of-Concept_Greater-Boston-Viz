@@ -24,8 +24,9 @@
   </div>
 </section>
 
-<Narrative position="between" />
-<ScrollyDevelopments />
+<!-- Part two hidden for now -->
+<!-- <Narrative position="between" />
+<ScrollyDevelopments /> -->
 <Narrative position="after" />
 
 <style>

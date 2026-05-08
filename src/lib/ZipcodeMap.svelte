@@ -18,10 +18,22 @@
   const TOTAL_W = compact ? MAP_W : LEGEND_X + LEGEND_W + 10;
 
   // Zip codes present in both GeoJSON and housing data
-const ZIP_LABELS = {
-    2138: '02138', 2139: '02139', 2140: '02140', 2141: '02141', 2142: '02142',
-    2143: '02143', 2144: '02144', 2145: '02145', 2155: '02155',
+  const ZIP_LABELS = {
+    2138: 'Harvard Sq',
+    2139: 'Central Sq',
+    2140: 'N Cambridge',
+    2141: 'E Cambridge',
+    2142: 'Kendall Sq',
+    2143: 'Union Sq',
+    2144: 'Davis Sq',
+    2145: 'E Somerville',
+    2155: 'Medford',
   };
+
+  // Helper: look up neighborhood name from a zip string like "02138"
+  function getNeighborhoodName(zipStr) {
+    return ZIP_LABELS[parseInt(zipStr, 10)] ?? zipStr;
+  }
 
   const LABEL_OFFSET = {
     2144: [0, 8],
@@ -328,8 +340,10 @@ const ZIP_LABELS = {
 
   function setYearFromPointer(e) {
     const svg = e.currentTarget.closest?.('svg') ?? e.currentTarget;
-    const rect = svg.getBoundingClientRect();
-    const svgX = e.clientX - rect.left - LC_MARGIN.left;
+    const bounds = svg.getBoundingClientRect();
+    // SVG uses a viewBox so displayed pixels ≠ viewBox units — scale accordingly
+    const scaleX = TOTAL_W / bounds.width;
+    const svgX = (e.clientX - bounds.left) * scaleX - LC_MARGIN.left;
     const rawYear = Math.round(xScale.invert(svgX));
     year = Math.max(YEARS[0], Math.min(YEARS[YEARS.length - 1], rawYear));
   }
@@ -478,9 +492,10 @@ const ZIP_LABELS = {
       </pattern>
     </defs>
     <g transform={zoomTransform}>
-    <!-- Surrounding towns context (subtle hatched background) -->
+    <!-- Surrounding towns context (no stroke — ZIP zone borders define the boundary) -->
     {#each surroundingFeatures as feature}
-      <path d={pathGen?.(feature)} fill="url(#surrounding-hatch)" stroke="light-dark(#b8bdc4, #4a4a52)" stroke-width={0.7 / zoomK} stroke-linejoin="round" pointer-events="none" />
+      <path d={pathGen?.(feature)} fill="url(#surrounding-hatch)" stroke="none" pointer-events="none"
+        opacity={hoveredZip ? 0.35 : 1} />
     {/each}
 
     <!-- Surrounding town labels -->
@@ -509,6 +524,11 @@ const ZIP_LABELS = {
       <path d={pathGen?.(feature)} fill="#7dd3fc" fill-opacity="0.45" stroke="#0284c7" stroke-width={0.8 / zoomK} stroke-opacity="0.45" pointer-events="none" />
     {/each}
 
+    <!-- Study area background mask: covers any surrounding-zone hatch that bleeds into ZIP polygons -->
+    {#each features as feature}
+      <path d={pathGen?.(feature)} class="study-mask" stroke="none" pointer-events="none" />
+    {/each}
+
     <!-- Map paths: sorted for proper z-ordering (hovered and selected on top) -->
     {#each sortedFeatures as feature (feature.properties.ZCTA5CE20)}
       {@const zip = feature.properties.ZCTA5CE20}
@@ -519,8 +539,8 @@ const ZIP_LABELS = {
       <path
         d={pathGen?.(feature)}
         fill={anySelected && !isSelected && !selectedCities.has(ZIP_TO_CITY[zip]) ? '#c8c8c8' : getColor(zip, year)}
-        stroke={isHovered || isSelected ? `rgb(${cr},${cg},${cb})` : 'white'}
-        stroke-width={isHovered ? 4 / zoomK : isSelected ? 3.5 / zoomK : 1.5 / zoomK}
+        stroke={isHovered || isSelected ? `rgb(${cr},${cg},${cb})` : 'rgba(255,255,255,0.85)'}
+        stroke-width={isHovered ? 3.5 / zoomK : isSelected ? 3 / zoomK : 1 / zoomK}
         stroke-linejoin="round"
         opacity={hoveredZip && !isHovered ? 0.35 : 1}
         filter={isSelected && !isHovered ? `drop-shadow(0 0 3px rgba(${cr}, ${cg}, ${cb}, 0.5))` : 'none'}
@@ -691,7 +711,8 @@ const ZIP_LABELS = {
     {#if tooltip.visible}
       <foreignObject x={tooltip.x} y={tooltip.y} width="170" height="64">
         <div class="tooltip">
-          <strong>{tooltip.city} {tooltip.zip}</strong>
+          <strong>{getNeighborhoodName(tooltip.zip)}</strong>
+          <div style="font-size:0.9em;opacity:0.75">{tooltip.city} · {tooltip.zip}</div>
           <div>{tooltip.value}</div>
         </div>
       </foreignObject>
@@ -802,7 +823,7 @@ const ZIP_LABELS = {
             font-weight={isLabelHovered || isLabelSelected ? 800 : 650}
             fill={getLineColor(label.city)}
             opacity={anySelected ? (isLabelSelected || isLabelHovered ? 1 : 0.35) : 0.95}
-          >{label.zip}</text>
+          >{getNeighborhoodName(label.zip)}</text>
         </g>
       {/each}
 
@@ -866,7 +887,8 @@ const ZIP_LABELS = {
           y={lineTooltip.y - LC_MARGIN.top}
           width="150" height="60">
           <div class="tooltip">
-            <strong>{lineTooltip.city} {lineTooltip.zip}</strong>
+            <strong>{getNeighborhoodName(lineTooltip.zip)}</strong>
+            <div style="font-size:0.9em;opacity:0.75">{lineTooltip.city} · {lineTooltip.zip}</div>
             <div>{lineTooltip.yr} · {lineTooltip.value}</div>
           </div>
         </foreignObject>
@@ -878,6 +900,9 @@ const ZIP_LABELS = {
 </div>
 
 <style>
+  /* Paints a solid background over the study area to hide surrounding-zone hatch bleed */
+  .study-mask { fill: light-dark(#fafbfc, #1a1b20); }
+
   .map-wrap { margin: 1.5rem 0; }
 
   .map-wrap.with-line-chart {
