@@ -7,6 +7,7 @@
   export let hideSlider = false;
   export let hideLineChart = false;
   export let compact = false;            // when true, hides in-SVG legend & milestone box (parent provides them)
+  export let showSelectionControl = false;
 
   const WIDTH = 1100;
   const HEIGHT = 740;
@@ -127,15 +128,10 @@ const ZIP_LABELS = {
         zoomK = k;
       });
 
-    d3.select(svgEl).call(zoomBehavior);
+    if (!compact) {
+      d3.select(svgEl).call(zoomBehavior);
+    }
   });
-
-  function resetZoom() {
-    d3.select(svgEl).transition().duration(400).call(
-      zoomBehavior.transform, d3.zoomIdentity
-    );
-    zoomTransform = 'translate(0,0) scale(1)';
-  }
 
   $: visibleGreenLine = greenLineFeatures.filter(f => f.properties.year_opened <= year);
   $: futureGreenLine = greenLineFeatures.filter(f => f.properties.year_opened > year && f.properties.branch !== 'B');
@@ -253,17 +249,23 @@ const ZIP_LABELS = {
   let annotTooltip = { visible: false, x: 0, y: 0, label: '', isEvent: false };
   let isDraggingYear = false;
 
+  function setYearFromPointer(e) {
+    const svg = e.currentTarget.closest?.('svg') ?? e.currentTarget;
+    const rect = svg.getBoundingClientRect();
+    const svgX = e.clientX - rect.left - LC_MARGIN.left;
+    const rawYear = Math.round(xScale.invert(svgX));
+    year = Math.max(YEARS[0], Math.min(YEARS[YEARS.length - 1], rawYear));
+  }
+
   function startYearDrag(e) {
     isDraggingYear = true;
-    e.currentTarget.setPointerCapture(e.pointerId);
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    setYearFromPointer(e);
   }
 
   function onYearDrag(e) {
     if (!isDraggingYear) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const svgX = e.clientX - rect.left - LC_MARGIN.left;
-    const rawYear = Math.round(xScale.invert(svgX));
-    year = Math.max(YEARS[0], Math.min(YEARS[YEARS.length - 1], rawYear));
+    setYearFromPointer(e);
   }
 
   function stopYearDrag() {
@@ -290,6 +292,19 @@ const ZIP_LABELS = {
   function handleLineMouseLeave() {
     hoveredZip = null;
     lineTooltip = { ...lineTooltip, visible: false };
+  }
+
+  function showAnnotationTooltip(e, a, isEvent) {
+    const svg = e.currentTarget.closest('svg');
+    const rect = svg.getBoundingClientRect();
+    const localX = e.clientX - rect.left - LC_MARGIN.left + 12;
+    annotTooltip = {
+      visible: true,
+      x: Math.max(0, Math.min(LC_W - 260, localX)),
+      y: -54,
+      label: `${a.year}: ${a.label}`,
+      isEvent,
+    };
   }
 
   function zipStrToNum(zipStr) {
@@ -351,7 +366,7 @@ const ZIP_LABELS = {
   }
 </script>
 
-<div class="map-wrap">
+<div class="map-wrap" class:with-line-chart={!hideLineChart}>
   <h2>Home Values by ZIP Code</h2>
   <p class="subtitle">Cambridge · Somerville · Medford &nbsp;·&nbsp; {year}</p>
 
@@ -360,8 +375,7 @@ const ZIP_LABELS = {
       <span>Year:</span>
       <input type="range" min={YEARS[0]} max={YEARS[YEARS.length - 1]} step="1" bind:value={year} />
       <strong>{year}</strong>
-      <button on:click={resetZoom}>Reset zoom</button>
-      <button on:click={resetSelection} disabled={!anySelected}>Reset selection</button>
+      <button on:click={resetSelection} disabled={!anySelected}>Clear selections</button>
     </div>
   {/if}
 
@@ -616,12 +630,17 @@ const ZIP_LABELS = {
       </foreignObject>
     {/if}
   </svg>
-  <button class="reset-zoom-btn" on:click={resetZoom}>Reset zoom</button>
+  {#if showSelectionControl}
+    <button class="selection-control" on:click={resetSelection} disabled={!anySelected}>
+      Clear selections
+    </button>
+  {/if}
   </div>
 
   <!-- Line chart -->
   {#if !loading && !hideLineChart}
-  <h2 style="margin-top:2rem">Home Values Over Time by ZIP Code</h2>
+  <div class="line-chart-panel">
+  <h2>Home Values Over Time by ZIP Code</h2>
   <svg viewBox="0 0 {TOTAL_W} 370" preserveAspectRatio="xMidYMid meet" class="line-chart"
     style="width:100%; height:auto; max-height:420px"
     on:pointermove={onYearDrag}
@@ -659,30 +678,35 @@ const ZIP_LABELS = {
 
       <!-- Visible lines per ZIP (dimmed first, highlighted on top) -->
       {#each lineData as d}
+        {@const isLineSelected = selectedZips.has(zipStrToNum(d.zip)) || selectedCities.has(d.city)}
         <path
           d={lineGen(d.points)}
           fill="none"
           stroke={getLineColor(d.city)}
-          stroke-width={hoveredZip === d.zip ? 3.5 : 1.5}
-          opacity={hoveredZip ? (d.zip === hoveredZip ? 1 : 0.15) : 0.8}
+          stroke-width={hoveredZip === d.zip ? 4 : anySelected && isLineSelected ? 3.25 : 1.8}
+          opacity={hoveredZip ? (d.zip === hoveredZip ? 1 : 0.14) : anySelected ? (isLineSelected ? 1 : 0.14) : 0.82}
           pointer-events="none"
         />
       {/each}
 
       <!-- Wide invisible hit-area paths for easy hovering -->
       {#each lineData as d}
+        {@const lineZip = zipStrToNum(d.zip)}
         <path
           d={lineGen(d.points)}
           fill="none"
           stroke="transparent"
-          stroke-width="14"
+          stroke-width="22"
           stroke-linecap="round"
           stroke-linejoin="round"
-          role="img"
+          role="button"
           aria-label="{d.zip}"
+          tabindex="0"
           style="cursor:pointer"
           on:mousemove={(e) => handleLineMouseMove(e, housingByZip[d.zip])}
           on:mouseleave={handleLineMouseLeave}
+          on:click={() => toggleZip(lineZip)}
+          on:keydown={(e) => e.key === 'Enter' && toggleZip(lineZip)}
         />
       {/each}
 
@@ -695,11 +719,12 @@ const ZIP_LABELS = {
       />
       <!-- Drag handle (invisible wide rect over full line) -->
       <rect
-        x={xScale(year) - 6} y={0} width={12} height={LC_H}
+        x={xScale(year) - 14} y={0} width={28} height={LC_H}
         fill="transparent"
         style="cursor:ew-resize"
         on:pointerdown={startYearDrag}
       />
+      <circle cx={xScale(year)} cy={-3} r="5" fill="currentColor" opacity="0.72" pointer-events="none" />
       <text x={xScale(year) + 4} y={-6} text-anchor="start" font-size="10" font-weight="bold" fill="currentColor">{year}</text>
 
       <!-- Annotation hover icons (one per milestone, above the chart) -->
@@ -707,16 +732,7 @@ const ZIP_LABELS = {
         {@const ax = xScale(a.year)}
         {@const isEvent = a.type === 'event'}
         <g class="annot-icon" style="cursor:help" role="img" aria-label="Milestone annotation"
-          on:mousemove={(e) => {
-            const rect = e.currentTarget.closest('svg').getBoundingClientRect();
-            annotTooltip = {
-              visible: true,
-              x: e.clientX - rect.left + 12,
-              y: e.clientY - rect.top - 16,
-              label: `${a.year}: ${a.label}`,
-              isEvent,
-            };
-          }}
+          on:mousemove={(e) => showAnnotationTooltip(e, a, isEvent)}
           on:mouseleave={() => annotTooltip = { ...annotTooltip, visible: false }}
         >
           <circle cx={ax} cy={-22} r="8" fill="transparent" />
@@ -734,9 +750,9 @@ const ZIP_LABELS = {
       <!-- Annotation tooltip -->
       {#if annotTooltip.visible}
         <foreignObject
-          x={annotTooltip.x - LC_MARGIN.left}
-          y={annotTooltip.y - LC_MARGIN.top}
-          width="240" height="50">
+          x={annotTooltip.x}
+          y={annotTooltip.y}
+          width="260" height="58">
           <div class="tooltip annot-tip" class:event={annotTooltip.isEvent}>
             <strong>{annotTooltip.label}</strong>
           </div>
@@ -757,29 +773,63 @@ const ZIP_LABELS = {
       {/if}
     </g>
   </svg>
+  </div>
   {/if}
 </div>
 
 <style>
   .map-wrap { margin: 1.5rem 0; }
 
+  .map-wrap.with-line-chart {
+    display: grid;
+    grid-template-columns: minmax(320px, 0.9fr) minmax(520px, 1.25fr);
+    gap: 1rem 1.25rem;
+    align-items: start;
+  }
+
+  .map-wrap.with-line-chart > h2,
+  .map-wrap.with-line-chart > .subtitle,
+  .map-wrap.with-line-chart > .slider-row,
+  .map-wrap.with-line-chart > .loading {
+    grid-column: 1 / -1;
+  }
+
   .map-svg-wrap {
     position: relative;
     display: inline-block;
   }
 
-  .reset-zoom-btn {
+  .map-wrap.with-line-chart .map-svg-wrap {
+    width: 100%;
+  }
+
+  .map-wrap.with-line-chart .map-svg-wrap svg {
+    max-height: 430px !important;
+  }
+
+  .line-chart-panel {
+    min-width: 0;
+  }
+
+  .line-chart-panel h2 {
+    margin: 0 0 0.45rem;
+    font-size: 1.1rem;
+  }
+
+  .selection-control {
     position: absolute;
-    bottom: 10px;
-    left: 10px;
-    padding: 4px 10px;
-    font-size: 0.8rem;
-    cursor: pointer;
+    top: 1.25rem;
+    left: 1.25rem;
+    z-index: 10;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
     border: 1px solid light-dark(#aaa, #555);
-    border-radius: 4px;
+    border-radius: 999px;
     background: light-dark(rgba(255,255,255,0.9), rgba(42,42,42,0.9));
     color: inherit;
-    z-index: 10;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   }
 
   .loading {
@@ -831,6 +881,11 @@ const ZIP_LABELS = {
     color: inherit;
   }
 
+  button:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
+  }
+
   path { 
     cursor: pointer; 
     transition: opacity 0.1s;
@@ -852,10 +907,24 @@ const ZIP_LABELS = {
     box-shadow: 0 4px 14px rgba(0,0,0,0.25);
   }
   .tooltip strong { color: #fff; }
-  .annot-tip { background: #1a4a2e; }
+  .annot-tip {
+    background: #1a4a2e;
+    max-width: 245px;
+    white-space: normal;
+  }
   .annot-tip.event { background: #7f1d1d; }
   .annot-icon:hover circle:nth-child(2) {
     transform-origin: center;
     transform: scale(1.18);
+  }
+
+  @media (max-width: 900px) {
+    .map-wrap.with-line-chart {
+      display: block;
+    }
+
+    .line-chart-panel {
+      margin-top: 1.5rem;
+    }
   }
 </style>

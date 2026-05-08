@@ -20,7 +20,7 @@
     Green Line milestones and macro context.
   </p>
   <div class="explore-chart">
-    <ZipcodeMap year={$currentYear} hideSlider={true} hideLineChart={false} compact={false} />
+    <ZipcodeMap year={$currentYear} hideSlider={true} hideLineChart={false} compact={false} showSelectionControl={true} />
   </div>
 </section>
 

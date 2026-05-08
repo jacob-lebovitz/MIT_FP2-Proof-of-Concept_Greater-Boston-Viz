@@ -1,6 +1,8 @@
 <script>
   import ZipcodeMap from './ZipcodeMap.svelte';
+  import * as d3 from 'd3';
   import { onMount } from 'svelte';
+  import { base } from '$app/paths';
   import { currentYear } from './stores.js';
 
   let scrollySectionsEl;
@@ -8,6 +10,9 @@
   // Story checkpoints: each is a "moment" in the Green Line saga
   const MAP_YEARS = [2005, 2012, 2017, 2022, 2025];
   const ALL_YEARS = Array.from({ length: 26 }, (_, i) => 2000 + i);
+  const N_BUCKETS = 7;
+  const PRICE_COLORS = d3.schemeBlues[N_BUCKETS];
+  let priceLegendBuckets = [];
 
   // Narrative tightly scoped to the Green Line thesis. Each card now also
   // surfaces a finding-level callout so the takeaways are distributed.
@@ -59,10 +64,26 @@
     currentYear.set(parseInt(e.target.value, 10));
   }
 
+  function fmtLegend(v) {
+    if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+    return '$' + Math.round(v / 1000) + 'k';
+  }
+
   // Each scroll-trigger zone is one viewport tall.
   const ZONE_VH = 100;
 
   onMount(() => {
+    d3.json(`${base}/housing.json`).then((housing) => {
+      const values = housing.flatMap(d => Object.values(d.values));
+      const min = d3.min(values) ?? 0;
+      const max = d3.max(values) ?? 1;
+      priceLegendBuckets = d3.range(N_BUCKETS).map(i => ({
+        lo: min + i * (max - min) / N_BUCKETS,
+        hi: min + (i + 1) * (max - min) / N_BUCKETS,
+        color: PRICE_COLORS[i],
+      })).reverse();
+    });
+
     function handleScroll() {
       if (!scrollySectionsEl) return;
       const rect = scrollySectionsEl.getBoundingClientRect();
@@ -105,7 +126,7 @@
   <!-- Sticky map fills the viewport height -->
   <div class="map-stage">
     <div class="map-shell">
-      <ZipcodeMap year={$currentYear} hideSlider={true} hideLineChart={true} compact={true} />
+      <ZipcodeMap year={$currentYear} hideSlider={true} hideLineChart={true} compact={true} showSelectionControl={true} />
     </div>
 
     <!-- Floating year scrubber, top -->
@@ -125,12 +146,20 @@
     <!-- Floating compact legend (right) -->
     <div class="floating-control side-legend">
       <div class="control-label">PRICE</div>
-      <div class="lg-grad" />
-      <div class="lg-grad-labels"><span>low</span><span>high</span></div>
+      {#each priceLegendBuckets as bucket}
+        <div class="lg-row">
+          <span class="swatch" style="background:{bucket.color}"></span>
+          {fmtLegend(bucket.lo)} - {fmtLegend(bucket.hi)}
+        </div>
+      {/each}
+      <div class="lg-row">
+        <span class="swatch no-data"></span>
+        No data
+      </div>
       <div class="control-label" style="margin-top:0.6rem">CITY</div>
       <div class="lg-row"><span class="dot" style="background:#2563eb"></span> Cambridge</div>
-      <div class="lg-row"><span class="dot" style="background:#ea580c"></span> Somerville</div>
-      <div class="lg-row"><span class="dot" style="background:#16a34a"></span> Medford</div>
+      <div class="lg-row"><span class="dot" style="background:#dc2626"></span> Somerville</div>
+      <div class="lg-row"><span class="dot" style="background:#ca8a04"></span> Medford</div>
       <div class="control-label" style="margin-top:0.6rem">TRANSIT</div>
       <div class="lg-row"><span class="line" style="background:#00843D"></span> Green Line (built)</div>
       <div class="lg-row"><span class="line dashed" style="background:#00843D"></span> Green Line Extension (planned)</div>
@@ -187,7 +216,7 @@
   /* Make the embedded ZipcodeMap fill its container */
   .map-shell :global(.map-wrap) { width: 100%; max-width: 1400px; margin: 0; }
   .map-shell :global(.map-svg-wrap) { width: 100%; }
-  .map-shell :global(svg) { width: 100% !important; height: auto !important; max-height: calc(100svh - 2rem) !important; }
+  .map-shell :global(svg) { width: 100% !important; height: auto !important; max-height: calc(100svh - 2rem) !important; cursor: default !important; }
 
   .floating-control {
     position: absolute;
@@ -268,24 +297,24 @@
     letter-spacing: -0.02em;
   }
 
-  .lg-grad {
-    height: 8px;
-    border-radius: 4px;
-    background: linear-gradient(to right, #f7fbff, #08306b);
-  }
-  .lg-grad-labels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.62rem;
-    color: light-dark(#64748b, #94a3b8);
-    margin-top: 0.15rem;
-  }
   .lg-row {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     font-size: 0.78rem;
     margin-top: 0.18rem;
+  }
+  .lg-row .swatch {
+    width: 16px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.18);
+    flex-shrink: 0;
+  }
+  .lg-row .swatch.no-data {
+    background:
+      repeating-linear-gradient(45deg, transparent 0 4px, rgba(107,114,128,0.55) 4px 6px),
+      light-dark(#e5e7eb, #2d2d33);
   }
   .lg-row .dot {
     width: 10px; height: 10px; border-radius: 50%;
@@ -301,16 +330,16 @@
 
   .narrative-overlay {
     position: absolute;
-    bottom: 1.5rem;
-    left: 1.5rem;
+    top: 5.1rem;
+    left: 1.25rem;
     z-index: 5;
-    max-width: 460px;
+    max-width: 360px;
     background: light-dark(rgba(255,255,255,0.92), rgba(15,17,22,0.92));
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border: 1px solid light-dark(rgba(15,23,42,0.08), rgba(255,255,255,0.08));
-    border-radius: 14px;
-    padding: 1.4rem 1.6rem;
+    border-radius: 12px;
+    padding: 0.95rem 1.1rem;
     box-shadow: 0 16px 40px rgba(0,0,0,0.18);
     animation: fadeUp 0.55s cubic-bezier(0.4,0,0.2,1) both;
   }
@@ -330,7 +359,7 @@
 
   .card-title {
     margin: 0 0 0.7rem;
-    font-size: 1.4rem;
+    font-size: 1.08rem;
     font-weight: 800;
     line-height: 1.18;
     letter-spacing: -0.015em;
@@ -338,9 +367,9 @@
   }
 
   .card-body {
-    margin: 0 0 1rem;
-    font-size: 0.95rem;
-    line-height: 1.65;
+    margin: 0 0 0.75rem;
+    font-size: 0.82rem;
+    line-height: 1.5;
     color: light-dark(#334155, #cbd5e1);
   }
 
@@ -348,12 +377,12 @@
     display: flex;
     gap: 0.6rem;
     align-items: baseline;
-    padding: 0.6rem 0.8rem;
+    padding: 0.5rem 0.65rem;
     background: light-dark(rgba(0,132,61,0.08), rgba(0,132,61,0.18));
     border-left: 3px solid #00843D;
     border-radius: 4px;
-    font-size: 0.85rem;
-    line-height: 1.5;
+    font-size: 0.76rem;
+    line-height: 1.42;
     color: light-dark(#0f172a, #e2e8f0);
   }
 
@@ -368,9 +397,10 @@
   .scroll-zones {
     position: relative;
     margin-top: -100svh; /* overlap with sticky map so the first zone reveals it */
+    pointer-events: none;
   }
 
-  .zone { height: 100svh; }
+  .zone { height: 100svh; pointer-events: none; }
   .intro-zone { height: 100svh; }
 
   @media (max-width: 720px) {
@@ -378,6 +408,7 @@
       max-width: calc(100% - 2rem);
       left: 1rem;
       right: 1rem;
+      top: auto;
       bottom: 1rem;
       padding: 1rem 1.1rem;
     }
