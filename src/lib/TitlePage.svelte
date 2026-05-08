@@ -31,6 +31,25 @@
       </div>
     </div>
 
+    <div class="press-card-label">IN THE NEWS</div>
+    <a
+      class="press-card"
+      href="https://www.bostonglobe.com/2022/03/19/business/green-line-comes-union-square-residents-worry-theyll-be-pushed-out/"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <img
+        class="press-img"
+        src="https://bostonglobe-prod.cdn.arcpublishing.com/resizer/v2/JR4HRSJBBHPKB5GEPADM65GOJQ.jpg?auth=544685169d3fd2db112206ba494f33bde4d979e69af6fb86b6cf9981a7d65990&width=800"
+        alt="Green Line Extension — Union Square"
+      />
+      <div class="press-text">
+        <div class="press-outlet">Boston Globe · Mar. 19, 2022</div>
+        <div class="press-headline">As Green Line comes in, Union Square residents worry they'll be pushed out</div>
+        <div class="press-deck">Older apartment buildings along the Green Line extension are being bought and new owners have plans the residents can't afford</div>
+      </div>
+    </a>
+
     <div class="scroll-cue" aria-hidden="true">
       <span>Scroll to follow the prices</span>
       <div class="arrow">↓</div>
@@ -117,6 +136,68 @@
 
   .hist-text {
     font-size: 0.78rem;
+    line-height: 1.45;
+    color: light-dark(#475569, #94a3b8);
+  }
+
+  .press-card-label {
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: light-dark(#64748b, #94a3b8);
+    margin-bottom: 0.6rem;
+  }
+
+  .press-card {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 0.85rem 1rem;
+    margin-bottom: 2.4rem;
+    border-radius: 10px;
+    border: 1px solid light-dark(#e2e8f0, #2d3748);
+    background: light-dark(rgba(248,250,252,0.8), rgba(15,23,42,0.5));
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .press-card:hover {
+    border-color: #00843D;
+    box-shadow: 0 4px 18px rgba(0,132,61,0.12);
+  }
+
+  .press-img {
+    width: 110px;
+    min-width: 110px;
+    height: 74px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: light-dark(#e2e8f0, #2d3748);
+  }
+
+  .press-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .press-outlet {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: light-dark(#64748b, #94a3b8);
+  }
+
+  .press-headline {
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: light-dark(#0f172a, #f1f5f9);
+  }
+
+  .press-deck {
+    font-size: 0.76rem;
     line-height: 1.45;
     color: light-dark(#475569, #94a3b8);
   }
