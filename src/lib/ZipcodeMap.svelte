@@ -362,6 +362,8 @@ const ZIP_LABELS = {
       <strong>{year}</strong>
       <button on:click={resetZoom}>Reset zoom</button>
       <button on:click={resetSelection} disabled={!anySelected}>Reset selection</button>
+    </div>
+  {/if}
 
   {#if loading}
     <div class="loading">Loading map data…</div>
