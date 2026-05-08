@@ -7,6 +7,7 @@
 
   const MAP_YEARS = [2011, 2015, 2020, 2025];
   const ALL_YEARS = Array.from({ length: MAP_YEARS[MAP_YEARS.length - 1] - MAP_YEARS[0] + 1 }, (_, i) => MAP_YEARS[0] + i);
+  let manualYearOffset = 0;
 
   // Each year now has ONE clear takeaway tied to the Green Line thesis,
   // with a single highlighted stat instead of a wall of numbers.
@@ -47,11 +48,48 @@
   );
   $: activeNarrative = YEAR_NARRATIVES[activeNarrativeYear];
 
-  function handleYearChange(e) {
-    developmentsYear.set(parseInt(e.target.value, 10));
+  const ZONE_VH = 100;
+
+  function clampYear(yr) {
+    return Math.max(ALL_YEARS[0], Math.min(ALL_YEARS[ALL_YEARS.length - 1], yr));
   }
 
-  const ZONE_VH = 100;
+  function getAnchors(vh) {
+    const zoneH = (ZONE_VH / 100) * vh;
+    return [
+      { scrollPos: zoneH / 2 - vh / 2, year: MAP_YEARS[0] },
+      ...MAP_YEARS.slice(1).map((yr, i) => ({
+        scrollPos: (i + 1) * zoneH + zoneH / 2 - vh / 2,
+        year: yr,
+      })),
+    ];
+  }
+
+  function getBaseYearFromScroll(scrolled, vh) {
+    const anchors = getAnchors(vh);
+    if (scrolled <= anchors[0].scrollPos) return anchors[0].year;
+    if (scrolled >= anchors[anchors.length - 1].scrollPos) return anchors[anchors.length - 1].year;
+
+    for (let i = 0; i < anchors.length - 1; i++) {
+      if (scrolled >= anchors[i].scrollPos && scrolled <= anchors[i + 1].scrollPos) {
+        const t = (scrolled - anchors[i].scrollPos) / (anchors[i + 1].scrollPos - anchors[i].scrollPos);
+        return anchors[i].year + t * (anchors[i + 1].year - anchors[i].year);
+      }
+    }
+    return anchors[0].year;
+  }
+
+  function getCurrentScrolled() {
+    if (!scrollySectionsEl) return 0;
+    return -scrollySectionsEl.getBoundingClientRect().top;
+  }
+
+  function handleYearChange(e) {
+    const newYear = parseInt(e.target.value, 10);
+    const baseYear = getBaseYearFromScroll(getCurrentScrolled(), window.innerHeight);
+    manualYearOffset = newYear - baseYear;
+    developmentsYear.set(newYear);
+  }
 
   onMount(() => {
     function handleScroll() {
@@ -59,33 +97,9 @@
       const rect = scrollySectionsEl.getBoundingClientRect();
       const scrolled = -rect.top;
       const vh = window.innerHeight;
-      const zoneH = (ZONE_VH / 100) * vh;
-
-      const anchors = [
-        { scrollPos: zoneH / 2 - vh / 2, year: MAP_YEARS[0] },
-        ...MAP_YEARS.slice(1).map((yr, i) => ({
-          scrollPos: (i + 1) * zoneH + zoneH / 2 - vh / 2,
-          year: yr,
-        })),
-      ];
 
       if (rect.top > vh || rect.bottom < 0) return;
-
-      if (scrolled <= anchors[0].scrollPos) {
-        developmentsYear.set(anchors[0].year);
-        return;
-      }
-      if (scrolled >= anchors[anchors.length - 1].scrollPos) {
-        developmentsYear.set(anchors[anchors.length - 1].year);
-        return;
-      }
-      for (let i = 0; i < anchors.length - 1; i++) {
-        if (scrolled >= anchors[i].scrollPos && scrolled <= anchors[i + 1].scrollPos) {
-          const t = (scrolled - anchors[i].scrollPos) / (anchors[i + 1].scrollPos - anchors[i].scrollPos);
-          developmentsYear.set(Math.round(anchors[i].year + t * (anchors[i + 1].year - anchors[i].year)));
-          return;
-        }
-      }
+      developmentsYear.set(clampYear(Math.round(getBaseYearFromScroll(scrolled, vh) + manualYearOffset)));
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true });
