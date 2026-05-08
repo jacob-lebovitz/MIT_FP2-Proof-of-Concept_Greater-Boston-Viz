@@ -1,7 +1,4 @@
 <script>
-// test comment for action
-// test 2
-// test 3
   import * as d3 from 'd3';
   import { onMount } from 'svelte';
   import { base } from '$app/paths';
@@ -10,6 +7,7 @@
   export let hideSlider = false;
   export let hideHeader = false;
   export let compact = false;
+  export let showSelectionControl = false;
 
   const WIDTH = 1100;
   const HEIGHT = 740;
@@ -50,6 +48,8 @@
   let zoomTransform = 'translate(0,0) scale(1)';
   let zoomK = 1;
   let zoomBehavior;
+  let hoveredDevKey = null;
+  let selectedDevKeys = new Set();
 
   onMount(async () => {
     const [geojson, devData, glGeojson, stationData, surroundingGeojson, rlGeojson, rlStationData, charlesGeojson] = await Promise.all([
@@ -105,15 +105,10 @@
         zoomK = k;
       });
 
-    d3.select(svgEl).call(zoomBehavior);
+    if (!compact) {
+      d3.select(svgEl).call(zoomBehavior);
+    }
   });
-
-  function resetZoom() {
-    d3.select(svgEl).transition().duration(400).call(
-      zoomBehavior.transform, d3.zoomIdentity
-    );
-    zoomTransform = 'translate(0,0) scale(1)';
-  }
 
   $: visibleGreenLine = greenLineFeatures.filter(f => f.properties.year_opened <= year);
   $: futureGreenLine = greenLineFeatures.filter(f => f.properties.year_opened > year && f.properties.branch !== 'B');
@@ -137,8 +132,26 @@
     return `rgb(${r},${g},${b})`;
   }
 
+  function devKey(d) {
+    return `${d.name || 'Unnamed'}|${d.lat}|${d.lon}|${d.year_created}`;
+  }
+
+  function toggleDev(d) {
+    const key = devKey(d);
+    const s = new Set(selectedDevKeys);
+    s.has(key) ? s.delete(key) : s.add(key);
+    selectedDevKeys = s;
+  }
+
+  function resetSelection() {
+    selectedDevKeys = new Set();
+  }
+
+  $: anySelected = selectedDevKeys.size > 0;
+
   function handleDevMouseMove(e, d) {
     const rect = e.currentTarget.closest('svg').getBoundingClientRect();
+    hoveredDevKey = devKey(d);
     tooltip = {
       visible: true,
       x: e.clientX - rect.left + 14,
@@ -150,7 +163,10 @@
         `<div>Added ${d.year_created}${d.year_completed ? ` · completed ${d.year_completed}` : ''}</div>`,
     };
   }
-  function handleDevMouseLeave() { tooltip = { ...tooltip, visible: false }; }
+  function handleDevMouseLeave() {
+    hoveredDevKey = null;
+    tooltip = { ...tooltip, visible: false };
+  }
 
   function handleGLMouseMove(e, feature) {
     const rect = e.currentTarget.closest('svg').getBoundingClientRect();
@@ -179,7 +195,7 @@
       <span>Year:</span>
       <input type="range" min={YEARS[0]} max={YEARS[YEARS.length - 1]} step="1" bind:value={year} />
       <strong>{year}</strong>
-      <button on:click={resetZoom}>Reset zoom</button>
+      <button on:click={resetSelection} disabled={!anySelected}>Clear selections</button>
     </div>
   {/if}
 
@@ -327,24 +343,32 @@
         {/each}
 
         <!-- Development bubbles: outer = total units (city color), inner = affordable units (dark teal) -->
-        {#each visibleDevs as d (d.name + d.lat + d.lon + d.year_created)}
+        {#each visibleDevs as d (devKey(d))}
           {@const r = radiusScale(d.units) / Math.sqrt(zoomK)}
           {@const aff = d.affordable_units || 0}
           {@const rAff = aff > 0 ? radiusScale(aff) / Math.sqrt(zoomK) : 0}
+          {@const key = devKey(d)}
+          {@const isHovered = hoveredDevKey === key}
+          {@const isSelected = selectedDevKeys.has(key)}
+          {@const isDimmed = anySelected && !isSelected && !isHovered}
           <!-- total units -->
           <circle
             cx={d.cx}
             cy={d.cy}
             r={r}
             fill={cityRgb(d.city)}
-            fill-opacity="0.30"
+            fill-opacity={isDimmed ? 0.10 : isHovered || isSelected ? 0.58 : 0.30}
             stroke={cityRgb(d.city)}
-            stroke-width={1 / zoomK}
+            stroke-width={isHovered ? 3 / zoomK : isSelected ? 2.5 / zoomK : 1 / zoomK}
+            opacity={isDimmed ? 0.35 : 1}
+            filter={isSelected && !isHovered ? 'drop-shadow(0 0 3px rgba(0, 0, 0, 0.35))' : 'none'}
             role="button"
             aria-label={d.name}
             tabindex="0"
             on:mousemove={(e) => handleDevMouseMove(e, d)}
             on:mouseleave={handleDevMouseLeave}
+            on:click={() => toggleDev(d)}
+            on:keydown={(e) => e.key === 'Enter' && toggleDev(d)}
           />
           <!-- affordable units (filled inner circle, sized by sqrt of affordable count) -->
           {#if aff > 0}
@@ -353,9 +377,10 @@
               cy={d.cy}
               r={rAff}
               fill="#0f766e"
-              fill-opacity="0.85"
+              fill-opacity={isDimmed ? 0.18 : 0.85}
               stroke="#134e4a"
               stroke-width={0.6 / zoomK}
+              opacity={isDimmed ? 0.35 : 1}
               pointer-events="none"
             />
           {/if}
@@ -398,8 +423,10 @@
         </foreignObject>
       {/if}
     </svg>
-    {#if !compact}
-    <button class="reset-zoom-btn" on:click={resetZoom}>Reset zoom</button>
+    {#if showSelectionControl}
+      <button class="selection-control" on:click={resetSelection} disabled={!anySelected}>
+        Clear selections
+      </button>
     {/if}
 
     <!-- Big-number stat overlay: cumulative projects / units / affordable -->
@@ -427,18 +454,20 @@
 
   .map-svg-wrap { position: relative; display: inline-block; }
 
-  .reset-zoom-btn {
+  .selection-control {
     position: absolute;
-    bottom: 10px;
-    left: 10px;
-    padding: 4px 10px;
-    font-size: 0.8rem;
-    cursor: pointer;
+    top: 1.25rem;
+    left: 1.25rem;
+    z-index: 10;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
     border: 1px solid light-dark(#aaa, #555);
-    border-radius: 4px;
+    border-radius: 999px;
     background: light-dark(rgba(255,255,255,0.9), rgba(42,42,42,0.9));
     color: inherit;
-    z-index: 10;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   }
 
   .loading {
@@ -470,6 +499,11 @@
     padding: 3px 10px; font-size: 0.85rem; cursor: pointer;
     border: 1px solid light-dark(#aaa, #555); border-radius: 4px;
     background: light-dark(white, #2a2a2a); color: inherit;
+  }
+
+  button:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
   }
 
   circle {
