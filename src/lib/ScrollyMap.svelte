@@ -23,6 +23,11 @@
       body:
         'Initial price increases appear in Harvard Square and Cambridgeport, both already served by the Red Line for decades. The Green Line Extension is not yet a major topic of discussion, and areas around projected Green Line Extension stops do not show notable price increases.',
       finding: 'Price growth is concentrated in established Red Line areas, not projected Green Line Extension stops.',
+      news: {
+        source: 'Boston Globe timeline',
+        headline: 'Conservation Law Foundation lawsuit pushes the stalled Green Line Extension back onto the state agenda',
+        detail: 'The court fight is a transit-policy milestone, not a visible price spike in the mapped ZIPs.',
+      },
     },
     2012: {
       eyebrow: 'GROUND BREAKING',
@@ -30,6 +35,11 @@
       body:
         'Construction has broken ground on the Green Line Extension, but there is still no significant price increase around projected stops. More broadly, prices are mostly flat compared with 2005, likely reflecting the lingering effects of the 2008 financial crisis.',
       finding: 'Even with Green Line Extension construction underway, surrounding prices show little distinct acceleration.',
+      news: {
+        source: 'Boston Globe timeline',
+        headline: 'Green Line Extension construction begins in Somerville and Medford',
+        detail: 'The map still shows broad post-recession softness rather than a GLX-specific surge.',
+      },
     },
     2017: {
       eyebrow: 'CONSTRUCTION ERA',
@@ -37,6 +47,11 @@
       body:
         'The Green Line Extension remains under construction, and prices rise significantly across the study area. The strongest gains are still in Harvard Square and Cambridgeport, both tied to Red Line access, while projected Green Line Extension-stop areas rise more modestly.',
       finding: 'Regional appreciation is visible, but peak gains remain strongest in Red Line corridors.',
+      news: {
+        source: 'Boston Globe / MBTA coverage',
+        headline: 'After near-cancellation and redesign, the Green Line Extension restarts under a new plan',
+        detail: 'Regional prices are moving, but the highest values remain anchored around established transit and job centers.',
+      },
     },
     2022: {
       eyebrow: 'SERVICE OPENS',
@@ -44,6 +59,11 @@
       body:
         'The Green Line Extension is now active in all neighborhoods. Prices continue rising, but the highest levels remain in west Cambridge and other established high-demand areas.',
       finding: 'Green Line Extension activation does not immediately overturn the existing Cambridge-led price hierarchy.',
+      news: {
+        source: 'Boston Globe, Mar. 2022',
+        headline: 'Decades in the making, Green Line Extension to Union Square finally opens for passengers',
+        detail: 'The service milestone arrives after years of anticipation; the price hierarchy still changes gradually.',
+      },
     },
     2025: {
       eyebrow: 'THREE YEARS LATER',
@@ -51,6 +71,11 @@
       body:
         'With the Green Line Extension active, Somerville and nearby Green Line neighborhoods remain slightly below Harvard Square and west Cambridge on prices. Kendall Square, with strong Red Line access, continues to post especially large gains.',
       finding: 'Even post-Green Line Extension, top-end price escalation remains strongest around Red Line anchors.',
+      news: {
+        source: 'Boston Globe follow-up coverage',
+        headline: 'Post-opening attention shifts from construction milestones to service quality and long-term neighborhood change',
+        detail: 'The map keeps the pricing focus on where value actually concentrates after opening.',
+      },
     },
   };
 
@@ -126,7 +151,7 @@
   <!-- Sticky map fills the viewport height -->
   <div class="map-stage">
     <div class="map-shell">
-      <ZipcodeMap year={$currentYear} hideSlider={true} hideLineChart={true} compact={true} showSelectionControl={true} />
+      <ZipcodeMap year={$currentYear} hideSlider={true} hideLineChart={true} compact={true} showSelectionControl={true} hideHeader={true} />
     </div>
 
     <!-- Floating year scrubber, top -->
@@ -177,6 +202,14 @@
             <span class="finding-pin">FINDING</span>
             {activeNarrative.finding}
           </div>
+          {#if activeNarrative.news}
+            <div class="news-card" aria-label="News context">
+              <div class="news-kicker">NEWS CONTEXT</div>
+              <div class="news-source">{activeNarrative.news.source}</div>
+              <div class="news-headline">{activeNarrative.news.headline}</div>
+              <div class="news-detail">{activeNarrative.news.detail}</div>
+            </div>
+          {/if}
         </div>
       {/key}
     {/if}
@@ -217,6 +250,7 @@
   .map-shell :global(.map-wrap) { width: 100%; max-width: 1400px; margin: 0; }
   .map-shell :global(.map-svg-wrap) { width: 100%; }
   .map-shell :global(svg) { width: 100% !important; height: auto !important; max-height: calc(100svh - 2rem) !important; cursor: default !important; }
+  .map-shell :global(.selection-control) { z-index: 8; }
 
   .floating-control {
     position: absolute;
@@ -330,10 +364,12 @@
 
   .narrative-overlay {
     position: absolute;
-    top: 5.1rem;
+    top: 5.9rem;
     left: 1.25rem;
     z-index: 5;
     max-width: 360px;
+    max-height: calc(100svh - 7.25rem);
+    overflow-y: auto;
     background: light-dark(rgba(255,255,255,0.92), rgba(15,17,22,0.92));
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
@@ -392,6 +428,48 @@
     font-weight: 800;
     color: #00843D;
     flex-shrink: 0;
+  }
+
+  .news-card {
+    margin-top: 0.7rem;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.65rem 0.7rem;
+    border-radius: 8px;
+    background:
+      linear-gradient(135deg, light-dark(rgba(248,250,252,0.96), rgba(15,23,42,0.92)), light-dark(rgba(241,245,249,0.92), rgba(30,41,59,0.9)));
+    border: 1px solid light-dark(rgba(15,23,42,0.1), rgba(255,255,255,0.1));
+    box-shadow: inset 0 0 0 1px light-dark(rgba(255,255,255,0.65), rgba(255,255,255,0.03));
+  }
+
+  .news-kicker {
+    font-size: 0.56rem;
+    letter-spacing: 0.16em;
+    font-weight: 800;
+    color: #00843D;
+    margin-bottom: 0.2rem;
+  }
+
+  .news-source {
+    font-size: 0.64rem;
+    font-weight: 700;
+    color: light-dark(#64748b, #94a3b8);
+    margin-bottom: 0.22rem;
+  }
+
+  .news-headline {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 0.82rem;
+    line-height: 1.22;
+    font-weight: 700;
+    color: light-dark(#0f172a, #f8fafc);
+  }
+
+  .news-detail {
+    margin-top: 0.3rem;
+    font-size: 0.68rem;
+    line-height: 1.35;
+    color: light-dark(#475569, #cbd5e1);
   }
 
   .scroll-zones {

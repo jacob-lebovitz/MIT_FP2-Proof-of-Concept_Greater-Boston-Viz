@@ -8,6 +8,7 @@
   export let hideLineChart = false;
   export let compact = false;            // when true, hides in-SVG legend & milestone box (parent provides them)
   export let showSelectionControl = false;
+  export let hideHeader = false;
 
   const WIDTH = 1100;
   const HEIGHT = 740;
@@ -38,16 +39,6 @@ const ZIP_LABELS = {
     Cambridge: [37, 99, 235],    // blue
     Somerville: [220, 38, 38],   // red
     Medford: [202, 138, 4],      // yellow (deep amber for legibility on white)
-  };
-
-  const GREEN_LINE_EXTENSION_MILESTONES = {
-    2005: 'Conservation Law Foundation sued the state for stalling the Green Line Extension project.',
-    2007: 'Conservation Law Foundation & state settled — commitment to complete Green Line Extension by 2014.',
-    2012: 'Green Line Extension construction broke ground.',
-    2015: 'Project nearly cancelled after costs ballooned to $3B.',
-    2017: 'Green Line Extension redesigned & restarted; design-build contract awarded.',
-    2018: 'Construction restarted, targeting December 2021 opening.',
-    2022: 'Union Square (Mar) & Medford branch (Dec) opened.',
   };
 
   const BRANCH_COLORS = {
@@ -175,22 +166,77 @@ const ZIP_LABELS = {
   $: housingByZip = Object.fromEntries(housing.map(d => [d.zip, d]));
 
   // Line chart constants
-  const LC_MARGIN = { top: 60, right: 50, bottom: 40, left: 70 };
+  const LC_SVG_H = 520;
+  const LC_MARGIN = { top: 74, right: 126, bottom: 46, left: 70 };
   const LC_W = TOTAL_W - LC_MARGIN.left - LC_MARGIN.right;
-  const LC_H = 370 - LC_MARGIN.top - LC_MARGIN.bottom;
+  const LC_H = LC_SVG_H - LC_MARGIN.top - LC_MARGIN.bottom;
 
   const ANNOT_ROW_Y = [-44, -66, -88, -110, -134]; // row 0 = closest to chart
 
   const GREEN_LINE_EXTENSION_ANNOTATIONS = [
-    { year: 2005, label: 'Conservation Law Foundation sued state', type: 'greenLineExtension' },
-    { year: 2007, label: 'Settlement — commit to finish by 2014', type: 'greenLineExtension' },
-    { year: 2008, label: 'Global Financial Crisis', type: 'event' },
-    { year: 2012, label: 'Construction broke ground', type: 'greenLineExtension' },
-    { year: 2015, label: 'Nearly cancelled ($3B cost overrun)', type: 'greenLineExtension' },
-    { year: 2017, label: 'Redesigned & restarted', type: 'greenLineExtension' },
-    { year: 2018, label: 'Construction restarted', type: 'greenLineExtension' },
-    { year: 2020, label: 'COVID-19 pandemic', type: 'event' },
-    { year: 2022, label: 'Union Sq & Medford branch opened', type: 'greenLineExtension' },
+    {
+      year: 2005,
+      label: 'Conservation Law Foundation sued state',
+      type: 'greenLineExtension',
+      source: 'Boston Globe timeline',
+      headline: 'Lawsuit puts the stalled Green Line Extension back on the state agenda',
+    },
+    {
+      year: 2007,
+      label: 'Settlement — commit to finish by 2014',
+      type: 'greenLineExtension',
+      source: 'Boston Globe timeline',
+      headline: 'State commitment follows legal pressure over promised transit mitigation',
+    },
+    {
+      year: 2008,
+      label: 'Global Financial Crisis',
+      type: 'event',
+      source: 'Macro context',
+      headline: 'Financial crisis freezes housing markets across the region',
+    },
+    {
+      year: 2012,
+      label: 'Construction broke ground',
+      type: 'greenLineExtension',
+      source: 'Boston Globe timeline',
+      headline: 'Green Line Extension construction begins in Somerville and Medford',
+    },
+    {
+      year: 2015,
+      label: 'Nearly cancelled ($3B cost overrun)',
+      type: 'greenLineExtension',
+      source: 'Boston Globe, Aug. 2015',
+      headline: 'Green Line extension could cost another $1 billion',
+    },
+    {
+      year: 2017,
+      label: 'Redesigned & restarted',
+      type: 'greenLineExtension',
+      source: 'MBTA / local coverage',
+      headline: 'Redesigned Green Line Extension moves forward after cost reset',
+    },
+    {
+      year: 2018,
+      label: 'Construction restarted',
+      type: 'greenLineExtension',
+      source: 'MBTA project updates',
+      headline: 'Construction restarts with a design-build team and revised schedule',
+    },
+    {
+      year: 2020,
+      label: 'COVID-19 pandemic',
+      type: 'event',
+      source: 'Macro context',
+      headline: 'Pandemic reshapes commuting, construction, and housing demand',
+    },
+    {
+      year: 2022,
+      label: 'Union Sq & Medford branch opened',
+      type: 'greenLineExtension',
+      source: 'Boston Globe, Mar. 2022',
+      headline: 'Decades in the making, Green Line Extension to Union Square finally opens',
+    },
   ];
 
   // Greedy row assignment: place each annotation in the lowest row with no overlap
@@ -240,13 +286,44 @@ const ZIP_LABELS = {
     points: YEARS.map(yr => [yr, d.values[String(yr)] ?? null]),
   }));
 
+  $: lineLabels = (() => {
+    if (!yScale || lineData.length === 0) return [];
+    const minGap = 18;
+    const labels = lineData
+      .map(d => {
+        const latest = [...d.points].reverse().find(([, val]) => val != null);
+        if (!latest) return null;
+        return {
+          ...d,
+          zipNum: zipStrToNum(d.zip),
+          y: yScale(latest[1]),
+          year: latest[0],
+          value: latest[1],
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.y - b.y);
+
+    labels.forEach((label, i) => {
+      label.labelY = i === 0 ? Math.max(0, label.y) : Math.max(label.y, labels[i - 1].labelY + minGap);
+    });
+
+    const overflow = labels.length ? labels[labels.length - 1].labelY - LC_H : 0;
+    if (overflow > 0) {
+      labels.forEach(label => {
+        label.labelY = Math.max(0, label.labelY - overflow);
+      });
+    }
+    return labels;
+  })();
+
   function getLineColor(city) {
     const [r, g, b] = CITY_BASE_COLORS[city] ?? [100, 100, 100];
     return `rgb(${r},${g},${b})`;
   }
 
   let lineTooltip = { visible: false, x: 0, y: 0, zip: '', city: '', value: '' };
-  let annotTooltip = { visible: false, x: 0, y: 0, label: '', isEvent: false };
+  let annotTooltip = { visible: false, x: 0, y: 0, label: '', isEvent: false, source: '', headline: '' };
   let isDraggingYear = false;
 
   function setYearFromPointer(e) {
@@ -297,13 +374,16 @@ const ZIP_LABELS = {
   function showAnnotationTooltip(e, a, isEvent) {
     const svg = e.currentTarget.closest('svg');
     const rect = svg.getBoundingClientRect();
-    const localX = e.clientX - rect.left - LC_MARGIN.left + 12;
+    const localX = e.clientX - rect.left - LC_MARGIN.left;
+    const localY = e.clientY - rect.top - LC_MARGIN.top;
     annotTooltip = {
       visible: true,
-      x: Math.max(0, Math.min(LC_W - 260, localX)),
-      y: -54,
+      x: Math.max(0, Math.min(LC_W - 260, localX - 272)),
+      y: Math.max(-64, Math.min(LC_H - 104, localY - 24)),
       label: `${a.year}: ${a.label}`,
       isEvent,
+      source: a.source,
+      headline: a.headline,
     };
   }
 
@@ -367,8 +447,10 @@ const ZIP_LABELS = {
 </script>
 
 <div class="map-wrap" class:with-line-chart={!hideLineChart}>
-  <h2>Home Values by ZIP Code</h2>
-  <p class="subtitle">Cambridge · Somerville · Medford &nbsp;·&nbsp; {year}</p>
+  {#if !hideHeader}
+    <h2>Home Values by ZIP Code</h2>
+    <p class="subtitle">Cambridge · Somerville · Medford &nbsp;·&nbsp; {year}</p>
+  {/if}
 
   {#if !hideSlider}
     <div class="slider-row">
@@ -558,21 +640,6 @@ const ZIP_LABELS = {
 
     </g><!-- end zoomable group -->
 
-    <!-- GLX Milestone annotation: anchored to the bottom of the SVG so it never overlaps the city legend -->
-    {#if GREEN_LINE_EXTENSION_MILESTONES[year]}
-      {@const milestoneLines = GREEN_LINE_EXTENSION_MILESTONES[year].match(/.{1,32}(\s|$)/g)?.map(l => l.trim()) ?? []}
-      {@const boxH = 28 + milestoneLines.length * 15}
-      <g transform="translate({LEGEND_X}, {HEIGHT - boxH - 12})">
-        <rect x={0} y={0} width={LEGEND_W} height={boxH}
-          rx="5" ry="5"
-          fill="#1a4a2e" opacity="0.9" />
-        <text x={8} y={16} font-size="10" font-weight="bold" fill="#6fcf97">Green Line Extension Milestone</text>
-        {#each milestoneLines as line, i}
-          <text x={8} y={32 + i * 15} font-size="10" fill="white">{line}</text>
-        {/each}
-      </g>
-    {/if}
-
     {#if !compact}
     <!-- Legend -->
     <g transform="translate({LEGEND_X}, 20)">
@@ -641,8 +708,8 @@ const ZIP_LABELS = {
   {#if !loading && !hideLineChart}
   <div class="line-chart-panel">
   <h2>Home Values Over Time by ZIP Code</h2>
-  <svg viewBox="0 0 {TOTAL_W} 370" preserveAspectRatio="xMidYMid meet" class="line-chart"
-    style="width:100%; height:auto; max-height:420px"
+  <svg viewBox="0 0 {TOTAL_W} {LC_SVG_H}" preserveAspectRatio="xMidYMid meet" class="line-chart"
+    style="width:100%; height:auto; max-height:520px"
     on:pointermove={onYearDrag}
     on:pointerup={stopYearDrag}
     on:pointerleave={stopYearDrag}
@@ -710,6 +777,35 @@ const ZIP_LABELS = {
         />
       {/each}
 
+      <!-- Clickable ZIP labels on the right edge for easier selection -->
+      {#each lineLabels as label}
+        {@const isLabelSelected = selectedZips.has(label.zipNum) || selectedCities.has(label.city)}
+        {@const isLabelHovered = hoveredZip === label.zip}
+        <g
+          transform="translate({LC_W + 14}, {label.labelY})"
+          role="button"
+          tabindex="0"
+          aria-label="Select ZIP {label.zip}"
+          class="line-zip-label"
+          on:mouseenter={() => hoveredZip = label.zip}
+          on:mouseleave={() => hoveredZip = null}
+          on:click={() => toggleZip(label.zipNum)}
+          on:keydown={(e) => e.key === 'Enter' && toggleZip(label.zipNum)}
+        >
+          <line x1={-10} x2={-2} y1={label.y - label.labelY} y2="0"
+            stroke={getLineColor(label.city)} stroke-width={isLabelHovered || isLabelSelected ? 1.8 : 1}
+            opacity={isLabelHovered || isLabelSelected ? 1 : 0.55} />
+          <text
+            x="0"
+            y="4"
+            font-size={isLabelHovered || isLabelSelected ? 12 : 11}
+            font-weight={isLabelHovered || isLabelSelected ? 800 : 650}
+            fill={getLineColor(label.city)}
+            opacity={anySelected ? (isLabelSelected || isLabelHovered ? 1 : 0.35) : 0.95}
+          >{label.zip}</text>
+        </g>
+      {/each}
+
       <!-- Current year indicator (draggable) -->
       <line
         x1={xScale(year)} x2={xScale(year)}
@@ -752,9 +848,13 @@ const ZIP_LABELS = {
         <foreignObject
           x={annotTooltip.x}
           y={annotTooltip.y}
-          width="260" height="58">
+          width="260" height="110">
           <div class="tooltip annot-tip" class:event={annotTooltip.isEvent}>
             <strong>{annotTooltip.label}</strong>
+            {#if annotTooltip.headline}
+              <div class="annot-source">{annotTooltip.source}</div>
+              <div class="annot-headline">{annotTooltip.headline}</div>
+            {/if}
           </div>
         </foreignObject>
       {/if}
@@ -785,6 +885,7 @@ const ZIP_LABELS = {
     grid-template-columns: minmax(320px, 0.9fr) minmax(520px, 1.25fr);
     gap: 1rem 1.25rem;
     align-items: start;
+    padding-top: 0.45rem;
   }
 
   .map-wrap.with-line-chart > h2,
@@ -804,7 +905,7 @@ const ZIP_LABELS = {
   }
 
   .map-wrap.with-line-chart .map-svg-wrap svg {
-    max-height: 430px !important;
+    max-height: 520px !important;
   }
 
   .line-chart-panel {
@@ -812,7 +913,7 @@ const ZIP_LABELS = {
   }
 
   .line-chart-panel h2 {
-    margin: 0 0 0.45rem;
+    margin: 0.35rem 0 0.45rem;
     font-size: 1.1rem;
   }
 
@@ -908,14 +1009,50 @@ const ZIP_LABELS = {
   }
   .tooltip strong { color: #fff; }
   .annot-tip {
-    background: #1a4a2e;
+    background: rgba(30, 30, 40, 0.94);
     max-width: 245px;
     white-space: normal;
+    border-left: 3px solid #6fcf97;
   }
-  .annot-tip.event { background: #7f1d1d; }
+  .annot-tip.event {
+    background: rgba(30, 30, 40, 0.94);
+    border-left-color: #f87171;
+  }
+  .annot-icon circle:nth-child(2) {
+    transition: stroke-width 0.12s ease, opacity 0.12s ease;
+  }
   .annot-icon:hover circle:nth-child(2) {
-    transform-origin: center;
-    transform: scale(1.18);
+    opacity: 1;
+    stroke-width: 2;
+  }
+
+  .annot-source {
+    margin-top: 0.35rem;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #94a3b8;
+    text-transform: uppercase;
+  }
+
+  .annot-headline {
+    margin-top: 0.12rem;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 0.76rem;
+    line-height: 1.28;
+    color: #f8fafc;
+  }
+
+  .line-zip-label {
+    cursor: pointer;
+    outline: none;
+  }
+
+  .line-zip-label text {
+    paint-order: stroke;
+    stroke: light-dark(#fff, #111318);
+    stroke-width: 3px;
+    stroke-linejoin: round;
   }
 
   @media (max-width: 900px) {
