@@ -1,6 +1,8 @@
 <script>
   import ZipcodeMap from './ZipcodeMap.svelte';
+  import * as d3 from 'd3';
   import { onMount } from 'svelte';
+  import { base } from '$app/paths';
   import { currentYear } from './stores.js';
 
   let scrollySectionsEl;
@@ -8,6 +10,10 @@
   // Story checkpoints: each is a "moment" in the Green Line saga
   const MAP_YEARS = [2005, 2012, 2017, 2022, 2025];
   const ALL_YEARS = Array.from({ length: 26 }, (_, i) => 2000 + i);
+  const N_BUCKETS = 7;
+  const PRICE_COLORS = d3.schemeBlues[N_BUCKETS];
+  let priceLegendBuckets = [];
+  let manualYearOffset = 0;
 
   // Narrative tightly scoped to the Green Line thesis. Each card now also
   // surfaces a finding-level callout so the takeaways are distributed.
@@ -18,6 +24,11 @@
       body:
         'Initial price increases appear in Harvard Square and Cambridgeport, both already served by the Red Line for decades. The Green Line Extension is not yet a major topic of discussion, and areas around projected Green Line Extension stops do not show notable price increases.',
       finding: 'Price growth is concentrated in established Red Line areas, not projected Green Line Extension stops.',
+      news: {
+        source: 'Boston Globe timeline',
+        headline: 'Conservation Law Foundation lawsuit pushes the stalled Green Line Extension back onto the state agenda',
+        detail: 'The court fight is a transit-policy milestone, not a visible price spike in the mapped ZIPs.',
+      },
     },
     2012: {
       eyebrow: 'GROUND BREAKING',
@@ -25,6 +36,11 @@
       body:
         'Construction has broken ground on the Green Line Extension, but there is still no significant price increase around projected stops. More broadly, prices are mostly flat compared with 2005, likely reflecting the lingering effects of the 2008 financial crisis.',
       finding: 'Even with Green Line Extension construction underway, surrounding prices show little distinct acceleration.',
+      news: {
+        source: 'Boston Globe timeline',
+        headline: 'Green Line Extension construction begins in Somerville and Medford',
+        detail: 'The map still shows broad post-recession softness rather than a GLX-specific surge.',
+      },
     },
     2017: {
       eyebrow: 'CONSTRUCTION ERA',
@@ -32,6 +48,11 @@
       body:
         'The Green Line Extension remains under construction, and prices rise significantly across the study area. The strongest gains are still in Harvard Square and Cambridgeport, both tied to Red Line access, while projected Green Line Extension-stop areas rise more modestly.',
       finding: 'Regional appreciation is visible, but peak gains remain strongest in Red Line corridors.',
+      news: {
+        source: 'Boston Globe / MBTA coverage',
+        headline: 'After near-cancellation and redesign, the Green Line Extension restarts under a new plan',
+        detail: 'Regional prices are moving, but the highest values remain anchored around established transit and job centers.',
+      },
     },
     2022: {
       eyebrow: 'SERVICE OPENS',
@@ -39,6 +60,11 @@
       body:
         'The Green Line Extension is now active in all neighborhoods. Prices continue rising, but the highest levels remain in west Cambridge and other established high-demand areas.',
       finding: 'Green Line Extension activation does not immediately overturn the existing Cambridge-led price hierarchy.',
+      news: {
+        source: 'Boston Globe, Mar. 2022',
+        headline: 'Decades in the making, Green Line Extension to Union Square finally opens for passengers',
+        detail: 'The service milestone arrives after years of anticipation; the price hierarchy still changes gradually.',
+      },
     },
     2025: {
       eyebrow: 'THREE YEARS LATER',
@@ -46,6 +72,11 @@
       body:
         'With the Green Line Extension active, Somerville and nearby Green Line neighborhoods remain slightly below Harvard Square and west Cambridge on prices. Kendall Square, with strong Red Line access, continues to post especially large gains.',
       finding: 'Even post-Green Line Extension, top-end price escalation remains strongest around Red Line anchors.',
+      news: {
+        source: 'Boston Globe follow-up coverage',
+        headline: 'Post-opening attention shifts from construction milestones to service quality and long-term neighborhood change',
+        detail: 'The map keeps the pricing focus on where value actually concentrates after opening.',
+      },
     },
   };
 
@@ -55,45 +86,73 @@
   );
   $: activeNarrative = activeNarrativeYear ? YEAR_NARRATIVES[activeNarrativeYear] : null;
 
-  function handleYearChange(e) {
-    currentYear.set(parseInt(e.target.value, 10));
+  function fmtLegend(v) {
+    if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+    return '$' + Math.round(v / 1000) + 'k';
   }
 
   // Each scroll-trigger zone is one viewport tall.
   const ZONE_VH = 100;
 
+  function clampYear(yr) {
+    return Math.max(ALL_YEARS[0], Math.min(ALL_YEARS[ALL_YEARS.length - 1], yr));
+  }
+
+  function getAnchors(vh) {
+    const zoneH = (ZONE_VH / 100) * vh;
+    return [
+      { scrollPos: zoneH / 2 - vh / 2, year: 2000 },
+      ...MAP_YEARS.map((yr, i) => ({
+        scrollPos: (i + 1) * zoneH + zoneH / 2 - vh / 2,
+        year: yr,
+      })),
+    ];
+  }
+
+  function getBaseYearFromScroll(scrolled, vh) {
+    const anchors = getAnchors(vh);
+    if (scrolled <= anchors[0].scrollPos) return anchors[0].year;
+    if (scrolled >= anchors[anchors.length - 1].scrollPos) return anchors[anchors.length - 1].year;
+
+    for (let i = 0; i < anchors.length - 1; i++) {
+      if (scrolled >= anchors[i].scrollPos && scrolled <= anchors[i + 1].scrollPos) {
+        const t = (scrolled - anchors[i].scrollPos) / (anchors[i + 1].scrollPos - anchors[i].scrollPos);
+        return anchors[i].year + t * (anchors[i + 1].year - anchors[i].year);
+      }
+    }
+    return anchors[0].year;
+  }
+
+  function getCurrentScrolled() {
+    if (!scrollySectionsEl) return 0;
+    return -scrollySectionsEl.getBoundingClientRect().top;
+  }
+
+  function handleYearChange(e) {
+    const newYear = parseInt(e.target.value, 10);
+    const baseYear = getBaseYearFromScroll(getCurrentScrolled(), window.innerHeight);
+    manualYearOffset = newYear - baseYear;
+    currentYear.set(newYear);
+  }
+
   onMount(() => {
+    d3.json(`${base}/housing.json`).then((housing) => {
+      const values = housing.flatMap(d => Object.values(d.values));
+      const min = d3.min(values) ?? 0;
+      const max = d3.max(values) ?? 1;
+      priceLegendBuckets = d3.range(N_BUCKETS).map(i => ({
+        lo: min + i * (max - min) / N_BUCKETS,
+        hi: min + (i + 1) * (max - min) / N_BUCKETS,
+        color: PRICE_COLORS[i],
+      })).reverse();
+    });
+
     function handleScroll() {
       if (!scrollySectionsEl) return;
       const rect = scrollySectionsEl.getBoundingClientRect();
       const scrolled = -rect.top;
       const vh = window.innerHeight;
-      const zoneH = (ZONE_VH / 100) * vh;
-
-      // anchors: zone 0 (intro/spacer) -> 2000; zone i (i>=1) -> MAP_YEARS[i-1]
-      const anchors = [
-        { scrollPos: zoneH / 2 - vh / 2, year: 2000 },
-        ...MAP_YEARS.map((yr, i) => ({
-          scrollPos: (i + 1) * zoneH + zoneH / 2 - vh / 2,
-          year: yr,
-        })),
-      ];
-
-      if (scrolled <= anchors[0].scrollPos) {
-        currentYear.set(2000);
-        return;
-      }
-      if (scrolled >= anchors[anchors.length - 1].scrollPos) {
-        currentYear.set(anchors[anchors.length - 1].year);
-        return;
-      }
-      for (let i = 0; i < anchors.length - 1; i++) {
-        if (scrolled >= anchors[i].scrollPos && scrolled <= anchors[i + 1].scrollPos) {
-          const t = (scrolled - anchors[i].scrollPos) / (anchors[i + 1].scrollPos - anchors[i].scrollPos);
-          currentYear.set(Math.round(anchors[i].year + t * (anchors[i + 1].year - anchors[i].year)));
-          return;
-        }
-      }
+      currentYear.set(clampYear(Math.round(getBaseYearFromScroll(scrolled, vh) + manualYearOffset)));
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -105,7 +164,7 @@
   <!-- Sticky map fills the viewport height -->
   <div class="map-stage">
     <div class="map-shell">
-      <ZipcodeMap year={$currentYear} hideSlider={true} hideLineChart={true} compact={true} />
+      <ZipcodeMap year={$currentYear} hideSlider={true} hideLineChart={true} compact={true} showSelectionControl={true} hideHeader={true} />
     </div>
 
     <!-- Floating year scrubber, top -->
@@ -125,12 +184,20 @@
     <!-- Floating compact legend (right) -->
     <div class="floating-control side-legend">
       <div class="control-label">PRICE</div>
-      <div class="lg-grad" />
-      <div class="lg-grad-labels"><span>low</span><span>high</span></div>
+      {#each priceLegendBuckets as bucket}
+        <div class="lg-row">
+          <span class="swatch" style="background:{bucket.color}"></span>
+          {fmtLegend(bucket.lo)} - {fmtLegend(bucket.hi)}
+        </div>
+      {/each}
+      <div class="lg-row">
+        <span class="swatch no-data"></span>
+        No data
+      </div>
       <div class="control-label" style="margin-top:0.6rem">CITY</div>
       <div class="lg-row"><span class="dot" style="background:#2563eb"></span> Cambridge</div>
-      <div class="lg-row"><span class="dot" style="background:#ea580c"></span> Somerville</div>
-      <div class="lg-row"><span class="dot" style="background:#16a34a"></span> Medford</div>
+      <div class="lg-row"><span class="dot" style="background:#dc2626"></span> Somerville</div>
+      <div class="lg-row"><span class="dot" style="background:#ca8a04"></span> Medford</div>
       <div class="control-label" style="margin-top:0.6rem">TRANSIT</div>
       <div class="lg-row"><span class="line" style="background:#00843D"></span> Green Line (built)</div>
       <div class="lg-row"><span class="line dashed" style="background:#00843D"></span> Green Line Extension (planned)</div>
@@ -148,6 +215,14 @@
             <span class="finding-pin">FINDING</span>
             {activeNarrative.finding}
           </div>
+          {#if activeNarrative.news}
+            <div class="news-card" aria-label="News context">
+              <div class="news-kicker">NEWS CONTEXT</div>
+              <div class="news-source">{activeNarrative.news.source}</div>
+              <div class="news-headline">{activeNarrative.news.headline}</div>
+              <div class="news-detail">{activeNarrative.news.detail}</div>
+            </div>
+          {/if}
         </div>
       {/key}
     {/if}
@@ -187,7 +262,8 @@
   /* Make the embedded ZipcodeMap fill its container */
   .map-shell :global(.map-wrap) { width: 100%; max-width: 1400px; margin: 0; }
   .map-shell :global(.map-svg-wrap) { width: 100%; }
-  .map-shell :global(svg) { width: 100% !important; height: auto !important; max-height: calc(100svh - 2rem) !important; }
+  .map-shell :global(svg) { width: 100% !important; height: auto !important; max-height: calc(100svh - 2rem) !important; cursor: default !important; }
+  .map-shell :global(.selection-control) { z-index: 8; }
 
   .floating-control {
     position: absolute;
@@ -268,24 +344,24 @@
     letter-spacing: -0.02em;
   }
 
-  .lg-grad {
-    height: 8px;
-    border-radius: 4px;
-    background: linear-gradient(to right, #f7fbff, #08306b);
-  }
-  .lg-grad-labels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.62rem;
-    color: light-dark(#64748b, #94a3b8);
-    margin-top: 0.15rem;
-  }
   .lg-row {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     font-size: 0.78rem;
     margin-top: 0.18rem;
+  }
+  .lg-row .swatch {
+    width: 16px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.18);
+    flex-shrink: 0;
+  }
+  .lg-row .swatch.no-data {
+    background:
+      repeating-linear-gradient(45deg, transparent 0 4px, rgba(107,114,128,0.55) 4px 6px),
+      light-dark(#e5e7eb, #2d2d33);
   }
   .lg-row .dot {
     width: 10px; height: 10px; border-radius: 50%;
@@ -301,16 +377,18 @@
 
   .narrative-overlay {
     position: absolute;
-    bottom: 1.5rem;
-    left: 1.5rem;
+    top: 5.9rem;
+    left: 1.25rem;
     z-index: 5;
-    max-width: 460px;
+    max-width: 360px;
+    max-height: calc(100svh - 7.25rem);
+    overflow-y: auto;
     background: light-dark(rgba(255,255,255,0.92), rgba(15,17,22,0.92));
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border: 1px solid light-dark(rgba(15,23,42,0.08), rgba(255,255,255,0.08));
-    border-radius: 14px;
-    padding: 1.4rem 1.6rem;
+    border-radius: 12px;
+    padding: 0.95rem 1.1rem;
     box-shadow: 0 16px 40px rgba(0,0,0,0.18);
     animation: fadeUp 0.55s cubic-bezier(0.4,0,0.2,1) both;
   }
@@ -330,7 +408,7 @@
 
   .card-title {
     margin: 0 0 0.7rem;
-    font-size: 1.4rem;
+    font-size: 1.08rem;
     font-weight: 800;
     line-height: 1.18;
     letter-spacing: -0.015em;
@@ -338,9 +416,9 @@
   }
 
   .card-body {
-    margin: 0 0 1rem;
-    font-size: 0.95rem;
-    line-height: 1.65;
+    margin: 0 0 0.75rem;
+    font-size: 0.82rem;
+    line-height: 1.5;
     color: light-dark(#334155, #cbd5e1);
   }
 
@@ -348,12 +426,12 @@
     display: flex;
     gap: 0.6rem;
     align-items: baseline;
-    padding: 0.6rem 0.8rem;
+    padding: 0.5rem 0.65rem;
     background: light-dark(rgba(0,132,61,0.08), rgba(0,132,61,0.18));
     border-left: 3px solid #00843D;
     border-radius: 4px;
-    font-size: 0.85rem;
-    line-height: 1.5;
+    font-size: 0.76rem;
+    line-height: 1.42;
     color: light-dark(#0f172a, #e2e8f0);
   }
 
@@ -365,12 +443,55 @@
     flex-shrink: 0;
   }
 
+  .news-card {
+    margin-top: 0.7rem;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.65rem 0.7rem;
+    border-radius: 8px;
+    background:
+      linear-gradient(135deg, light-dark(rgba(248,250,252,0.96), rgba(15,23,42,0.92)), light-dark(rgba(241,245,249,0.92), rgba(30,41,59,0.9)));
+    border: 1px solid light-dark(rgba(15,23,42,0.1), rgba(255,255,255,0.1));
+    box-shadow: inset 0 0 0 1px light-dark(rgba(255,255,255,0.65), rgba(255,255,255,0.03));
+  }
+
+  .news-kicker {
+    font-size: 0.56rem;
+    letter-spacing: 0.16em;
+    font-weight: 800;
+    color: #00843D;
+    margin-bottom: 0.2rem;
+  }
+
+  .news-source {
+    font-size: 0.64rem;
+    font-weight: 700;
+    color: light-dark(#64748b, #94a3b8);
+    margin-bottom: 0.22rem;
+  }
+
+  .news-headline {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 0.82rem;
+    line-height: 1.22;
+    font-weight: 700;
+    color: light-dark(#0f172a, #f8fafc);
+  }
+
+  .news-detail {
+    margin-top: 0.3rem;
+    font-size: 0.68rem;
+    line-height: 1.35;
+    color: light-dark(#475569, #cbd5e1);
+  }
+
   .scroll-zones {
     position: relative;
     margin-top: -100svh; /* overlap with sticky map so the first zone reveals it */
+    pointer-events: none;
   }
 
-  .zone { height: 100svh; }
+  .zone { height: 100svh; pointer-events: none; }
   .intro-zone { height: 100svh; }
 
   @media (max-width: 720px) {
@@ -378,6 +499,7 @@
       max-width: calc(100% - 2rem);
       left: 1rem;
       right: 1rem;
+      top: auto;
       bottom: 1rem;
       padding: 1rem 1.1rem;
     }

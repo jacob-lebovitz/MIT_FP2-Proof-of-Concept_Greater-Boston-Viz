@@ -7,6 +7,7 @@
 
   const MAP_YEARS = [2011, 2015, 2020, 2025];
   const ALL_YEARS = Array.from({ length: MAP_YEARS[MAP_YEARS.length - 1] - MAP_YEARS[0] + 1 }, (_, i) => MAP_YEARS[0] + i);
+  let manualYearOffset = 0;
 
   // Each year now has ONE clear takeaway tied to the Green Line thesis,
   // with a single highlighted stat instead of a wall of numbers.
@@ -47,11 +48,48 @@
   );
   $: activeNarrative = YEAR_NARRATIVES[activeNarrativeYear];
 
-  function handleYearChange(e) {
-    developmentsYear.set(parseInt(e.target.value, 10));
+  const ZONE_VH = 100;
+
+  function clampYear(yr) {
+    return Math.max(ALL_YEARS[0], Math.min(ALL_YEARS[ALL_YEARS.length - 1], yr));
   }
 
-  const ZONE_VH = 100;
+  function getAnchors(vh) {
+    const zoneH = (ZONE_VH / 100) * vh;
+    return [
+      { scrollPos: zoneH / 2 - vh / 2, year: MAP_YEARS[0] },
+      ...MAP_YEARS.slice(1).map((yr, i) => ({
+        scrollPos: (i + 1) * zoneH + zoneH / 2 - vh / 2,
+        year: yr,
+      })),
+    ];
+  }
+
+  function getBaseYearFromScroll(scrolled, vh) {
+    const anchors = getAnchors(vh);
+    if (scrolled <= anchors[0].scrollPos) return anchors[0].year;
+    if (scrolled >= anchors[anchors.length - 1].scrollPos) return anchors[anchors.length - 1].year;
+
+    for (let i = 0; i < anchors.length - 1; i++) {
+      if (scrolled >= anchors[i].scrollPos && scrolled <= anchors[i + 1].scrollPos) {
+        const t = (scrolled - anchors[i].scrollPos) / (anchors[i + 1].scrollPos - anchors[i].scrollPos);
+        return anchors[i].year + t * (anchors[i + 1].year - anchors[i].year);
+      }
+    }
+    return anchors[0].year;
+  }
+
+  function getCurrentScrolled() {
+    if (!scrollySectionsEl) return 0;
+    return -scrollySectionsEl.getBoundingClientRect().top;
+  }
+
+  function handleYearChange(e) {
+    const newYear = parseInt(e.target.value, 10);
+    const baseYear = getBaseYearFromScroll(getCurrentScrolled(), window.innerHeight);
+    manualYearOffset = newYear - baseYear;
+    developmentsYear.set(newYear);
+  }
 
   onMount(() => {
     function handleScroll() {
@@ -59,33 +97,9 @@
       const rect = scrollySectionsEl.getBoundingClientRect();
       const scrolled = -rect.top;
       const vh = window.innerHeight;
-      const zoneH = (ZONE_VH / 100) * vh;
-
-      const anchors = [
-        { scrollPos: zoneH / 2 - vh / 2, year: MAP_YEARS[0] },
-        ...MAP_YEARS.slice(1).map((yr, i) => ({
-          scrollPos: (i + 1) * zoneH + zoneH / 2 - vh / 2,
-          year: yr,
-        })),
-      ];
 
       if (rect.top > vh || rect.bottom < 0) return;
-
-      if (scrolled <= anchors[0].scrollPos) {
-        developmentsYear.set(anchors[0].year);
-        return;
-      }
-      if (scrolled >= anchors[anchors.length - 1].scrollPos) {
-        developmentsYear.set(anchors[anchors.length - 1].year);
-        return;
-      }
-      for (let i = 0; i < anchors.length - 1; i++) {
-        if (scrolled >= anchors[i].scrollPos && scrolled <= anchors[i + 1].scrollPos) {
-          const t = (scrolled - anchors[i].scrollPos) / (anchors[i + 1].scrollPos - anchors[i].scrollPos);
-          developmentsYear.set(Math.round(anchors[i].year + t * (anchors[i + 1].year - anchors[i].year)));
-          return;
-        }
-      }
+      developmentsYear.set(clampYear(Math.round(getBaseYearFromScroll(scrolled, vh) + manualYearOffset)));
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -106,7 +120,7 @@
 <section class="scrolly-fullbleed">
   <div class="map-stage">
     <div class="map-shell">
-      <DevelopmentsMap year={$developmentsYear} hideSlider={true} hideHeader={true} compact={true} />
+      <DevelopmentsMap year={$developmentsYear} hideSlider={true} hideHeader={true} compact={true} showSelectionControl={true} />
     </div>
 
     <!-- Section title at top -->
@@ -127,8 +141,8 @@
     <div class="floating-control side-legend">
       <div class="control-label">CITY (BUBBLE COLOR)</div>
       <div class="lg-row"><span class="dot" style="background:#2563eb"></span> Cambridge</div>
-      <div class="lg-row"><span class="dot" style="background:#ea580c"></span> Somerville</div>
-      <div class="lg-row"><span class="dot" style="background:#16a34a"></span> Medford</div>
+      <div class="lg-row"><span class="dot" style="background:#dc2626"></span> Somerville</div>
+      <div class="lg-row"><span class="dot" style="background:#ca8a04"></span> Medford</div>
       <div class="control-label" style="margin-top:0.6rem">UNITS (OUTER AREA)</div>
       <div class="lg-row"><span class="dot lg" style="background:rgba(37,99,235,0.3); border:1px solid #2563eb"></span> total units in project</div>
       <div class="control-label" style="margin-top:0.6rem">AFFORDABLE (INNER)</div>
@@ -185,7 +199,8 @@
 
   .map-shell :global(.map-wrap) { width: 100%; max-width: 1400px; margin: 0; }
   .map-shell :global(.map-svg-wrap) { width: 100%; }
-  .map-shell :global(svg) { width: 100% !important; height: auto !important; max-height: calc(100svh - 2rem) !important; }
+  .map-shell :global(svg) { width: 100% !important; height: auto !important; max-height: calc(100svh - 2rem) !important; cursor: default !important; }
+  .map-shell :global(.selection-control) { z-index: 8; }
 
   /* Move the dev map's stat overlay so it doesn't conflict with our panels */
   .map-shell :global(.stat-overlay) {
@@ -285,16 +300,18 @@
 
   .narrative-overlay {
     position: absolute;
-    bottom: 1.5rem;
-    left: 1.5rem;
+    top: 5.9rem;
+    left: 1.25rem;
     z-index: 5;
-    max-width: 480px;
+    max-width: 360px;
+    max-height: calc(100svh - 7.25rem);
+    overflow-y: auto;
     background: light-dark(rgba(255,255,255,0.92), rgba(15,17,22,0.92));
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border: 1px solid light-dark(rgba(15,23,42,0.08), rgba(255,255,255,0.08));
-    border-radius: 14px;
-    padding: 1.4rem 1.6rem;
+    border-radius: 12px;
+    padding: 0.95rem 1.1rem;
     box-shadow: 0 16px 40px rgba(0,0,0,0.18);
     animation: fadeUp 0.55s cubic-bezier(0.4,0,0.2,1) both;
   }
@@ -314,16 +331,16 @@
 
   .card-title {
     margin: 0 0 0.7rem;
-    font-size: 1.4rem;
+    font-size: 1.08rem;
     font-weight: 800;
     line-height: 1.18;
     color: light-dark(#0f172a, #f1f5f9);
   }
 
   .card-body {
-    margin: 0 0 1rem;
-    font-size: 0.95rem;
-    line-height: 1.65;
+    margin: 0 0 0.75rem;
+    font-size: 0.82rem;
+    line-height: 1.5;
     color: light-dark(#334155, #cbd5e1);
   }
 
@@ -331,14 +348,14 @@
     display: flex;
     gap: 0.85rem;
     align-items: center;
-    padding: 0.7rem 0.95rem;
+    padding: 0.52rem 0.7rem;
     background: light-dark(rgba(15,118,110,0.08), rgba(15,118,110,0.18));
     border-left: 4px solid #0f766e;
     border-radius: 5px;
   }
 
   .stat-num {
-    font-size: 2rem;
+    font-size: 1.4rem;
     font-weight: 800;
     line-height: 1;
     color: #0f766e;
@@ -347,17 +364,18 @@
   }
 
   .stat-lbl {
-    font-size: 0.78rem;
-    line-height: 1.4;
+    font-size: 0.72rem;
+    line-height: 1.35;
     color: light-dark(#334155, #cbd5e1);
   }
 
   .scroll-zones {
     position: relative;
     margin-top: -100svh;
+    pointer-events: none;
   }
 
-  .zone { height: 100svh; }
+  .zone { height: 100svh; pointer-events: none; }
   .intro-zone { height: 100svh; }
 
   @media (max-width: 720px) {
@@ -365,6 +383,7 @@
       max-width: calc(100% - 2rem);
       left: 1rem;
       right: 1rem;
+      top: auto;
       bottom: 1rem;
       padding: 1rem 1.1rem;
     }
