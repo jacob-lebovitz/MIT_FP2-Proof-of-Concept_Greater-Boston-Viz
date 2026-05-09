@@ -180,7 +180,7 @@
     margin: 2rem 0 0.6rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: light-dark(#475569, #94a3b8);
+    color: #00843D;
   }
 
   .kicker {
@@ -188,7 +188,7 @@
     font-weight: 700;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: #2563eb;
+    color: #00843D;
     margin-bottom: 0.4rem;
   }
 
@@ -216,7 +216,7 @@
   .stat-num {
     font-size: 1.55rem;
     font-weight: 700;
-    color: #2563eb;
+    color: #00843D;
     line-height: 1.1;
     font-variant-numeric: tabular-nums;
     margin-bottom: 0.35rem;
