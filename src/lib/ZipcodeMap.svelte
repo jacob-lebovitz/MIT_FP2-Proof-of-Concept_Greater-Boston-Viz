@@ -377,7 +377,7 @@
     const zipStr = String(zipNum).padStart(5, '0');
     const entry = housingByZip[zipStr];
     const val = entry?.values?.[String(yr)];
-    return val != null ? colorScale(val) : 'url(#nodata-hatch)';
+    return val != null ? colorScale(val) : 'transparent';
   }
 
   function hasData(zipNum, yr) {
@@ -454,20 +454,11 @@
 
   <div class="map-svg-wrap">
   <svg viewBox="0 0 {TOTAL_W} {HEIGHT}" preserveAspectRatio="xMidYMid meet" bind:this={svgEl} style="display:{loading ? 'none' : 'block'}; width:100%; height:auto; max-height:{HEIGHT}px">
-    <defs>
-      <pattern id="nodata-hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
-        <rect width="6" height="6" fill="light-dark(#e5e7eb, #2d2d33)" />
-        <line x1="0" y1="0" x2="0" y2="6" stroke="light-dark(#9ca3af, #555)" stroke-width="1.2" />
-      </pattern>
-      <pattern id="surrounding-hatch" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)">
-        <rect width="5" height="5" fill="light-dark(#eef0f3, #232328)" />
-        <line x1="0" y1="0" x2="0" y2="5" stroke="light-dark(#cbd0d6, #3a3a42)" stroke-width="0.8" />
-      </pattern>
-    </defs>
+    <rect class="water-basemap" x="0" y="0" width={MAP_W} height={HEIGHT} pointer-events="none" />
     <g transform={zoomTransform}>
-    <!-- Surrounding towns context (no stroke — ZIP zone borders define the boundary) -->
+    <!-- Surrounding towns context (solid land so it does not read as missing data) -->
     {#each surroundingFeatures as feature}
-      <path d={pathGen?.(feature)} fill="url(#surrounding-hatch)" stroke="none" pointer-events="none"
+      <path d={pathGen?.(feature)} class="context-land" stroke="none" pointer-events="none"
         opacity={hoveredZip ? 0.35 : 1} />
     {/each}
 
@@ -492,12 +483,7 @@
       {/if}
     {/each}
 
-    <!-- Charles River -->
-    {#each charlesRiverFeatures as feature}
-      <path d={pathGen?.(feature)} fill="#7dd3fc" fill-opacity="0.45" stroke="#0284c7" stroke-width={0.8 / zoomK} stroke-opacity="0.45" pointer-events="none" />
-    {/each}
-
-    <!-- Study area background mask: covers any surrounding-zone hatch that bleeds into ZIP polygons -->
+    <!-- Study area land mask keeps surrounding context from showing through ZIP polygons -->
     {#each features as feature}
       <path d={pathGen?.(feature)} class="study-mask" stroke="none" pointer-events="none" />
     {/each}
@@ -525,6 +511,11 @@
         on:click={() => toggleZip(zip)}
         on:keydown={(e) => e.key === 'Enter' && toggleZip(zip)}
       />
+    {/each}
+
+    <!-- Charles River: draw over data fills so water never appears as no-data land -->
+    {#each charlesRiverFeatures as feature}
+      <path d={pathGen?.(feature)} class="river-water" stroke-width={0.8 / zoomK} pointer-events="none" />
     {/each}
 
     <!-- Future Green Line segments (planned but not yet opened) — translucent ghost -->
@@ -651,7 +642,7 @@
         </text>
       {/each}
       <rect x={0} y={20 + N_BUCKETS * 36} width="24" height="24"
-        fill="url(#nodata-hatch)" stroke="#aaa" stroke-width="0.5" />
+        class="no-data-swatch" stroke="#aaa" stroke-width="0.5" />
       <text x={32} y={20 + N_BUCKETS * 36 + 18} font-size="22" fill="currentColor">No data</text>
       <text font-size="22" font-weight="bold" fill="currentColor" y={20 + (N_BUCKETS + 1) * 36 + 22}>City Labels</text>
       {#each Object.entries(CITY_BASE_COLORS) as [city, [r, g, b]], i}
@@ -863,7 +854,25 @@
 </div>
 
 <style>
-  /* Paints a solid background over the study area to hide surrounding-zone hatch bleed */
+  .water-basemap,
+  .river-water {
+    fill: light-dark(#bae6fd, #0f2f47);
+  }
+
+  .river-water {
+    stroke: light-dark(#7dd3fc, #25637f);
+    stroke-opacity: 0.65;
+  }
+
+  .context-land {
+    fill: light-dark(#eef2f7, #232b35);
+  }
+
+  .no-data-swatch {
+    fill: light-dark(#bae6fd, #0f2f47);
+  }
+
+  /* Paints a solid land background under ZIP fills. */
   .study-mask { fill: light-dark(#fafbfc, #1a1b20); }
 
   .map-wrap { margin: 1.5rem 0; }
