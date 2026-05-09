@@ -46,20 +46,20 @@
 
   <div class="stat-grid" aria-label="Summary statistics">
     <div class="stat-card">
-      <div class="stat-num">390</div>
-      <div class="stat-lbl">Projects mapped<br/>(2011–2025)</div>
+      <div class="stat-num">+94%</div>
+      <div class="stat-lbl">Somerville price growth<br/>2012–2019, before GLX opened</div>
     </div>
     <div class="stat-card">
-      <div class="stat-num">~28,600</div>
-      <div class="stat-lbl">New housing units<br/>cumulatively added</div>
+      <div class="stat-num">~0%/yr</div>
+      <div class="stat-lbl">Somerville annual price growth<br/>since GLX opened (2022–2025)</div>
     </div>
     <div class="stat-card">
-      <div class="stat-num">~3,900</div>
-      <div class="stat-lbl">Of those are<br/>income-restricted</div>
+      <div class="stat-num">9.2% vs 8.9%</div>
+      <div class="stat-lbl">Green vs Red Line corridor<br/>annual growth, 2012–2019</div>
     </div>
     <div class="stat-card">
-      <div class="stat-num">6% → 14%</div>
-      <div class="stat-lbl">Affordable share of<br/>cumulative stock</div>
+      <div class="stat-num">$130K → $87K</div>
+      <div class="stat-lbl">Harvard Sq to Somerville<br/>price gap, 2011 → 2025</div>
     </div>
   </div>
 
