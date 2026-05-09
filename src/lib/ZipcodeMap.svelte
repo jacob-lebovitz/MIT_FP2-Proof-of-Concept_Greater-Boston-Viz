@@ -479,13 +479,13 @@
           x={c[0]} y={c[1]}
           text-anchor="middle"
           dominant-baseline="middle"
-          font-size={26 / zoomK}
-          fill="light-dark(#6b7280, #9ca3af)"
-          font-weight="500"
-          letter-spacing="0.06em"
+          font-size={32 / zoomK}
+          fill="light-dark(#1f2937, #e5e7eb)"
+          font-weight="700"
+          letter-spacing="0.08em"
           paint-order="stroke"
-          stroke="light-dark(#eef0f3, #232328)"
-          stroke-width={3 / zoomK}
+          stroke="light-dark(#f3f4f6, #1f2937)"
+          stroke-width={3.5 / zoomK}
           pointer-events="none"
           style="text-transform: uppercase;"
         >{feature.properties.name}</text>
