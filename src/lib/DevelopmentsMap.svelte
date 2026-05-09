@@ -205,11 +205,16 @@
 
   <div class="map-svg-wrap">
     <svg viewBox="0 0 {TOTAL_W} {HEIGHT}" preserveAspectRatio="xMidYMid meet" bind:this={svgEl} style="display:{loading ? 'none' : 'block'}; width:100%; height:auto; max-height:{HEIGHT}px">
-      <rect class="water-basemap" x="0" y="0" width={MAP_W} height={HEIGHT} pointer-events="none" />
+      <defs>
+        <pattern id="dev-surrounding-hatch" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)">
+          <rect width="5" height="5" fill="light-dark(#eef0f3, #232328)" />
+          <line x1="0" y1="0" x2="0" y2="5" stroke="light-dark(#cbd0d6, #3a3a42)" stroke-width="0.8" />
+        </pattern>
+      </defs>
       <g transform={zoomTransform}>
-        <!-- Surrounding towns context (solid land so it does not read as missing data) -->
+        <!-- Surrounding towns context (subtle hatched background) -->
         {#each surroundingFeatures as feature}
-          <path d={pathGen?.(feature)} class="context-land" stroke="light-dark(#cbd5e1, #3e4a5a)" stroke-width={0.7 / zoomK} stroke-linejoin="round" pointer-events="none" />
+          <path d={pathGen?.(feature)} fill="url(#dev-surrounding-hatch)" stroke="light-dark(#b8bdc4, #4a4a52)" stroke-width={0.7 / zoomK} stroke-linejoin="round" pointer-events="none" />
         {/each}
 
         <!-- Surrounding town labels -->
@@ -233,6 +238,11 @@
           {/if}
         {/each}
 
+        <!-- Charles River -->
+        {#each charlesRiverFeatures as feature}
+          <path d={pathGen?.(feature)} fill="#7dd3fc" fill-opacity="0.45" stroke="#0284c7" stroke-width={0.8 / zoomK} stroke-opacity="0.45" pointer-events="none" />
+        {/each}
+
         <!-- ZIP context (muted, matches mapped area only) -->
         {#each features as feature}
           <path d={pathGen?.(feature)} fill="light-dark(#fafbfc, #2a2c33)" stroke="light-dark(#d1d5db, #44464f)" stroke-width={1 / zoomK} />
@@ -249,11 +259,6 @@
             opacity="0.4"
             pointer-events="none"
           />
-        {/each}
-
-        <!-- Charles River: draw over ZIP fills so water stays part of the basemap -->
-        {#each charlesRiverFeatures as feature}
-          <path d={pathGen?.(feature)} class="river-water" stroke-width={0.8 / zoomK} pointer-events="none" />
         {/each}
 
         <!-- Future Green Line segments (planned but not yet opened) — solid translucent preview -->
@@ -445,20 +450,6 @@
 </div>
 
 <style>
-  .water-basemap,
-  .river-water {
-    fill: light-dark(#bae6fd, #0f2f47);
-  }
-
-  .river-water {
-    stroke: light-dark(#7dd3fc, #25637f);
-    stroke-opacity: 0.65;
-  }
-
-  .context-land {
-    fill: light-dark(#eef2f7, #232b35);
-  }
-
   .map-wrap { margin: 1.5rem 0; }
 
   .map-svg-wrap { position: relative; display: inline-block; }

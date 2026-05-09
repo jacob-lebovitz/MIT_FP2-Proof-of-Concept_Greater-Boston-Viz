@@ -336,7 +336,9 @@
     flex-shrink: 0;
   }
   .lg-row .swatch.no-data {
-    background: light-dark(#bae6fd, #0f2f47);
+    background:
+      repeating-linear-gradient(45deg, transparent 0 4px, rgba(107,114,128,0.55) 4px 6px),
+      light-dark(#e5e7eb, #2d2d33);
   }
   .lg-row .dot {
     width: 10px; height: 10px; border-radius: 50%;
