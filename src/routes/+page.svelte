@@ -53,7 +53,7 @@
   }
   /* Allow the chart and map to break out of content-narrow */
   .explore-chart {
-    width: min(1300px, 100vw - 2rem);
+    width: min(1700px, 100vw - 1rem);
     margin-left: 50%;
     transform: translateX(-50%);
   }

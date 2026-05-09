@@ -11,7 +11,7 @@
   export let hideHeader = false;
 
   const WIDTH = 1100;
-  const HEIGHT = 740;
+  const HEIGHT = 980;
   const MAP_W = compact ? 1100 : 880;    // geographic projection width
   const LEGEND_X = MAP_W + 10;
   const LEGEND_W = compact ? 0 : 200;
@@ -160,7 +160,7 @@
   $: globalMin = d3.min(allValues) ?? 0;
   $: globalMax = d3.max(allValues) ?? 1;
 
-  const N_BUCKETS = 7;
+  const N_BUCKETS = 5;
 
   $: thresholds = d3.range(N_BUCKETS - 1).map(i =>
     globalMin + (i + 1) * (globalMax - globalMin) / N_BUCKETS
@@ -178,12 +178,12 @@
   $: housingByZip = Object.fromEntries(housing.map(d => [d.zip, d]));
 
   // Line chart constants
-  const LC_SVG_H = 520;
-  const LC_MARGIN = { top: 74, right: 126, bottom: 46, left: 70 };
+  const LC_SVG_H = 980;
+  const LC_MARGIN = { top: 280, right: 126, bottom: 46, left: 70 };
   const LC_W = TOTAL_W - LC_MARGIN.left - LC_MARGIN.right;
   const LC_H = LC_SVG_H - LC_MARGIN.top - LC_MARGIN.bottom;
 
-  const ANNOT_ROW_Y = [-44, -66, -88, -110, -134]; // row 0 = closest to chart
+  const ANNOT_ROW_Y = [-90, -130, -170, -210, -250]; // row 0 = closest to chart
 
   const GREEN_LINE_EXTENSION_ANNOTATIONS = [
     {
@@ -257,7 +257,7 @@
     const rowEnds = new Array(5).fill(-Infinity);
     return GREEN_LINE_EXTENSION_ANNOTATIONS.map(a => {
       const fullLabel = `${a.year}: ${a.label}`;
-      const boxW = fullLabel.length * 5.6 + 14;
+      const boxW = fullLabel.length * 8 + 12;
       const ax = xScale(a.year);
       const left = ax - boxW / 2;
       const right = ax + boxW / 2;
@@ -300,7 +300,7 @@
 
   $: lineLabels = (() => {
     if (!yScale || lineData.length === 0) return [];
-    const minGap = 18;
+    const minGap = 36;
     const labels = lineData
       .map(d => {
         const latest = [...d.points].reverse().find(([, val]) => val != null);
@@ -334,8 +334,6 @@
     return `rgb(${r},${g},${b})`;
   }
 
-  let lineTooltip = { visible: false, x: 0, y: 0, zip: '', city: '', value: '' };
-  let annotTooltip = { visible: false, x: 0, y: 0, label: '', isEvent: false, source: '', headline: '' };
   let isDraggingYear = false;
 
   function setYearFromPointer(e) {
@@ -364,41 +362,11 @@
   }
 
   function handleLineMouseMove(e, d) {
-    const rect = e.currentTarget.closest('svg').getBoundingClientRect();
-    const svgX = e.clientX - rect.left - LC_MARGIN.left;
-    const yr = Math.round(xScale.invert(svgX));
-    const val = d.values[String(yr)] ?? null;
     hoveredZip = d.zip;
-    lineTooltip = {
-      visible: true,
-      x: e.clientX - rect.left + 10,
-      y: e.clientY - rect.top - 30,
-      zip: d.zip,
-      city: d.city,
-      value: fmt(val),
-      yr,
-    };
   }
 
   function handleLineMouseLeave() {
     hoveredZip = null;
-    lineTooltip = { ...lineTooltip, visible: false };
-  }
-
-  function showAnnotationTooltip(e, a, isEvent) {
-    const svg = e.currentTarget.closest('svg');
-    const rect = svg.getBoundingClientRect();
-    const localX = e.clientX - rect.left - LC_MARGIN.left;
-    const localY = e.clientY - rect.top - LC_MARGIN.top;
-    annotTooltip = {
-      visible: true,
-      x: Math.max(0, Math.min(LC_W - 260, localX - 272)),
-      y: Math.max(-64, Math.min(LC_H - 104, localY - 24)),
-      label: `${a.year}: ${a.label}`,
-      isEvent,
-      source: a.source,
-      headline: a.headline,
-    };
   }
 
   function zipStrToNum(zipStr) {
@@ -462,8 +430,13 @@
 
 <div class="map-wrap" class:with-line-chart={!hideLineChart}>
   {#if !hideHeader}
-    <h2>Home Values by ZIP Code</h2>
-    <p class="subtitle">Cambridge · Somerville · Medford &nbsp;·&nbsp; {year}</p>
+    {#if hideLineChart}
+      <h2>Home Values by ZIP Code</h2>
+      <p class="subtitle">Cambridge · Somerville · Medford &nbsp;·&nbsp; {year}</p>
+    {:else}
+      <h2 class="map-panel-title">Home Values by ZIP Code</h2>
+      <p class="subtitle map-subtitle">Cambridge · Somerville · Medford &nbsp;·&nbsp; {year}</p>
+    {/if}
   {/if}
 
   {#if !hideSlider}
@@ -506,7 +479,7 @@
           x={c[0]} y={c[1]}
           text-anchor="middle"
           dominant-baseline="middle"
-          font-size={13 / zoomK}
+          font-size={26 / zoomK}
           fill="light-dark(#6b7280, #9ca3af)"
           font-weight="500"
           letter-spacing="0.06em"
@@ -618,7 +591,7 @@
         stroke-linejoin="round"
         role="img"
         aria-label={segment.properties.name}
-        on:mousemove={(e) => handleGLMouseMove(e, { properties: { name: segment.properties.name, year_opened: 'Red Line' } })}
+        on:mousemove={(e) => handleGLMouseMove(e, { properties: { name: segment.properties.name, year_opened: '' } })}
         on:mouseleave={handleGLMouseLeave}
       />
     {/each}
@@ -632,7 +605,13 @@
           fill="white"
           stroke={RED_LINE_COLOR}
           stroke-width={2.5 / zoomK}
-          pointer-events="none"
+          role="img"
+          aria-label={station.name}
+          on:mousemove={(e) => {
+            const rect = e.currentTarget.closest('svg').getBoundingClientRect();
+            glTooltip = { visible: true, x: e.clientX - rect.left + 14, y: e.clientY - rect.top - 44, text: station.name };
+          }}
+          on:mouseleave={handleGLMouseLeave}
         />
       {/if}
     {/each}
@@ -647,7 +626,7 @@
           y={c[1] + (LABEL_OFFSET[zip]?.[1] ?? 0)}
           text-anchor="middle"
           dominant-baseline="middle"
-          font-size={14 / zoomK}
+          font-size={28 / zoomK}
           fill={getLabelColor(zip)}
           font-weight="bold"
           paint-order="stroke"
@@ -663,18 +642,18 @@
     {#if !compact}
     <!-- Legend -->
     <g transform="translate({LEGEND_X}, 20)">
-      <text font-size="12" font-weight="bold" fill="currentColor">Home Value</text>
+      <text font-size="24" font-weight="bold" fill="currentColor">Home Value</text>
       {#each legendBuckets as [lo, hi], i}
-        <rect x={0} y={16 + i * 22} width="18" height="18"
+        <rect x={0} y={20 + i * 36} width="24" height="24"
           fill={colorScale(lo + 1)} stroke="#aaa" stroke-width="0.5" />
-        <text x={24} y={16 + i * 22 + 13} font-size="11" fill="currentColor">
+        <text x={32} y={20 + i * 36 + 18} font-size="22" fill="currentColor">
           {fmtLegend(lo)} – {fmtLegend(hi)}
         </text>
       {/each}
-      <rect x={0} y={16 + N_BUCKETS * 22} width="18" height="18"
+      <rect x={0} y={20 + N_BUCKETS * 36} width="24" height="24"
         fill="url(#nodata-hatch)" stroke="#aaa" stroke-width="0.5" />
-      <text x={24} y={16 + N_BUCKETS * 22 + 13} font-size="11" fill="currentColor">No data</text>
-      <text font-size="11" font-weight="bold" fill="currentColor" y={16 + (N_BUCKETS + 1) * 22 + 16}>City Labels</text>
+      <text x={32} y={20 + N_BUCKETS * 36 + 18} font-size="22" fill="currentColor">No data</text>
+      <text font-size="22" font-weight="bold" fill="currentColor" y={20 + (N_BUCKETS + 1) * 36 + 22}>City Labels</text>
       {#each Object.entries(CITY_BASE_COLORS) as [city, [r, g, b]], i}
         <g
           role="button"
@@ -684,12 +663,12 @@
           on:click={() => toggleLegendCity(city)}
           on:keydown={(e) => e.key === 'Enter' && toggleLegendCity(city)}
         >
-          <circle cx={9} cy={16 + (N_BUCKETS + 1) * 22 + 32 + i * 20} r="6"
+          <circle cx={11} cy={20 + (N_BUCKETS + 1) * 36 + 44 + i * 30} r="8"
             fill="rgb({r},{g},{b})"
             stroke={selectedCities.has(city) ? '#000' : 'none'}
             stroke-width="2"
           />
-          <text x={24} y={16 + (N_BUCKETS + 1) * 22 + 37 + i * 20} font-size="11"
+          <text x={32} y={20 + (N_BUCKETS + 1) * 36 + 51 + i * 30} font-size="22"
             fill="currentColor"
             font-weight={selectedCities.has(city) ? 'bold' : 'normal'}
           >{city}</text>
@@ -700,7 +679,7 @@
 
     <!-- Green Line tooltip -->
     {#if glTooltip.visible}
-      <foreignObject x={glTooltip.x} y={glTooltip.y} width="240" height="48">
+      <foreignObject x={glTooltip.x} y={glTooltip.y} width="300" height="80">
         <div class="tooltip">
           <strong>🟢 {glTooltip.text}</strong>
         </div>
@@ -709,7 +688,7 @@
 
     <!-- Tooltip -->
     {#if tooltip.visible}
-      <foreignObject x={tooltip.x} y={tooltip.y} width="170" height="64">
+      <foreignObject x={tooltip.x} y={tooltip.y} width="280" height="120">
         <div class="tooltip">
           <strong>{getNeighborhoodName(tooltip.zip)}</strong>
           <div style="font-size:0.9em;opacity:0.75">{tooltip.city} · {tooltip.zip}</div>
@@ -728,9 +707,11 @@
   <!-- Line chart -->
   {#if !loading && !hideLineChart}
   <div class="line-chart-panel">
-  <h2>Home Values Over Time by ZIP Code</h2>
+  {#if hideHeader}
+    <h2>Home Values Over Time by ZIP Code</h2>
+  {/if}
   <svg viewBox="0 0 {TOTAL_W} {LC_SVG_H}" preserveAspectRatio="xMidYMid meet" class="line-chart"
-    style="width:100%; height:auto; max-height:520px"
+    style="width:100%; height:auto; max-height:{LC_SVG_H}px"
     on:pointermove={onYearDrag}
     on:pointerup={stopYearDrag}
     on:pointerleave={stopYearDrag}
@@ -749,16 +730,19 @@
       <!-- Grid lines -->
       {#each yScale.ticks(5) as tick}
         <line x1={0} x2={LC_W} y1={yScale(tick)} y2={yScale(tick)} stroke="currentColor" stroke-width="1" opacity="0.15" />
-        <text x={-8} y={yScale(tick) + 4} text-anchor="end" font-size="10" fill="currentColor">
-          {tick >= 1e6 ? '$' + (tick/1e6).toFixed(1) + 'M' : '$' + d3.format(',.0f')(tick)}
+        <text x={-10} y={yScale(tick) + 7} text-anchor="end" font-size="20" fill="currentColor">
+          ${(tick/1e6).toFixed(1)}M
         </text>
       {/each}
 
       <!-- X axis ticks -->
       {#each YEARS.filter(y => y % 5 === 0) as yr}
-        <text x={xScale(yr)} y={LC_H + 20} text-anchor="middle" font-size="10" fill="currentColor">{yr}</text>
+        <text x={xScale(yr)} y={LC_H + 30} text-anchor="middle" font-size="20" fill="currentColor">{yr}</text>
         <line x1={xScale(yr)} x2={xScale(yr)} y1={LC_H} y2={LC_H + 5} stroke="currentColor" opacity="0.4" />
       {/each}
+
+      <!-- X axis label -->
+      <text x={LC_W / 2} y={LC_H + 58} text-anchor="middle" font-size="20" fill="currentColor" font-weight="500">Year</text>
 
       <!-- Axis lines -->
       <line x1={0} x2={LC_W} y1={LC_H} y2={LC_H} stroke="currentColor" opacity="0.4" />
@@ -771,7 +755,7 @@
           d={lineGen(d.points)}
           fill="none"
           stroke={getLineColor(d.city)}
-          stroke-width={hoveredZip === d.zip ? 4 : anySelected && isLineSelected ? 3.25 : 1.8}
+          stroke-width={hoveredZip === d.zip ? 8 : anySelected && isLineSelected ? 6.5 : 3.6}
           opacity={hoveredZip ? (d.zip === hoveredZip ? 1 : 0.14) : anySelected ? (isLineSelected ? 1 : 0.14) : 0.82}
           pointer-events="none"
         />
@@ -819,7 +803,7 @@
           <text
             x="0"
             y="4"
-            font-size={isLabelHovered || isLabelSelected ? 12 : 11}
+            font-size={isLabelHovered || isLabelSelected ? 24 : 22}
             font-weight={isLabelHovered || isLabelSelected ? 800 : 650}
             fill={getLineColor(label.city)}
             opacity={anySelected ? (isLabelSelected || isLabelHovered ? 1 : 0.35) : 0.95}
@@ -842,57 +826,36 @@
         on:pointerdown={startYearDrag}
       />
       <circle cx={xScale(year)} cy={-3} r="5" fill="currentColor" opacity="0.72" pointer-events="none" />
-      <text x={xScale(year) + 4} y={-6} text-anchor="start" font-size="10" font-weight="bold" fill="currentColor">{year}</text>
+      <text x={xScale(year) + 6} y={-8} text-anchor="start" font-size="20" font-weight="bold" fill="currentColor">{year}</text>
 
-      <!-- Annotation hover icons (one per milestone, above the chart) -->
-      {#each GREEN_LINE_EXTENSION_ANNOTATIONS as a}
+      <!-- Annotation icons + always-visible labels (all milestones at once) -->
+      {#each GREEN_LINE_EXTENSION_ANNOTATIONS as a, i}
+        {@const assign = annotAssignments[i]}
         {@const ax = xScale(a.year)}
         {@const isEvent = a.type === 'event'}
-        <g class="annot-icon" style="cursor:help" role="img" aria-label="Milestone annotation"
-          on:mousemove={(e) => showAnnotationTooltip(e, a, isEvent)}
-          on:mouseleave={() => annotTooltip = { ...annotTooltip, visible: false }}
-        >
-          <circle cx={ax} cy={-22} r="8" fill="transparent" />
-          <circle cx={ax} cy={-22} r="6"
-            fill={isEvent ? '#f87171' : '#6fcf97'}
+        <g class="annot-icon" role="img" aria-label="Milestone annotation">
+          <line x1={ax} x2={ax} y1={ANNOT_ROW_Y[assign.row] + 14} y2={-10}
+            stroke={isEvent ? '#f87171' : '#6fcf97'} stroke-width="1" opacity="0.45" />
+          <rect
+            x={ax - assign.boxW / 2}
+            y={ANNOT_ROW_Y[assign.row] - 20}
+            width={assign.boxW}
+            height="28"
+            rx="4"
+            fill={isEvent ? 'rgba(248,113,113,0.16)' : 'rgba(111,207,151,0.16)'}
             stroke={isEvent ? '#7f1d1d' : '#1a4a2e'}
-            stroke-width="1.5"
-            opacity="0.85"
+            stroke-width="1"
+            opacity="0.95"
           />
-          <text x={ax} y={-19} text-anchor="middle" font-size="9" font-weight="bold"
-            fill={isEvent ? '#7f1d1d' : '#1a4a2e'} pointer-events="none">i</text>
+          <text x={ax} y={ANNOT_ROW_Y[assign.row]}
+            text-anchor="middle"
+            font-size="14"
+            font-weight="600"
+            fill={isEvent ? '#7f1d1d' : '#1a4a2e'}
+          >{assign.fullLabel}</text>
         </g>
       {/each}
 
-      <!-- Annotation tooltip -->
-      {#if annotTooltip.visible}
-        <foreignObject
-          x={annotTooltip.x}
-          y={annotTooltip.y}
-          width="260" height="110">
-          <div class="tooltip annot-tip" class:event={annotTooltip.isEvent}>
-            <strong>{annotTooltip.label}</strong>
-            {#if annotTooltip.headline}
-              <div class="annot-source">{annotTooltip.source}</div>
-              <div class="annot-headline">{annotTooltip.headline}</div>
-            {/if}
-          </div>
-        </foreignObject>
-      {/if}
-
-      <!-- Line tooltip -->
-      {#if lineTooltip.visible}
-        <foreignObject
-          x={lineTooltip.x - LC_MARGIN.left}
-          y={lineTooltip.y - LC_MARGIN.top}
-          width="150" height="60">
-          <div class="tooltip">
-            <strong>{getNeighborhoodName(lineTooltip.zip)}</strong>
-            <div style="font-size:0.9em;opacity:0.75">{lineTooltip.city} · {lineTooltip.zip}</div>
-            <div>{lineTooltip.yr} · {lineTooltip.value}</div>
-          </div>
-        </foreignObject>
-      {/if}
     </g>
   </svg>
   </div>
@@ -907,13 +870,29 @@
 
   .map-wrap.with-line-chart {
     display: grid;
-    grid-template-columns: minmax(320px, 0.9fr) minmax(520px, 1.25fr);
-    gap: 1rem 1.25rem;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1.1rem 1.35rem;
     align-items: start;
     padding-top: 0.45rem;
   }
 
-  .map-wrap.with-line-chart > h2,
+  .map-wrap.with-line-chart > .slider-row,
+  .map-wrap.with-line-chart > .loading {
+    grid-column: 1 / -1;
+  }
+
+  .map-panel-title {
+    grid-column: 1;
+    margin: 0 0 0.2rem;
+    font-size: 2.4rem;
+    line-height: 1.12;
+  }
+
+  .map-wrap.with-line-chart > .map-subtitle {
+    grid-column: 1;
+    margin: 0 0 0.75rem;
+  }
+
   .map-wrap.with-line-chart > .subtitle,
   .map-wrap.with-line-chart > .slider-row,
   .map-wrap.with-line-chart > .loading {
@@ -930,7 +909,7 @@
   }
 
   .map-wrap.with-line-chart .map-svg-wrap svg {
-    max-height: 520px !important;
+    max-height: 1020px !important;
   }
 
   .line-chart-panel {
@@ -939,7 +918,8 @@
 
   .line-chart-panel h2 {
     margin: 0.35rem 0 0.45rem;
-    font-size: 1.1rem;
+    font-size: 2.4rem;
+    line-height: 1.12;
   }
 
   .selection-control {
@@ -947,15 +927,15 @@
     top: 1.25rem;
     left: 1.25rem;
     z-index: 10;
-    padding: 0.45rem 0.75rem;
-    font-size: 0.78rem;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.02em;
     border: 1px solid light-dark(#aaa, #555);
     border-radius: 999px;
     background: light-dark(rgba(255,255,255,0.9), rgba(42,42,42,0.9));
     color: inherit;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   }
 
   .loading {
@@ -963,27 +943,32 @@
     align-items: center;
     justify-content: center;
     height: 200px;
-    font-size: 1rem;
+    font-size: 2rem;
     color: #888;
   }
 
-  h2 { margin-bottom: 0.2rem; }
+  h2 {
+    margin-bottom: 0.2rem;
+    font-size: 2.4rem;
+    line-height: 1.12;
+  }
 
   .subtitle {
     color: #888;
     margin: 0 0 0.75rem;
-    font-size: 0.9rem;
+    font-size: 1.8rem;
+    line-height: 1.25;
   }
 
   .slider-row {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 1rem;
     margin-bottom: 0.75rem;
-    font-size: 0.95rem;
+    font-size: 1.8rem;
   }
 
-  input[type=range] { width: 260px; cursor: pointer; }
+  input[type=range] { width: 420px; cursor: pointer; }
 
   svg {
     display: block;
@@ -998,8 +983,8 @@
   svg.line-chart { cursor: default; background: none; border: none; border-radius: 0; }
 
   button {
-    padding: 3px 10px;
-    font-size: 0.85rem;
+    padding: 8px 18px;
+    font-size: 1.6rem;
     cursor: pointer;
     border: 1px solid light-dark(#aaa, #555);
     border-radius: 4px;
@@ -1024,49 +1009,15 @@
   .tooltip {
     background: rgba(30, 30, 40, 0.92);
     color: #f1f5f9;
-    padding: 7px 11px;
-    border-radius: 6px;
-    font-size: 12px;
-    line-height: 1.55;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 22px;
+    line-height: 1.45;
     pointer-events: none;
     border: 1px solid rgba(255,255,255,0.08);
     box-shadow: 0 4px 14px rgba(0,0,0,0.25);
   }
   .tooltip strong { color: #fff; }
-  .annot-tip {
-    background: rgba(30, 30, 40, 0.94);
-    max-width: 245px;
-    white-space: normal;
-    border-left: 3px solid #6fcf97;
-  }
-  .annot-tip.event {
-    background: rgba(30, 30, 40, 0.94);
-    border-left-color: #f87171;
-  }
-  .annot-icon circle:nth-child(2) {
-    transition: stroke-width 0.12s ease, opacity 0.12s ease;
-  }
-  .annot-icon:hover circle:nth-child(2) {
-    opacity: 1;
-    stroke-width: 2;
-  }
-
-  .annot-source {
-    margin-top: 0.35rem;
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    color: #94a3b8;
-    text-transform: uppercase;
-  }
-
-  .annot-headline {
-    margin-top: 0.12rem;
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 0.76rem;
-    line-height: 1.28;
-    color: #f8fafc;
-  }
 
   .line-zip-label {
     cursor: pointer;
@@ -1076,11 +1027,11 @@
   .line-zip-label text {
     paint-order: stroke;
     stroke: light-dark(#fff, #111318);
-    stroke-width: 3px;
+    stroke-width: 5px;
     stroke-linejoin: round;
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 800px) {
     .map-wrap.with-line-chart {
       display: block;
     }

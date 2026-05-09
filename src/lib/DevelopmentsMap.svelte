@@ -10,7 +10,7 @@
   export let showSelectionControl = false;
 
   const WIDTH = 1100;
-  const HEIGHT = 740;
+  const HEIGHT = 820;
   const MAP_W = compact ? 1100 : 880;
   const LEGEND_X = MAP_W + 10;
   const LEGEND_W = compact ? 0 : 200;
