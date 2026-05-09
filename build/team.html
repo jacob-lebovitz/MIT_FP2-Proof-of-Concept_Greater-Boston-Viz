@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>Greater Boston Viz</title>
+		<link rel="icon" href="./favicon.png" />
+		<meta name="viewport" content="width=device-width" />
+		<script>
+		let root = document.documentElement;
+		let colorScheme = localStorage.colorScheme ?? "light dark";
+		root.style.setProperty("color-scheme", colorScheme);
+	</script>
+	
+		<link href="./_app/immutable/assets/0.7d87918f.css" rel="stylesheet">
+		<link href="./_app/immutable/assets/3.05001601.css" rel="stylesheet">
+		<link rel="modulepreload" href="./_app/immutable/entry/start.2d8ec682.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/scheduler.5131ccb2.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/singletons.8ff35ed4.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/index.02718302.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/paths.56efdbc7.js">
+		<link rel="modulepreload" href="./_app/immutable/entry/app.fd69f65c.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/index.849b3725.js">
+		<link rel="modulepreload" href="./_app/immutable/nodes/0.e8ee2879.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/each.f82d25e5.js">
+		<link rel="modulepreload" href="./_app/immutable/chunks/stores.7ba98fa4.js">
+		<link rel="modulepreload" href="./_app/immutable/nodes/3.5d6760a3.js">
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">  <label class="color-scheme-switch svelte-1bi4hyo">Theme:
+  <select><option value="light dark" data-svelte-h="svelte-9nlqsf">Automatic</option><option value="light" data-svelte-h="svelte-yop7ea">Light</option><option value="dark" data-svelte-h="svelte-6c4gk6">Dark</option></select></label> <nav class="svelte-1bi4hyo"><a href="/" class="svelte-1bi4hyo">Main </a><a href="/team" class="svelte-1bi4hyo current">Team </a></nav> <div class="team-page svelte-1xs9yu6"><h1 class="team-title svelte-1xs9yu6" data-svelte-h="svelte-1uxzcim">Greater Boston Viz Team</h1> <div class="members svelte-1xs9yu6"><div class="member svelte-1xs9yu6"><div class="photo-ring svelte-1xs9yu6"><img src="/images/jacob.jpg" alt="Jacob Lebovitz" class="svelte-1xs9yu6"></div> <a class="name svelte-1xs9yu6" href="https://www.linkedin.com/in/jacob-lebovitz/" target="_blank" rel="noopener noreferrer">Jacob Lebovitz <span class="li-icon svelte-1xs9yu6" data-svelte-h="svelte-cjd1wx">in</span></a> <div class="logos svelte-1xs9yu6"><img src="/images/Sloan Analytics.png" alt="MIT Management" class="program-logo sloan svelte-1xs9yu6"></div> </div><div class="member svelte-1xs9yu6"><div class="photo-ring svelte-1xs9yu6"><img src="/images/Eric.jpg" alt="Eric Christenson" class="svelte-1xs9yu6"></div> <a class="name svelte-1xs9yu6" href="https://www.linkedin.com/in/ericchristenson123/" target="_blank" rel="noopener noreferrer">Eric Christenson <span class="li-icon svelte-1xs9yu6" data-svelte-h="svelte-cjd1wx">in</span></a> <div class="logos svelte-1xs9yu6"><img src="/images/Sloan Analytics.png" alt="MIT Management" class="program-logo sloan svelte-1xs9yu6"></div> </div><div class="member svelte-1xs9yu6"><div class="photo-ring svelte-1xs9yu6"><img src="/images/Christian.jpg" alt="Christian Lopez Angeles" class="svelte-1xs9yu6"></div> <a class="name svelte-1xs9yu6" href="https://www.linkedin.com/in/christian-emmanuel-lopez-angeles/" target="_blank" rel="noopener noreferrer">Christian Lopez Angeles <span class="li-icon svelte-1xs9yu6" data-svelte-h="svelte-cjd1wx">in</span></a> <div class="logos svelte-1xs9yu6"><img src="/images/EECS.png" alt="MIT EECS" class="program-logo  svelte-1xs9yu6"></div> </div><div class="member svelte-1xs9yu6"><div class="photo-ring svelte-1xs9yu6"><img src="/images/Hiro.png" alt="Hiro Ogasawara" class="svelte-1xs9yu6"></div> <a class="name svelte-1xs9yu6" href="https://www.linkedin.com/in/hiroki-ogasawara/" target="_blank" rel="noopener noreferrer">Hiro Ogasawara <span class="li-icon svelte-1xs9yu6" data-svelte-h="svelte-cjd1wx">in</span></a> <div class="logos svelte-1xs9yu6"><img src="/images/SDM.png" alt="MIT SDM" class="program-logo  svelte-1xs9yu6"><img src="/images/EECS.png" alt="MIT EECS" class="program-logo  svelte-1xs9yu6"></div> </div></div> </div> 
+			
+			<script>
+				{
+					__sveltekit_1b5w5nc = {
+						base: new URL(".", location).pathname.slice(0, -1),
+						env: {}
+					};
+
+					const element = document.currentScript.parentElement;
+
+					const data = [null,null];
+
+					Promise.all([
+						import("./_app/immutable/entry/start.2d8ec682.js"),
+						import("./_app/immutable/entry/app.fd69f65c.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element, {
+							node_ids: [0, 3],
+							data,
+							form: null,
+							error: null
+						});
+					});
+				}
+			</script>
+		</div>
+	</body>
+</html>

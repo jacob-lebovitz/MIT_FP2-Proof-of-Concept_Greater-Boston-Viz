@@ -1,65 +1,139 @@
 <script>
   import ZipcodeMap from './ZipcodeMap.svelte';
+  import * as d3 from 'd3';
   import { onMount } from 'svelte';
+  import { base } from '$app/paths';
   import { currentYear } from './stores.js';
 
   let scrollySectionsEl;
 
-  const MAP_YEARS = [2005, 2012, 2017, 2021, 2022, 2025];
+  // Story checkpoints: each is a "moment" in the Green Line saga
+  const MAP_YEARS = [2005, 2012, 2017, 2022, 2025];
   const ALL_YEARS = Array.from({ length: 26 }, (_, i) => 2000 + i);
+  const N_BUCKETS = 7;
+  const PRICE_COLORS = d3.schemeBlues[N_BUCKETS];
+  let priceLegendBuckets = [];
+  let manualYearOffset = 0;
+
+  // Narrative tightly scoped to the Green Line thesis. Each card now also
+  // surfaces a finding-level callout so the takeaways are distributed.
   const YEAR_NARRATIVES = {
-    2005: 'Initial price increases shown in the Harvard Square and Cambridgeport areas. These areas are accessible off the red line which has been in place for decades. The green line extension is not yet a major topic of discussion, and there are no significant price increases around the projected stops.',
-    2012: 'Construction has broken ground on the green line extension. We see no significant price increases in the areas around the green line or their projected new stops. We actually see no real significant price increases over 2005 in any neighborhoods. This is unusual stagnation in a housing market and could be related to the 2008 financial crisis.',
-    2017: 'The green line extension is still under construction, but we see significant price increases across the board. The price increases are especially significant in the Harvard Square and Cambridgeport areas, which are accessible off the red line. The areas around projected green line stops see relatively less price increases.',
-    2021: 'Construction is still underway on green line. Price increases are really only seen in the Harvard Square and West Cambridge areas.',
-    2022: 'Green line extension is now active in all neighborhoods. Price increases happen only in these areas, which are still relatively cheaper than west Cambridge.',
-    2025: 'With an active green line, prices in Somerville and among the green line stay slightly below the prices in Harvard Square and West Cambridge. Interestingly, Kendall Square, more accessible off the red line, has seen significant price increases.',
+    2005: {
+      eyebrow: 'EARLY PATTERNS',
+      title: 'Red Line premium, before Green Line Extension momentum',
+      body:
+        'Initial price increases appear in Harvard Square and Cambridgeport, both already served by the Red Line for decades. The Green Line Extension is not yet a major topic of discussion, and areas around projected Green Line Extension stops do not show notable price increases.',
+      image: 'img/red-line.jpg',
+      imageCaption: 'The Red Line — the established transit corridor that set the price premium benchmark',
+    },
+    2012: {
+      eyebrow: 'GROUND BREAKING',
+      title: 'Construction starts amid market stagnation',
+      body:
+        'Construction has broken ground on the Green Line Extension, but there is still no significant price increase around projected stops. More broadly, prices are mostly flat compared with 2005, likely reflecting the lingering effects of the 2008 financial crisis.',
+      image: 'img/green-line-breaking-ground.jpg',
+      imageCaption: 'GLX groundbreaking ceremony, 2012 — MassDOT and officials break ground on the extension',
+    },
+    2017: {
+      eyebrow: 'CRISIS & DELAYS',
+      title: 'Near-cancellation, a derailment, and a full restart',
+      body:
+        'In 2015 the project nearly collapsed under $3B in cost overruns. A derailment during testing added to the setbacks. By 2017 GLX had been redesigned and restarted under a new contractor — but prices in the corridor were already rising faster along the Red Line than along the planned GLX route.',
+      image: 'img/glx-construction.jpg',
+      imageCaption: 'A derailment during GLX testing — one of several costly setbacks before the 2017 restart',
+    },
+    2022: {
+      eyebrow: 'SERVICE OPENS',
+      title: 'Green Line Extension active, but hierarchy persists',
+      body:
+        'The Green Line Extension is now active in all neighborhoods. Prices continue rising, but the highest levels remain in west Cambridge and other established high-demand areas.',
+      image: 'img/glx-opening.jpg',
+      imageCaption: 'Union Square station opens, March 2022',
+    },
+    2025: {
+      eyebrow: 'THREE YEARS LATER',
+      title: 'Green Line Extension corridors remain relatively less expensive',
+      body:
+        'With the Green Line Extension active, Somerville and nearby Green Line neighborhoods remain slightly below Harvard Square and west Cambridge on prices. Kendall Square, with strong Red Line access, continues to post especially large gains.',
+      image: 'img/somerville-times.jpg',
+      imageCaption: 'Somerville Times, Mar. 2025 — zoning changes near Gilman Sq.',
+      imageFull: true,
+    },
   };
 
-  // The active narrative card = most recent MAP_YEAR <= currentYear, or null if none reached
   $: activeNarrativeYear = MAP_YEARS.reduce(
     (best, yr) => (yr <= $currentYear ? yr : best),
     null
   );
+  $: activeNarrative = activeNarrativeYear ? YEAR_NARRATIVES[activeNarrativeYear] : null;
 
-  function handleYearChange(e) {
-    currentYear.set(parseInt(e.target.value, 10));
+  function fmtLegend(v) {
+    if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+    return '$' + Math.round(v / 1000) + 'k';
   }
 
-  const SECTION_HEIGHT = 800; // must match .year-section min-height in CSS
+  // Each scroll-trigger zone is one viewport tall.
+  const ZONE_VH = 100;
+
+  function clampYear(yr) {
+    return Math.max(ALL_YEARS[0], Math.min(ALL_YEARS[ALL_YEARS.length - 1], yr));
+  }
+
+  function getAnchors(vh) {
+    const zoneH = (ZONE_VH / 100) * vh;
+    return [
+      { scrollPos: zoneH / 2 - vh / 2, year: 2000 },
+      ...MAP_YEARS.map((yr, i) => ({
+        scrollPos: (i + 1) * zoneH + zoneH / 2 - vh / 2,
+        year: yr,
+      })),
+    ];
+  }
+
+  function getBaseYearFromScroll(scrolled, vh) {
+    const anchors = getAnchors(vh);
+    if (scrolled <= anchors[0].scrollPos) return anchors[0].year;
+    if (scrolled >= anchors[anchors.length - 1].scrollPos) return anchors[anchors.length - 1].year;
+
+    for (let i = 0; i < anchors.length - 1; i++) {
+      if (scrolled >= anchors[i].scrollPos && scrolled <= anchors[i + 1].scrollPos) {
+        const t = (scrolled - anchors[i].scrollPos) / (anchors[i + 1].scrollPos - anchors[i].scrollPos);
+        return anchors[i].year + t * (anchors[i + 1].year - anchors[i].year);
+      }
+    }
+    return anchors[0].year;
+  }
+
+  function getCurrentScrolled() {
+    if (!scrollySectionsEl) return 0;
+    return -scrollySectionsEl.getBoundingClientRect().top;
+  }
+
+  function handleYearChange(e) {
+    const newYear = parseInt(e.target.value, 10);
+    const baseYear = getBaseYearFromScroll(getCurrentScrolled(), window.innerHeight);
+    manualYearOffset = newYear - baseYear;
+    currentYear.set(newYear);
+  }
 
   onMount(() => {
+    d3.json(`${base}/housing.json`).then((housing) => {
+      const values = housing.flatMap(d => Object.values(d.values));
+      const min = d3.min(values) ?? 0;
+      const max = d3.max(values) ?? 1;
+      priceLegendBuckets = d3.range(N_BUCKETS).map(i => ({
+        lo: min + i * (max - min) / N_BUCKETS,
+        hi: min + (i + 1) * (max - min) / N_BUCKETS,
+        color: PRICE_COLORS[i],
+      })).reverse();
+    });
+
     function handleScroll() {
       if (!scrollySectionsEl) return;
       const rect = scrollySectionsEl.getBoundingClientRect();
       const scrolled = -rect.top;
       const vh = window.innerHeight;
-
-      // Spacer section (index 0) anchors year 2000.
-      // MAP_YEARS sections follow after the spacer (offset by 1).
-      const anchors = [
-        { scrollPos: SECTION_HEIGHT / 2 - vh / 2, year: 2000 },
-        ...MAP_YEARS.map((yr, i) => ({
-          scrollPos: (i + 1) * SECTION_HEIGHT + SECTION_HEIGHT / 2 - vh / 2,
-          year: yr,
-        })),
-      ];
-
-      if (scrolled <= anchors[0].scrollPos) {
-        currentYear.set(2000);
-        return;
-      }
-      if (scrolled >= anchors[anchors.length - 1].scrollPos) {
-        currentYear.set(anchors[anchors.length - 1].year);
-        return;
-      }
-      for (let i = 0; i < anchors.length - 1; i++) {
-        if (scrolled >= anchors[i].scrollPos && scrolled <= anchors[i + 1].scrollPos) {
-          const t = (scrolled - anchors[i].scrollPos) / (anchors[i + 1].scrollPos - anchors[i].scrollPos);
-          currentYear.set(Math.round(anchors[i].year + t * (anchors[i + 1].year - anchors[i].year)));
-          return;
-        }
-      }
+      currentYear.set(clampYear(Math.round(getBaseYearFromScroll(scrolled, vh) + manualYearOffset)));
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -67,271 +141,338 @@
   });
 </script>
 
-<!-- MAP SECTION -->
-<div class="scrolly-container">
-  <div class="scrolly-sections" bind:this={scrollySectionsEl}>
-    <!-- spacer: gives scroll room for years 2000–2004 before first narrative -->
-    <div class="year-spacer"></div>
-    {#each MAP_YEARS as yr}
-      <section class="year-section" data-year={yr}>
-        <div class="narrative-card" class:active={activeNarrativeYear === yr} class:future={yr > $currentYear}>
-          <div class="narrative-card-year">{yr}</div>
-          <p class="narrative-card-text">{YEAR_NARRATIVES[yr]}</p>
+<section class="scrolly-fullbleed">
+  <!-- Sticky map fills the viewport height -->
+  <div class="map-stage">
+    <div class="map-shell">
+      <ZipcodeMap year={$currentYear} hideSlider={true} hideLineChart={true} compact={true} showSelectionControl={true} hideHeader={true} />
+    </div>
+
+    <!-- Floating year scrubber, top -->
+    <div class="floating-control top-center">
+      <div class="control-label">YEAR</div>
+      <input
+        type="range"
+        min={ALL_YEARS[0]}
+        max={ALL_YEARS[ALL_YEARS.length - 1]}
+        value={$currentYear}
+        on:input={handleYearChange}
+        class="year-scrub"
+      />
+      <div class="year-big">{$currentYear}</div>
+    </div>
+
+    <!-- Floating compact legend (right) -->
+    <div class="floating-control side-legend">
+      <div class="control-label">PRICE</div>
+      {#each priceLegendBuckets as bucket}
+        <div class="lg-row">
+          <span class="swatch" style="background:{bucket.color}"></span>
+          {fmtLegend(bucket.lo)} - {fmtLegend(bucket.hi)}
         </div>
-      </section>
+      {/each}
+      <div class="lg-row">
+        <span class="swatch no-data"></span>
+        No data
+      </div>
+      <div class="control-label" style="margin-top:0.6rem">CITY</div>
+      <div class="lg-row"><span class="dot" style="background:#2563eb"></span> Cambridge</div>
+      <div class="lg-row"><span class="dot" style="background:#dc2626"></span> Somerville</div>
+      <div class="lg-row"><span class="dot" style="background:#ca8a04"></span> Medford</div>
+      <div class="control-label" style="margin-top:0.6rem">TRANSIT</div>
+      <div class="lg-row"><span class="line" style="background:#00843D"></span> Green Line (built)</div>
+      <div class="lg-row"><span class="line dashed" style="background:#00843D"></span> Green Line Extension (planned)</div>
+      <div class="lg-row"><span class="line" style="background:#DA291C"></span> Red Line</div>
+    </div>
+
+    <!-- Active narrative card (overlaid bottom-left) -->
+    {#if activeNarrative}
+      {#key activeNarrativeYear}
+        <div class="narrative-overlay">
+          <div class="card-eyebrow">{activeNarrative.eyebrow} · {activeNarrativeYear}</div>
+          <h2 class="card-title">{activeNarrative.title}</h2>
+          <p class="card-body">{activeNarrative.body}</p>
+          {#if activeNarrative.image}
+            <div class="card-photo">
+              <img src={`${base}/${activeNarrative.image}`} alt={activeNarrative.imageCaption ?? ''} class="card-photo-img" class:full={activeNarrative.imageFull} />
+              {#if activeNarrative.imageCaption}
+                <div class="card-photo-caption">{activeNarrative.imageCaption}</div>
+              {/if}
+            </div>
+          {/if}
+        </div>
+      {/key}
+    {/if}
+  </div>
+
+  <!-- Invisible scroll-trigger zones (drive the year via scroll position) -->
+  <div class="scroll-zones" bind:this={scrollySectionsEl}>
+    <div class="zone intro-zone"></div>
+    {#each MAP_YEARS as _yr}
+      <div class="zone"></div>
     {/each}
   </div>
-
-  <div class="map-container">
-    <div class="map-inner">
-      <ZipcodeMap year={$currentYear} hideSlider={true} hideLineChart={false} />
-      
-      <!-- Year slider - overlaid on map -->
-      <div class="year-slider">
-        <input 
-          type="range" 
-          min={Math.min(...ALL_YEARS)} 
-          max={Math.max(...ALL_YEARS)} 
-          value={$currentYear}
-          on:input={handleYearChange}
-          class="slider-input"
-        />
-        <span class="year-display">{$currentYear}</span>
-      </div>
-
-    </div>
-  </div>
-</div>
+</section>
 
 <style>
-  .scrolly-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
+  .scrolly-fullbleed {
     position: relative;
   }
 
-  .scrolly-sections {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .year-section {
-    min-height: 800px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .year-spacer {
-    min-height: 800px;
-  }
-
-  .narrative-card {
-    padding: 1.5rem 2rem;
-    border-left: 3px solid light-dark(#ccc, #555);
-    opacity: 0.4;
-    transition: opacity 0.4s ease, border-color 0.4s ease;
-    max-width: 380px;
-  }
-
-  .narrative-card.active {
-    opacity: 1;
-    border-left-color: #2563eb;
-  }
-
-  .narrative-card.future {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .narrative-card-year {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #2563eb;
-    margin-bottom: 0.5rem;
-  }
-
-  .narrative-card-text {
-    margin: 0;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    color: light-dark(#333, #ccc);
-  }
-
-  .map-container {
+  .map-stage {
     position: sticky;
-    top: 2rem;
-    height: fit-content;
-  }
-
-  .map-inner {
-    position: relative;
-    display: inline-block;
+    top: 0;
+    height: 100svh;
     width: 100%;
+    overflow: hidden;
   }
 
-  .timeline {
+  .map-shell {
     position: absolute;
-    bottom: auto;
-    top: 270px;
-    left: 0;
-    right: 0;
+    inset: 0;
     display: flex;
-    justify-content: center;
-    z-index: 10;
-  }
-
-  .timeline-track {
-    display: flex;
-    gap: 0.5rem;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(4px);
-  }
-
-  .timeline-dot {
-    display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 0.25rem;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    transition: all 0.2s ease;
+    justify-content: center;
+    padding: 1rem;
   }
 
-  .timeline-dot .dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    background-color: #ccc;
-    transition: all 0.2s ease;
-  }
+  /* Make the embedded ZipcodeMap fill its container */
+  .map-shell :global(.map-wrap) { width: 100%; max-width: 1400px; margin: 0; }
+  .map-shell :global(.map-svg-wrap) { width: 100%; }
+  .map-shell :global(svg) { width: 100% !important; height: auto !important; max-height: calc(100svh - 2rem) !important; cursor: default !important; }
+  .map-shell :global(.selection-control) { z-index: 8; }
 
-  .timeline-dot.active .dot {
-    width: 0.75rem;
-    height: 0.75rem;
-    background-color: #2563eb;
-  }
-
-  .timeline-dot:hover .dot {
-    background-color: #999;
-  }
-
-  .timeline-dot:hover.active .dot {
-    background-color: #1d4ed8;
-  }
-
-  .year-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #666;
-    white-space: nowrap;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-
-  .timeline-dot.active .year-label,
-  .timeline-dot:hover .year-label {
-    opacity: 1;
-  }
-
-  .year-slider {
+  .floating-control {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    z-index: 10;
+    z-index: 5;
+    background: light-dark(rgba(255,255,255,0.78), rgba(20,22,28,0.78));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid light-dark(rgba(15,23,42,0.08), rgba(255,255,255,0.08));
+    border-radius: 12px;
+    padding: 0.7rem 1rem;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.10);
+    color: inherit;
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+
+  .top-center {
+    top: 1.25rem;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     align-items: center;
     gap: 1rem;
-    background: light-dark(rgba(255, 255, 255, 0.55), rgba(42, 42, 42, 0.9));
-    border: 1px solid light-dark(rgba(0, 0, 0, 0.08), #555);
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    box-shadow: none;
-    backdrop-filter: blur(6px);
-    color: inherit;
+    min-width: 380px;
   }
 
-  .slider-input {
+  .side-legend {
+    top: 50%;
+    right: 1.25rem;
+    transform: translateY(-50%);
     width: 200px;
-    height: 6px;
-    border-radius: 3px;
-    background: linear-gradient(to right, #ddd 0%, #ddd 100%);
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-    cursor: pointer;
   }
 
-  .slider-input::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
-  }
-
-  .slider-input::-webkit-slider-thumb:hover {
-    width: 20px;
-    height: 20px;
-    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.5);
-  }
-
-  .slider-input::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
-    border: none;
-  }
-
-  .slider-input::-moz-range-thumb:hover {
-    width: 20px;
-    height: 20px;
-    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.5);
-  }
-
-  .slider-input::-moz-range-track {
-    background: transparent;
-    border: none;
-  }
-
-  .slider-input::-moz-range-progress {
-    background-color: #ddd;
-  }
-
-  .year-display {
-    font-size: 1rem;
+  .control-label {
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
     font-weight: 700;
-    color: #2563eb;
-    min-width: 40px;
-    text-align: center;
+    color: light-dark(#475569, #94a3b8);
+    margin-bottom: 0.3rem;
   }
 
+  .year-scrub {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: light-dark(#e2e8f0, #334155);
+    border-radius: 3px;
+    cursor: pointer;
+    outline: none;
+  }
+  .year-scrub::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00843D, #064e3b);
+    box-shadow: 0 2px 6px rgba(0,132,61,0.4);
+    cursor: pointer;
+  }
+  .year-scrub::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00843D, #064e3b);
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,132,61,0.4);
+    cursor: pointer;
+  }
 
-  @media (max-width: 1200px) {
-    .scrolly-container {
-      grid-template-columns: 1fr;
-    }
+  .year-big {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #00843D;
+    min-width: 4ch;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
 
-    .map-container {
-      position: static;
-      margin-top: 2rem;
+  .lg-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    margin-top: 0.18rem;
+  }
+  .lg-row .swatch {
+    width: 16px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.18);
+    flex-shrink: 0;
+  }
+  .lg-row .swatch.no-data {
+    background:
+      repeating-linear-gradient(45deg, transparent 0 4px, rgba(107,114,128,0.55) 4px 6px),
+      light-dark(#e5e7eb, #2d2d33);
+  }
+  .lg-row .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .lg-row .line {
+    width: 18px; height: 3px; border-radius: 2px;
+  }
+  .lg-row .line.dashed {
+    background-image: linear-gradient(to right, #00843D 50%, transparent 50%);
+    background-size: 6px 3px;
+    background-color: transparent !important;
+  }
+
+  .narrative-overlay {
+    position: absolute;
+    top: 5.9rem;
+    left: 1.25rem;
+    z-index: 5;
+    max-width: 360px;
+    max-height: calc(100svh - 7.25rem);
+    overflow-y: auto;
+    background: light-dark(rgba(255,255,255,0.92), rgba(15,17,22,0.92));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid light-dark(rgba(15,23,42,0.08), rgba(255,255,255,0.08));
+    border-radius: 12px;
+    padding: 0.95rem 1.1rem;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+    animation: fadeUp 0.55s cubic-bezier(0.4,0,0.2,1) both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    font-weight: 700;
+    color: #00843D;
+    margin-bottom: 0.5rem;
+  }
+
+  .card-title {
+    margin: 0 0 0.7rem;
+    font-size: 1.08rem;
+    font-weight: 800;
+    line-height: 1.18;
+    letter-spacing: -0.015em;
+    color: light-dark(#0f172a, #f1f5f9);
+  }
+
+  .card-body {
+    margin: 0 0 0.75rem;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: light-dark(#334155, #cbd5e1);
+  }
+
+  .card-finding {
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+    padding: 0.5rem 0.65rem;
+    background: light-dark(rgba(0,132,61,0.08), rgba(0,132,61,0.18));
+    border-left: 3px solid #00843D;
+    border-radius: 4px;
+    font-size: 0.76rem;
+    line-height: 1.42;
+    color: light-dark(#0f172a, #e2e8f0);
+  }
+
+  .finding-pin {
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    font-weight: 800;
+    color: #00843D;
+    flex-shrink: 0;
+  }
+
+  .card-photo {
+    margin-top: 0.75rem;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid light-dark(rgba(15,23,42,0.08), rgba(255,255,255,0.08));
+  }
+
+  .card-photo-img {
+    width: 100%;
+    display: block;
+    object-fit: cover;
+    max-height: 180px;
+  }
+
+  .card-photo-img.full {
+    max-height: none;
+    object-fit: contain;
+  }
+
+  .card-photo-caption {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.68rem;
+    line-height: 1.35;
+    color: light-dark(#64748b, #94a3b8);
+    background: light-dark(rgba(248,250,252,0.9), rgba(15,23,42,0.7));
+  }
+
+  .scroll-zones {
+    position: relative;
+    margin-top: -100svh; /* overlap with sticky map so the first zone reveals it */
+    pointer-events: none;
+  }
+
+  .zone { height: 100svh; pointer-events: none; }
+  .intro-zone { height: 100svh; }
+
+  @media (max-width: 720px) {
+    .narrative-overlay {
+      max-width: calc(100% - 2rem);
+      left: 1rem;
+      right: 1rem;
+      top: auto;
+      bottom: 1rem;
+      padding: 1rem 1.1rem;
     }
+    .card-title { font-size: 1.15rem; }
+    .top-center {
+      min-width: 0;
+      width: calc(100% - 2rem);
+      left: 1rem;
+      right: 1rem;
+      transform: none;
+    }
+    .side-legend { display: none; }
   }
 </style>

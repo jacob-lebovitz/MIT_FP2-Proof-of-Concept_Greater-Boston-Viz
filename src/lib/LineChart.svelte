@@ -10,16 +10,16 @@
   const LC_H = 370 - LC_MARGIN.top - LC_MARGIN.bottom;
 
   const ANNOT_ROW_Y = [-44, -66, -88, -110, -134];
-  const GLX_ANNOTATIONS = [
-    { year: 2005, label: 'Conservation Law Foundation sued state', type: 'glx' },
-    { year: 2007, label: 'Settlement — commit to finish by 2014', type: 'glx' },
+  const GREEN_LINE_EXTENSION_ANNOTATIONS = [
+    { year: 2005, label: 'Conservation Law Foundation sued state', type: 'greenLineExtension' },
+    { year: 2007, label: 'Settlement — commit to finish by 2014', type: 'greenLineExtension' },
     { year: 2008, label: 'Global Financial Crisis', type: 'event' },
-    { year: 2012, label: 'Construction broke ground', type: 'glx' },
-    { year: 2015, label: 'Nearly cancelled ($3B cost overrun)', type: 'glx' },
-    { year: 2017, label: 'Redesigned & restarted', type: 'glx' },
-    { year: 2018, label: 'Construction restarted', type: 'glx' },
+    { year: 2012, label: 'Construction broke ground', type: 'greenLineExtension' },
+    { year: 2015, label: 'Nearly cancelled ($3B cost overrun)', type: 'greenLineExtension' },
+    { year: 2017, label: 'Redesigned & restarted', type: 'greenLineExtension' },
+    { year: 2018, label: 'Construction restarted', type: 'greenLineExtension' },
     { year: 2020, label: 'COVID-19 pandemic', type: 'event' },
-    { year: 2022, label: 'Union Sq & Medford branch opened', type: 'glx' },
+    { year: 2022, label: 'Union Sq & Medford branch opened', type: 'greenLineExtension' },
   ];
 
   const YEARS = Array.from({ length: 26 }, (_, i) => 2000 + i);
@@ -78,11 +78,11 @@
 
   function assignAnnotations() {
     if (!xScale) {
-      annotAssignments = GLX_ANNOTATIONS.map(() => ({ row: 0, boxW: 100, fullLabel: '' }));
+      annotAssignments = GREEN_LINE_EXTENSION_ANNOTATIONS.map(() => ({ row: 0, boxW: 100, fullLabel: '' }));
       return;
     }
     const rowEnds = new Array(5).fill(-Infinity);
-    annotAssignments = GLX_ANNOTATIONS.map(a => {
+    annotAssignments = GREEN_LINE_EXTENSION_ANNOTATIONS.map(a => {
       const fullLabel = `${a.year}: ${a.label}`;
       const boxW = fullLabel.length * 5.6 + 14;
       const ax = xScale(a.year);
@@ -172,8 +172,8 @@
   >
     <g transform="translate({LC_MARGIN.left},{LC_MARGIN.top})">
 
-      <!-- GLX Milestone annotations -->
-      {#each GLX_ANNOTATIONS as a, i}
+      <!-- Green Line Extension Milestone annotations -->
+      {#each GREEN_LINE_EXTENSION_ANNOTATIONS as a, i}
         {@const info = annotAssignments[i]}
         {@const ax = xScale(a.year)}
         {@const ay = ANNOT_ROW_Y[info.row]}
