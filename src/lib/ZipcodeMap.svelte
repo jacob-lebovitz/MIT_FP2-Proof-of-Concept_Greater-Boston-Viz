@@ -479,7 +479,7 @@
           x={c[0]} y={c[1]}
           text-anchor="middle"
           dominant-baseline="middle"
-          font-size={32 / zoomK}
+          font-size={28 / zoomK}
           fill="light-dark(#1f2937, #e5e7eb)"
           font-weight="700"
           letter-spacing="0.08em"
