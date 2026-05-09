@@ -36,13 +36,12 @@
 
 <div class="narrative after">
   <div class="kicker">The takeaway</div>
-  <h2>New transit didn't price out these neighborhoods — it built more of them.</h2>
+  <h2>Price Increases in Somerville Were Coming Full Steam Ahead, With or Without the Train</h2>
 
   <p class="lede">
-    Across two decades and three cities, Cambridge, Somerville, and Medford added
-    housing throughout the Green Line Extension's slow march from lawsuit to ribbon-cutting.
-    Prices climbed everywhere in Greater Boston since 2012 (the start of construction), but the largest jumps tracked the
-    <strong>Red Line</strong> (Harvard Square, Kendall), not the new GLX corridor.
+    The price increases seen in Somerville and Medford were an inevitable catch up to western parts
+    of Camridge. These were <b>not necessarily caused by the building of the Green Line Extension.</b> We 
+    saw the largest price increases over this time period around Harvard Square and Red Line stops.
   </p>
 
   <div class="stat-grid" aria-label="Summary statistics">
@@ -67,43 +66,45 @@
   <h3>What we actually saw</h3>
   <ul class="findings">
     <li>
-      <strong>The "transit premium" myth got smaller, not bigger.</strong>
-      Housing prices along the green line rose, but not unlikely neighboring zipcodes. Transit development did not result in drastically higher prices. 
+      <strong>Price increases near green line stops stayed parallel to red line neighborhoods</strong>
+      Housing prices along the green line rose, but not different from neighboring zipcodes. Harvard Square,
+      North Cambridge, and Kendall all remain most expensive.
+
     </li>
     <li>
-      <strong>Supply responded to anticipation, not the ribbon-cutting.</strong>
-      Somerville's biggest development years (2014, 2016, 2019) all happened
-      <em>during</em> construction. Once trains were running, the pipeline thinned, as
-      2022–2024 combined added fewer units than 2019 alone.
+      <strong>Pricing changes came before the green line.</strong>
+      The biggest price spikes in Somerville came in the mid 2010s, far before completion of the green line.
+      Broader market trends than local transit access seem to have a stronger impact on pricing
     </li>
     <li>
-      <strong>Affordability rose with the rules, not the trains.</strong>
-      Affordable units more than tripled between 2015 and 2020, due to new inclusionary zoning policies. The trend continued past
-      2022, and it allowed for maining a mixed-income demographic.
-    </li>
-    <li>
-      <strong>Cambridge built fewer, larger projects; Somerville built many smaller ones.</strong>
-      Both zip codes investing in housing developments near Green Line stations, though they were of different size and function.
+      <strong>Strong zoning policies probably aided in keeping prices from soaring.</strong>
+      Inclusionary Zoning Ordinance required housing developemnts to keep 20% of their floor space
+      for affordable housing. Although this wouldn't affect home sales prices, it reduces the building
+      of strictly luxury developments. These luxury developments can spike local housing prices.
     </li>
   </ul>
 
-  <h3>If you live here, watch these signals</h3>
+  <h3>Policy Concerns and Generalizations</h3>
   <ul class="findings">
     <li>
-      <strong>Inclusionary zoning percentages on new approvals.</strong>
-      Zoning policies allowed for affordability to be maintained with new developments.
+      <strong>Info supporting inclusionary zoning policies</strong>
+      Zoning policies allowed for affordability to be maintained with new developments. It also is very controversial. Check 
+      out the following resources to learn more:
+      <a href="https://dash.harvard.edu/entities/publication/ffbbc9de-d3d7-4de1-add2-47303bfad3e9" target="_blank" rel="noopener noreferrer">Harvard DASH publication</a>
+      and
+      <a href="https://www.cambridgema.gov/CDD/housing/inclusionaryhousing" target="_blank" rel="noopener noreferrer">Cambridge inclusionary housing page</a>.
     </li>
     <li>
-      <strong>Pre-emptive permitting around future transit.</strong>
-      Most of the expansion units arrived before service. Cities that
-      upzone <em>during</em> infrastructure construction capture more supply
-      than those that wait until trains run.
+      <strong>Sources criticizing inclusionary zoning requirements</strong>
+      The following sources are more critical of inclusionary zoning and allow for residents to get a 
+      better picture of the policy. Be skeptical of the sources and who might benefit from reducing these policies.
+      <a href="https://betterblocksnj.org/2026/03/03/does-unfunded-inclusionary-zoning-produce-affordable-housing-at-scale-part-iv-in-our-housing-policy-series/">New Haven Zoning Study</a>
     </li>
     <li>
-      <strong>Stable pricing along Green Line route.</strong>
-      The strongest price pressure in this map sits around Harvard, Porter, and
-      Kendall. Affordability policy in the GLX area needs to be planned with
-      Red Line displacement risk in mind, not just GLX-corridor risk.
+      <strong>Takeaways from the Green Line are not necessarily generalizable to other areas</strong>
+      Just because transit access didn't spike prices in Cambridge, Somerville, and Medford; this does 
+      not necessarily mean other projects won't have different impacts. City culture, government policies,
+      and market trends all can have serious impacts on whether a project increases prices.
     </li>
   </ul>
 

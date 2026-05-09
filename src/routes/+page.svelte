@@ -13,8 +13,8 @@
 <ScrollyMap />
 
 <section class="explore content-narrow">
-  <div class="explore-eyebrow">EXPLORE THE LINE CHART</div>
-  <h2 class="explore-title">Every ZIP, every year — drag the dashed line to scrub</h2>
+  <div class="explore-eyebrow">EXPLORE THE MAP AND LINE CHART</div>
+  <h2 class="explore-title">Interact with the Above Visual in More Detail Here</h2>
   <p class="explore-sub">
     Hover any line for the price at that year. Hover the green &amp; red info dots above the chart for
     Green Line milestones and macro context.

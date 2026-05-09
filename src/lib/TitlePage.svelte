@@ -6,10 +6,10 @@
       <span class="accent">It didn't.</span>
     </h1>
     <p class="subtitle">
-      For two decades, residents along the planned Green Line Extension feared the same fate as Red Line neighborhoods —
-      premium prices, displacement, lost affordability. Opponents sued; supporters fought; the project nearly died in 2015
-      and only opened in 2022. This is what actually happened to home values and new housing along the corridor —
-      and why it's not the story most people expected.
+      For two decades, residents along the planned Green Line Extension feared that transit access would 
+      ruin their relatively affordable neighborhoods. People thought that the line would bring prices up to 
+      the levels in Western Cambridge. What actually happened shows a different story. Scroll below to understand
+      what happened.
     </p>
 
     <div class="history-strip">
