@@ -60,32 +60,6 @@
 
   const RED_LINE_COLOR = '#DA291C';
 
-  const HARVARD_BASEMAP_WASH = {
-    type: 'Feature',
-    geometry: {
-      type: 'Polygon',
-      coordinates: [[
-        [-71.1498, 42.3749],
-        [-71.1458, 42.3743],
-        [-71.1416, 42.3736],
-        [-71.1372, 42.3726],
-        [-71.1325, 42.3727],
-        [-71.1283, 42.3736],
-        [-71.1236, 42.3734],
-        [-71.1252, 42.3716],
-        [-71.1273, 42.3702],
-        [-71.1314, 42.3688],
-        [-71.1356, 42.3673],
-        [-71.1391, 42.3650],
-        [-71.1429, 42.3651],
-        [-71.1414, 42.3686],
-        [-71.1421, 42.3713],
-        [-71.1498, 42.3749]
-      ]]
-    },
-    properties: {}
-  };
-
   let features = [];
   let housing = [];
   let loading = true;
@@ -497,9 +471,6 @@
         opacity={hoveredZip ? 0.35 : 1} />
     {/each}
 
-    <!-- Local basemap wash behind Harvard: data and labels stay layered above this. -->
-    <path d={pathGen?.(HARVARD_BASEMAP_WASH)} class="harvard-basemap-wash" pointer-events="none" />
-
     <!-- Surrounding town labels -->
     {#each surroundingFeatures as feature}
       {@const c = pathGen?.centroid(feature)}
@@ -894,12 +865,6 @@
 <style>
   /* Paints a solid background over the study area to hide surrounding-zone hatch bleed */
   .study-mask { fill: light-dark(#fafbfc, #1a1b20); }
-
-  .harvard-basemap-wash {
-    fill: #7dd3fc;
-    fill-opacity: 0.62;
-    stroke: none;
-  }
 
   .map-wrap { margin: 1.5rem 0; }
 
