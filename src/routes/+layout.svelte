@@ -72,7 +72,7 @@ nav a.current {
 }
 
 nav a:hover {
-    border-bottom: 0.4em solid var(--color-accent);
+    border-bottom: 0.4em solid #00843D;
     padding-bottom: 0.1em;
 }
 </style>
