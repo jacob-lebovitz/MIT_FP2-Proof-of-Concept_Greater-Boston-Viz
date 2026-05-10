@@ -180,9 +180,9 @@
       <div class="lg-row"><span class="dot" style="background:#dc2626"></span> Somerville</div>
       <div class="lg-row"><span class="dot" style="background:#ca8a04"></span> Medford</div>
       <div class="control-label" style="margin-top:0.6rem">TRANSIT</div>
-      <div class="lg-row"><span class="line" style="background:#00843D"></span> Green Line (built)</div>
-      <div class="lg-row"><span class="line dashed" style="background:#00843D"></span> Proposed Green Line expansion</div>
-      <div class="lg-row"><span class="line" style="background:#DA291C"></span> Red Line</div>
+      <div class="lg-row"><span class="line" style="--line-color:#00843D"></span> Green Line (built)</div>
+      <div class="lg-row"><span class="line dashed" style="--line-color:#00843D"></span> Proposed Green Line expansion</div>
+      <div class="lg-row"><span class="line" style="--line-color:#DA291C"></span> Red Line</div>
     </div>
 
     <!-- Active narrative card (overlaid bottom-left) -->
@@ -268,7 +268,7 @@
   }
 
   .side-legend {
-    top: 50%;
+    top: 53%;
     right: 1.25rem;
     transform: translateY(-50%);
     width: 200px;
@@ -344,12 +344,15 @@
     width: 10px; height: 10px; border-radius: 50%;
   }
   .lg-row .line {
-    width: 18px; height: 3px; border-radius: 2px;
+    width: 18px;
+    height: 0;
+    border-top: 3px solid currentColor;
+    border-radius: 2px;
+    color: var(--line-color, currentColor);
+    flex-shrink: 0;
   }
   .lg-row .line.dashed {
-    background-image: linear-gradient(to right, #00843D 50%, transparent 50%);
-    background-size: 6px 3px;
-    background-color: transparent !important;
+    border-top-style: dashed;
   }
 
   .narrative-overlay {
