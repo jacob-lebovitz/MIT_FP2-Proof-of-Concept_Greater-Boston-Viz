@@ -52,6 +52,7 @@
     Somerville: [220, 38, 38],   // red
     Medford: [202, 138, 4],      // yellow (deep amber for legibility on white)
   };
+  const CITY_LEGEND_ENTRIES = Object.entries(CITY_BASE_COLORS);
 
   const BRANCH_COLORS = {
     Trunk: '#00843D', B: '#E87722', C: '#00B2A9', D: '#DA291C', E: '#7C4D79',
@@ -161,6 +162,16 @@
   $: globalMax = d3.max(allValues) ?? 1;
 
   const N_BUCKETS = 5;
+  const LEGEND_VALUE_ROW_Y = 20;
+  const LEGEND_VALUE_ROW_GAP = 36;
+  const LEGEND_CITY_HEADER_Y = LEGEND_VALUE_ROW_Y + (N_BUCKETS + 1) * LEGEND_VALUE_ROW_GAP + 22;
+  const LEGEND_CITY_ROW_START_Y = LEGEND_CITY_HEADER_Y + 29;
+  const LEGEND_CITY_ROW_GAP = 30;
+  const LEGEND_TRANSIT_HEADER_Y =
+    LEGEND_CITY_ROW_START_Y + (CITY_LEGEND_ENTRIES.length - 1) * LEGEND_CITY_ROW_GAP + 44;
+  const LEGEND_TRANSIT_ROW_START_Y = LEGEND_TRANSIT_HEADER_Y + 26;
+  const LEGEND_TRANSIT_ROW_GAP = 30;
+  const LEGEND_TRANSIT_TEXT_OFFSET_Y = 7;
 
   $: thresholds = d3.range(N_BUCKETS - 1).map(i =>
     globalMin + (i + 1) * (globalMax - globalMin) / N_BUCKETS
@@ -644,17 +655,17 @@
     <g transform="translate({LEGEND_X}, 20)">
       <text font-size="24" font-weight="bold" fill="currentColor">Avg Home Value</text>
       {#each legendBuckets as [lo, hi], i}
-        <rect x={0} y={20 + i * 36} width="24" height="24"
+        <rect x={0} y={LEGEND_VALUE_ROW_Y + i * LEGEND_VALUE_ROW_GAP} width="24" height="24"
           fill={colorScale(lo + 1)} stroke="#aaa" stroke-width="0.5" />
-        <text x={32} y={20 + i * 36 + 18} font-size="22" fill="currentColor">
+        <text x={32} y={LEGEND_VALUE_ROW_Y + i * LEGEND_VALUE_ROW_GAP + 18} font-size="22" fill="currentColor">
           {fmtLegend(lo)} – {fmtLegend(hi)}
         </text>
       {/each}
-      <rect x={0} y={20 + N_BUCKETS * 36} width="24" height="24"
+      <rect x={0} y={LEGEND_VALUE_ROW_Y + N_BUCKETS * LEGEND_VALUE_ROW_GAP} width="24" height="24"
         fill="url(#nodata-hatch)" stroke="#aaa" stroke-width="0.5" />
-      <text x={32} y={20 + N_BUCKETS * 36 + 18} font-size="22" fill="currentColor">No data</text>
-      <text font-size="22" font-weight="bold" fill="currentColor" y={20 + (N_BUCKETS + 1) * 36 + 22}>City Labels</text>
-      {#each Object.entries(CITY_BASE_COLORS) as [city, [r, g, b]], i}
+      <text x={32} y={LEGEND_VALUE_ROW_Y + N_BUCKETS * LEGEND_VALUE_ROW_GAP + 18} font-size="22" fill="currentColor">No data</text>
+      <text font-size="22" font-weight="bold" fill="currentColor" y={LEGEND_CITY_HEADER_Y}>City Labels</text>
+      {#each CITY_LEGEND_ENTRIES as [city, [r, g, b]], i}
         <g
           role="button"
           tabindex="0"
@@ -663,27 +674,27 @@
           on:click={() => toggleLegendCity(city)}
           on:keydown={(e) => e.key === 'Enter' && toggleLegendCity(city)}
         >
-          <circle cx={11} cy={20 + (N_BUCKETS + 1) * 36 + 44 + i * 30} r="8"
+          <circle cx={11} cy={LEGEND_CITY_ROW_START_Y - 7 + i * LEGEND_CITY_ROW_GAP} r="8"
             fill="rgb({r},{g},{b})"
             stroke={selectedCities.has(city) ? '#000' : 'none'}
             stroke-width="2"
           />
-          <text x={32} y={20 + (N_BUCKETS + 1) * 36 + 51 + i * 30} font-size="22"
+          <text x={32} y={LEGEND_CITY_ROW_START_Y + i * LEGEND_CITY_ROW_GAP} font-size="22"
             fill="currentColor"
             font-weight={selectedCities.has(city) ? 'bold' : 'normal'}
           >{city}</text>
         </g>
       {/each}
-      <text font-size="22" font-weight="bold" fill="currentColor" y={20 + (N_BUCKETS + 1) * 36 + 112}>Transit</text>
-      <line x1="0" x2="24" y1={20 + (N_BUCKETS + 1) * 36 + 138} y2={20 + (N_BUCKETS + 1) * 36 + 138}
+      <text font-size="22" font-weight="bold" fill="currentColor" y={LEGEND_TRANSIT_HEADER_Y}>Transit</text>
+      <line x1="0" x2="24" y1={LEGEND_TRANSIT_ROW_START_Y} y2={LEGEND_TRANSIT_ROW_START_Y}
         stroke="#00843D" stroke-width="5" stroke-linecap="round" />
-      <text x="32" y={20 + (N_BUCKETS + 1) * 36 + 145} font-size="22" fill="currentColor">Green Line</text>
-      <line x1="0" x2="24" y1={20 + (N_BUCKETS + 1) * 36 + 168} y2={20 + (N_BUCKETS + 1) * 36 + 168}
+      <text x="32" y={LEGEND_TRANSIT_ROW_START_Y + LEGEND_TRANSIT_TEXT_OFFSET_Y} font-size="22" fill="currentColor">Green Line</text>
+      <line x1="0" x2="24" y1={LEGEND_TRANSIT_ROW_START_Y + LEGEND_TRANSIT_ROW_GAP} y2={LEGEND_TRANSIT_ROW_START_Y + LEGEND_TRANSIT_ROW_GAP}
         stroke="#00843D" stroke-width="5" stroke-linecap="round" stroke-dasharray="8,5" opacity="0.65" />
-      <text x="32" y={20 + (N_BUCKETS + 1) * 36 + 175} font-size="19" fill="currentColor">Proposed expansion</text>
-      <line x1="0" x2="24" y1={20 + (N_BUCKETS + 1) * 36 + 198} y2={20 + (N_BUCKETS + 1) * 36 + 198}
+      <text x="32" y={LEGEND_TRANSIT_ROW_START_Y + LEGEND_TRANSIT_ROW_GAP + LEGEND_TRANSIT_TEXT_OFFSET_Y} font-size="19" fill="currentColor">Proposed expansion</text>
+      <line x1="0" x2="24" y1={LEGEND_TRANSIT_ROW_START_Y + LEGEND_TRANSIT_ROW_GAP * 2} y2={LEGEND_TRANSIT_ROW_START_Y + LEGEND_TRANSIT_ROW_GAP * 2}
         stroke={RED_LINE_COLOR} stroke-width="5" stroke-linecap="round" />
-      <text x="32" y={20 + (N_BUCKETS + 1) * 36 + 205} font-size="22" fill="currentColor">Red Line</text>
+      <text x="32" y={LEGEND_TRANSIT_ROW_START_Y + LEGEND_TRANSIT_ROW_GAP * 2 + LEGEND_TRANSIT_TEXT_OFFSET_Y} font-size="22" fill="currentColor">Red Line</text>
     </g>
     {/if}
 
