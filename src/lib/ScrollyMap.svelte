@@ -164,7 +164,7 @@
 
     <!-- Floating compact legend (right) -->
     <div class="floating-control side-legend">
-      <div class="control-label">PRICE</div>
+      <div class="control-label">AVG HOME VALUE</div>
       {#each priceLegendBuckets as bucket}
         <div class="lg-row">
           <span class="swatch" style="background:{bucket.color}"></span>
@@ -181,7 +181,7 @@
       <div class="lg-row"><span class="dot" style="background:#ca8a04"></span> Medford</div>
       <div class="control-label" style="margin-top:0.6rem">TRANSIT</div>
       <div class="lg-row"><span class="line" style="background:#00843D"></span> Green Line (built)</div>
-      <div class="lg-row"><span class="line dashed" style="background:#00843D"></span> Green Line Extension (planned)</div>
+      <div class="lg-row"><span class="line dashed" style="background:#00843D"></span> Proposed Green Line expansion</div>
       <div class="lg-row"><span class="line" style="background:#DA291C"></span> Red Line</div>
     </div>
 

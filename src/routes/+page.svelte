@@ -16,7 +16,7 @@
   <div class="explore-eyebrow">EXPLORE THE MAP AND LINE CHART</div>
   <h2 class="explore-title">Interact with the Above Visual in More Detail Here</h2>
   <p class="explore-sub">
-    Hover any line for the price at that year. Hover the green &amp; red info dots above the chart for
+    Hover any line for the average home value at that year. Hover the green &amp; red info dots above the chart for
     Green Line milestones and macro context.
   </p>
   <div class="explore-chart">
