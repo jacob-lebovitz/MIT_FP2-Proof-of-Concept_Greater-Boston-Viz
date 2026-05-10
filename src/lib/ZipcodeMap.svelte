@@ -431,10 +431,10 @@
 <div class="map-wrap" class:with-line-chart={!hideLineChart}>
   {#if !hideHeader}
     {#if hideLineChart}
-      <h2>Home Values by ZIP Code</h2>
+      <h2>Average Home Value by ZIP Code</h2>
       <p class="subtitle">Cambridge · Somerville · Medford &nbsp;·&nbsp; {year}</p>
     {:else}
-      <h2 class="map-panel-title">Home Values by ZIP Code</h2>
+      <h2 class="map-panel-title">Average Home Value by ZIP Code</h2>
       <p class="subtitle map-subtitle">Cambridge · Somerville · Medford &nbsp;·&nbsp; {year}</p>
     {/if}
   {/if}
@@ -642,7 +642,7 @@
     {#if !compact}
     <!-- Legend -->
     <g transform="translate({LEGEND_X}, 20)">
-      <text font-size="24" font-weight="bold" fill="currentColor">Home Value</text>
+      <text font-size="24" font-weight="bold" fill="currentColor">Avg Home Value</text>
       {#each legendBuckets as [lo, hi], i}
         <rect x={0} y={20 + i * 36} width="24" height="24"
           fill={colorScale(lo + 1)} stroke="#aaa" stroke-width="0.5" />
@@ -674,6 +674,16 @@
           >{city}</text>
         </g>
       {/each}
+      <text font-size="22" font-weight="bold" fill="currentColor" y={20 + (N_BUCKETS + 1) * 36 + 112}>Transit</text>
+      <line x1="0" x2="24" y1={20 + (N_BUCKETS + 1) * 36 + 138} y2={20 + (N_BUCKETS + 1) * 36 + 138}
+        stroke="#00843D" stroke-width="5" stroke-linecap="round" />
+      <text x="32" y={20 + (N_BUCKETS + 1) * 36 + 145} font-size="22" fill="currentColor">Green Line</text>
+      <line x1="0" x2="24" y1={20 + (N_BUCKETS + 1) * 36 + 168} y2={20 + (N_BUCKETS + 1) * 36 + 168}
+        stroke="#00843D" stroke-width="5" stroke-linecap="round" stroke-dasharray="8,5" opacity="0.65" />
+      <text x="32" y={20 + (N_BUCKETS + 1) * 36 + 175} font-size="19" fill="currentColor">Proposed expansion</text>
+      <line x1="0" x2="24" y1={20 + (N_BUCKETS + 1) * 36 + 198} y2={20 + (N_BUCKETS + 1) * 36 + 198}
+        stroke={RED_LINE_COLOR} stroke-width="5" stroke-linecap="round" />
+      <text x="32" y={20 + (N_BUCKETS + 1) * 36 + 205} font-size="22" fill="currentColor">Red Line</text>
     </g>
     {/if}
 
@@ -692,7 +702,7 @@
         <div class="tooltip">
           <strong>{getNeighborhoodName(tooltip.zip)}</strong>
           <div style="font-size:0.9em;opacity:0.75">{tooltip.city} · {tooltip.zip}</div>
-          <div>{tooltip.value}</div>
+          <div>Avg home value: {tooltip.value}</div>
         </div>
       </foreignObject>
     {/if}
@@ -708,7 +718,7 @@
   {#if !loading && !hideLineChart}
   <div class="line-chart-panel">
   {#if hideHeader}
-    <h2>Home Values Over Time by ZIP Code</h2>
+    <h2>Average Home Values Over Time by ZIP Code</h2>
   {/if}
   <svg viewBox="0 0 {TOTAL_W} {LC_SVG_H}" preserveAspectRatio="xMidYMid meet" class="line-chart"
     style="width:100%; height:auto; max-height:{LC_SVG_H}px"

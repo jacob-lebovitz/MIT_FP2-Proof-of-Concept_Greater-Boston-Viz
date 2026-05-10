@@ -10,9 +10,9 @@
 <div class="narrative before">
   <h2>Transit Access Does Not Destroy Neighborhoods</h2>
   <p>
-    The following tools allow us to visualization price changes over time
+    The following tools allow us to visualize average home value changes over time
     across Cambridge and Somerville. Feel free to follow the narrative and
-    then play around with the tools. Hover over regions to see specific prices by
+    then play around with the tools. Hover over regions to see average home values by
     zip code and their associated green line stop.
   </p>
 </div>
@@ -36,51 +36,51 @@
 
 <div class="narrative after">
   <div class="kicker">The takeaway</div>
-  <h2>Price Increases in Somerville Were Coming Full Steam Ahead, With or Without the Train</h2>
+  <h2>Average Home Value Increases in Somerville Were Coming Full Steam Ahead, With or Without the Train</h2>
 
   <p class="lede">
-    The price increases seen in Somerville and Medford were an inevitable catch up to western parts
-    of Camridge. These were <b>not necessarily caused by the building of the Green Line Extension.</b> We 
-    saw the largest price increases over this time period around Harvard Square and Red Line stops.
+    The average home value increases seen in Somerville and Medford were an inevitable catch up to western parts
+    of Cambridge. These were <b>not necessarily caused by the building of the Green Line Extension.</b> We
+    saw the largest average home value increases over this time period around Harvard Square and Red Line stops.
   </p>
 
   <div class="stat-grid" aria-label="Summary statistics">
     <div class="stat-card">
       <div class="stat-num">+94%</div>
-      <div class="stat-lbl">Somerville price growth<br/>2012–2019, before GLX opened</div>
+      <div class="stat-lbl">Somerville average home values nearly doubled<br/>2012–2019, before GLX opened</div>
     </div>
     <div class="stat-card">
-      <div class="stat-num">~0%/yr</div>
-      <div class="stat-lbl">Somerville annual price growth<br/>since GLX opened (2022–2025)</div>
+      <div class="stat-num">+3.8%</div>
+      <div class="stat-lbl">Somerville average home value growth<br/>after GLX opened, 2022–2025</div>
     </div>
     <div class="stat-card">
-      <div class="stat-num">9.2% vs 8.9%</div>
-      <div class="stat-lbl">Green vs Red Line corridor<br/>annual growth, 2012–2019</div>
+      <div class="stat-num stat-comparison"><span class="green-line-stat">9.2%</span> vs <span class="red-line-stat">8.9%</span></div>
+      <div class="stat-lbl">Green vs Red Line corridor<br/>annual average home value growth, 2012–2019</div>
     </div>
     <div class="stat-card">
-      <div class="stat-num">$130K → $87K</div>
-      <div class="stat-lbl">Harvard Sq to Somerville<br/>price gap, 2011 → 2025</div>
+      <div class="stat-num">$43K narrower</div>
+      <div class="stat-lbl">Harvard Sq averaged $130K more than Davis Sq in 2011;<br/>by 2025, the gap was $87K</div>
     </div>
   </div>
 
   <h3>What we actually saw</h3>
   <ul class="findings">
     <li>
-      <strong>Price increases near green line stops stayed parallel to red line neighborhoods</strong>
-      Housing prices along the green line rose, but not different from neighboring zipcodes. Harvard Square,
+      <strong>Average home value increases near green line stops stayed parallel to red line neighborhoods</strong>
+      Average home values along the green line rose, but not different from neighboring zipcodes. Harvard Square,
       North Cambridge, and Kendall all remain most expensive.
 
     </li>
     <li>
-      <strong>Pricing changes came before the green line.</strong>
-      The biggest price spikes in Somerville came in the mid 2010s, far before completion of the green line.
-      Broader market trends than local transit access seem to have a stronger impact on pricing
+      <strong>Home value changes came before the green line.</strong>
+      The biggest home value spikes in Somerville came in the mid 2010s, far before completion of the green line.
+      Broader market trends than local transit access seem to have a stronger impact on home values
     </li>
     <li>
-      <strong>Strong zoning policies probably aided in keeping prices from soaring.</strong>
+      <strong>Strong zoning policies probably aided in keeping home values from soaring.</strong>
       Inclusionary Zoning Ordinance required housing developemnts to keep 20% of their floor space
       for affordable housing. Although this wouldn't affect home sales prices, it reduces the building
-      of strictly luxury developments. These luxury developments can spike local housing prices.
+      of strictly luxury developments. These luxury developments can spike local home values.
     </li>
   </ul>
 
@@ -102,9 +102,9 @@
     </li>
     <li>
       <strong>Takeaways from the Green Line are not necessarily generalizable to other areas</strong>
-      Just because transit access didn't spike prices in Cambridge, Somerville, and Medford; this does 
+      Just because transit access didn't spike average home values in Cambridge, Somerville, and Medford; this does
       not necessarily mean other projects won't have different impacts. City culture, government policies,
-      and market trends all can have serious impacts on whether a project increases prices.
+      and market trends all can have serious impacts on whether a project increases home values.
     </li>
   </ul>
 
@@ -220,6 +220,18 @@
     line-height: 1.1;
     font-variant-numeric: tabular-nums;
     margin-bottom: 0.35rem;
+  }
+
+  .stat-comparison {
+    color: inherit;
+  }
+
+  .green-line-stat {
+    color: #00843D;
+  }
+
+  .red-line-stat {
+    color: #DA291C;
   }
 
   .stat-lbl {
