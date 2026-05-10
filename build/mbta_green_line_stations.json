@@ -12,10 +12,10 @@
   {"name": "Cleveland Circle","lon": -71.1457, "lat": 42.3398, "year_opened": 1932, "branch": "C"},
   {"name": "Heath Street",    "lon": -71.1106, "lat": 42.3199, "year_opened": 1941, "branch": "E"},
   {"name": "Riverside",       "lon": -71.2344, "lat": 42.3254, "year_opened": 1959, "branch": "D"},
-  {"name": "Union Square",    "lon": -71.0949, "lat": 42.3778, "year_opened": 2022, "branch": "GLX-D"},
-  {"name": "East Somerville", "lon": -71.0850, "lat": 42.3800, "year_opened": 2022, "branch": "GLX-E"},
-  {"name": "Gilman Square",   "lon": -71.0898, "lat": 42.3862, "year_opened": 2022, "branch": "GLX-E"},
-  {"name": "Magoun Square",   "lon": -71.1024, "lat": 42.3969, "year_opened": 2022, "branch": "GLX-E"},
-  {"name": "Ball Square",     "lon": -71.1136, "lat": 42.4072, "year_opened": 2022, "branch": "GLX-E"},
-  {"name": "Medford/Tufts",   "lon": -71.1188, "lat": 42.4085, "year_opened": 2022, "branch": "GLX-E"}
+  {"name": "Union Square",    "lon": -71.0949, "lat": 42.3778, "year_opened": 2022, "branch": "Green Line Extension-D"},
+  {"name": "East Somerville", "lon": -71.0850, "lat": 42.3800, "year_opened": 2022, "branch": "Green Line Extension-E"},
+  {"name": "Gilman Square",   "lon": -71.0898, "lat": 42.3862, "year_opened": 2022, "branch": "Green Line Extension-E"},
+  {"name": "Magoun Square",   "lon": -71.1024, "lat": 42.3969, "year_opened": 2022, "branch": "Green Line Extension-E"},
+  {"name": "Ball Square",     "lon": -71.1136, "lat": 42.4072, "year_opened": 2022, "branch": "Green Line Extension-E"},
+  {"name": "Medford/Tufts",   "lon": -71.1188, "lat": 42.4085, "year_opened": 2022, "branch": "Green Line Extension-E"}
 ]
