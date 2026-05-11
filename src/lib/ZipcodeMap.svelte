@@ -24,7 +24,7 @@
     2140: 'North Cambridge',
     2141: 'East Cambridge',
     2142: 'Kendall Sq',
-    2143: 'Spring Hill',
+    2143: 'Union Sq',
     2144: 'West Somerville',
     2145: 'East Somerville',
     2155: 'Medford',
