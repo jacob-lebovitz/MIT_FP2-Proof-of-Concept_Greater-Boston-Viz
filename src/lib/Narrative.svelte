@@ -36,7 +36,7 @@
 
 <div class="narrative after">
   <div class="kicker">The takeaway</div>
-  <h2>Average Home Value Increases in Somerville Were Coming Full Steam Ahead, With or Without the Train</h2>
+  <h2>Average home value increases in Somerville were likely coming regardless of The Green Line</h2>
 
   <p class="lede">
     The average home value increases seen in Somerville and Medford were an inevitable catch up to western parts
