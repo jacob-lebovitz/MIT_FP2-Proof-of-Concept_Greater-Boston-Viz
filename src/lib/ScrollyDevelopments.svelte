@@ -139,15 +139,15 @@
 
     <!-- Compact legend -->
     <div class="floating-control side-legend">
-      <div class="control-label">CITY (BUBBLE COLOR)</div>
+      <div class="control-label">CITY</div>
       <div class="lg-row"><span class="dot" style="background:#2563eb"></span> Cambridge</div>
       <div class="lg-row"><span class="dot" style="background:#dc2626"></span> Somerville</div>
       <div class="lg-row"><span class="dot" style="background:#ca8a04"></span> Medford</div>
-      <div class="control-label" style="margin-top:0.6rem">UNITS (OUTER AREA)</div>
+      <div class="control-label" style="margin-top:0.65rem">UNITS (AREA)</div>
       <div class="lg-row"><span class="dot lg" style="background:rgba(37,99,235,0.3); border:1px solid #2563eb"></span> total units in project</div>
-      <div class="control-label" style="margin-top:0.6rem">AFFORDABLE (INNER)</div>
+      <div class="control-label" style="margin-top:0.65rem">AFFORDABLE UNITS</div>
       <div class="lg-row"><span class="dot teal" style="background:#0f766e"></span> deed-restricted units</div>
-      <div class="control-label" style="margin-top:0.6rem">TRANSIT</div>
+      <div class="control-label" style="margin-top:0.65rem">TRANSIT</div>
       <div class="lg-row"><span class="line" style="background:#00843D"></span> Green Line</div>
       <div class="lg-row"><span class="line dashed"></span> Green Line Extension (planned)</div>
       <div class="lg-row"><span class="line" style="background:#DA291C"></span> Red Line</div>
@@ -212,16 +212,7 @@
   .floating-control {
     position: absolute;
     z-index: 5;
-    background: light-dark(rgba(255,255,255,0.78), rgba(20,22,28,0.78));
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid light-dark(rgba(15,23,42,0.08), rgba(255,255,255,0.08));
-    border-radius: 12px;
-    padding: 0.7rem 1rem;
-    box-shadow: 0 8px 28px rgba(0,0,0,0.10);
     color: inherit;
-    font-size: 0.8rem;
-    line-height: 1.4;
   }
 
   .top-center {
@@ -237,15 +228,22 @@
   .side-legend {
     bottom: 1.25rem;
     right: 1.25rem;
-    width: 220px;
+    width: 286px;
+    padding: 0.9rem 1rem;
+    background: light-dark(#fafbfc, #1a1b20);
+    border: 1px solid light-dark(#e5e7eb, #3a3a42);
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
+    font-size: 0.95rem;
+    line-height: 1.35;
   }
 
   .control-label {
-    font-size: 0.66rem;
-    letter-spacing: 0.14em;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
     font-weight: 700;
     color: light-dark(#475569, #94a3b8);
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.35rem;
   }
 
   .year-scrub {
@@ -285,17 +283,18 @@
   .lg-row {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.78rem;
-    margin-top: 0.18rem;
+    gap: 0.55rem;
+    font-size: 0.9rem;
+    margin-top: 0.24rem;
+    line-height: 1.35;
   }
   .lg-row .dot { width: 10px; height: 10px; border-radius: 50%; }
   .lg-row .dot.lg { width: 14px; height: 14px; }
-  .lg-row .dot.teal { width: 8px; height: 8px; }
-  .lg-row .line { width: 18px; height: 3px; border-radius: 2px; }
+  .lg-row .dot.teal { width: 9px; height: 9px; }
+  .lg-row .line { width: 24px; height: 5px; border-radius: 3px; }
   .lg-row .line.dashed {
     background-image: linear-gradient(to right, #00843D 50%, transparent 50%);
-    background-size: 6px 3px;
+    background-size: 8px 5px;
   }
 
   .narrative-overlay {

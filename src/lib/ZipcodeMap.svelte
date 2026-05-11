@@ -690,6 +690,10 @@
     {#if !compact}
     <!-- Legend -->
     <g transform="translate({LEGEND_X}, 20)">
+      <!-- Legend background box -->
+      <rect x={-12} y={-16} width={LEGEND_W + 24} height={520}
+        fill="light-dark(#fafbfc, #1a1b20)" stroke="light-dark(#e5e7eb, #3a3a42)" 
+        stroke-width="1" rx="10" />
       <text font-size="24" font-weight="bold" fill="currentColor">Avg Home Value</text>
       {#each legendBuckets as [lo, hi], i}
         <rect x={0} y={LEGEND_VALUE_ROW_Y + i * LEGEND_VALUE_ROW_GAP} width="24" height="24"
