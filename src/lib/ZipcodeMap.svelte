@@ -385,6 +385,7 @@
   }
 
   let isDraggingYear = false;
+  let hasDraggedYear = false;
 
   function setYearFromPointer(e) {
     const svg = e.currentTarget.closest?.('svg') ?? e.currentTarget;
@@ -398,6 +399,7 @@
 
   function startYearDrag(e) {
     isDraggingYear = true;
+    hasDraggedYear = true;
     e.currentTarget.setPointerCapture?.(e.pointerId);
     setYearFromPointer(e);
   }
@@ -948,6 +950,48 @@
       <circle cx={xScale(year)} cy={-3} r="5" fill="currentColor" opacity="0.72" pointer-events="none" />
       <text x={xScale(year) + 6} y={-8} text-anchor="start" font-size="20" font-weight="bold" fill="currentColor">{year}</text>
 
+      <!-- Hand-drawn nudge arrow pointing at the draggable line (hidden once the user drags) -->
+      {#if !hasDraggedYear}
+        {@const lineX = xScale(year)}
+        {@const fromLeft = lineX > LC_W / 2}
+        {@const sign = fromLeft ? -1 : 1}
+        {@const tipX = lineX + sign * 18}
+        {@const tipY = 80}
+        {@const textX = lineX + sign * 220}
+        {@const textY = 10}
+        <g class="nudge-arrow" pointer-events="none">
+          <path
+            d="M {textX + sign * 10} {textY + 14}
+               C {textX + sign * 50} {textY + 30},
+                 {lineX + sign * 190} {textY + 70},
+                 {lineX + sign * 110} {tipY - 30}
+               S {tipX + sign * 30} {tipY + 18},
+                 {tipX} {tipY}"
+            fill="none"
+            stroke="#d35400"
+            stroke-width="3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M {tipX} {tipY} l {sign * 14} -9 M {tipX} {tipY} l {sign * 14} 9"
+            fill="none"
+            stroke="#d35400"
+            stroke-width="3"
+            stroke-linecap="round"
+          />
+          <text
+            x={textX}
+            y={textY}
+            text-anchor={fromLeft ? 'end' : 'start'}
+            font-size="26"
+            font-weight="700"
+            fill="#d35400"
+            style="font-family: 'Comic Sans MS', 'Marker Felt', 'Bradley Hand', cursive;"
+          >drag me!</text>
+        </g>
+      {/if}
+
       <!-- Annotation icons + always-visible labels (all milestones at once) -->
       {#each GREEN_LINE_EXTENSION_ANNOTATIONS as a, i}
         {@const assign = annotAssignments[i]}
@@ -985,6 +1029,16 @@
 <style>
   /* Paints a solid background over the study area to hide surrounding-zone hatch bleed */
   .study-mask { fill: light-dark(#fafbfc, #1a1b20); }
+
+  .nudge-arrow {
+    animation: nudge-bob 1.6s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  @keyframes nudge-bob {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(0, -6px); }
+  }
 
   .map-wrap { margin: 1.5rem 0; }
 

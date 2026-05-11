@@ -16,6 +16,7 @@
 <section class="explore content-narrow">
   <div class="explore-eyebrow">EXPLORE THE MAP AND LINE CHART</div>
   <h2 class="explore-title">Interact with the Above Visual in More Detail Here</h2>
+  <p class="explore-hint">Drag the dashed line on the time series to change the year shown on both the map and the chart.</p>
   <div class="explore-chart">
     <ZipcodeMap year={$currentYear} hideSlider={true} hideLineChart={false} compact={false} showSelectionControl={true} />
   </div>
@@ -42,6 +43,12 @@
     line-height: 1.18;
     letter-spacing: -0.02em;
     margin: 0 0 0.6rem;
+  }
+  .explore-hint {
+    font-size: 0.95rem;
+    color: #555;
+    margin: 0 0 1.2rem;
+    font-style: italic;
   }
   /* Allow the chart and map to break out of content-narrow */
   .explore-chart {

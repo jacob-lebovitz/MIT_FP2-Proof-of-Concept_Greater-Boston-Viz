@@ -47,19 +47,22 @@
   <div class="stat-grid" aria-label="Summary statistics">
     <div class="stat-card">
       <div class="stat-num">+94%</div>
-      <div class="stat-lbl">Somerville average home values nearly doubled<br/>2012–2019, before GLX opened</div>
+      <div class="stat-lbl">Somerville average home values nearly doubled<br/>2012–2019, before Green Line opened. This is in 
+      line with growth around the Red Line as well.</div>
     </div>
     <div class="stat-card">
       <div class="stat-num">+3.8%</div>
-      <div class="stat-lbl">Somerville average home value growth<br/>after GLX opened, 2022–2025</div>
+      <div class="stat-lbl">Somerville average home value growth<br/>was much lower after Green Line opening, 2022-2025</div>
     </div>
     <div class="stat-card">
       <div class="stat-num stat-comparison"><span class="green-line-stat">9.2%</span> vs <span class="red-line-stat">8.9%</span></div>
-      <div class="stat-lbl">Green vs Red Line corridor<br/>annual average home value growth, 2012–2019</div>
+      <div class="stat-lbl">Green vs Red Line corridor<br/>annual average home value growth, 2012–2019. These are virtually the same.</div>
     </div>
     <div class="stat-card">
       <div class="stat-num">$43K narrower</div>
-      <div class="stat-lbl">Harvard Sq averaged $130K more than Davis Sq in 2011;<br/>by 2025, the gap was $87K</div>
+      <div class="stat-lbl">The gap between Harvard Square and Davis Square got closer between 2010 and 2025, but 
+        there are many possible factors at play.
+      </div>
     </div>
   </div>
 
