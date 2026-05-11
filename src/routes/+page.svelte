@@ -16,10 +16,6 @@
 <section class="explore content-narrow">
   <div class="explore-eyebrow">EXPLORE THE MAP AND LINE CHART</div>
   <h2 class="explore-title">Interact with the Above Visual in More Detail Here</h2>
-  <p class="explore-sub">
-    Hover any line for the average home value at that year. Hover the green &amp; red info dots above the chart for
-    Green Line milestones and macro context.
-  </p>
   <div class="explore-chart">
     <ZipcodeMap year={$currentYear} hideSlider={true} hideLineChart={false} compact={false} showSelectionControl={true} />
   </div>
@@ -46,12 +42,6 @@
     line-height: 1.18;
     letter-spacing: -0.02em;
     margin: 0 0 0.6rem;
-  }
-  .explore-sub {
-    font-size: 0.95rem;
-    line-height: 1.6;
-    color: light-dark(#475569, #94a3b8);
-    margin: 0 0 1.5rem;
   }
   /* Allow the chart and map to break out of content-narrow */
   .explore-chart {
