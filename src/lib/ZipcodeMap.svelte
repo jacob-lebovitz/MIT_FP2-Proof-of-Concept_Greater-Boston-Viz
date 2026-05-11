@@ -19,14 +19,14 @@
 
   // Zip codes present in both GeoJSON and housing data
   const ZIP_LABELS = {
-    2138: 'Harvard Sq',
-    2139: 'Central Sq',
-    2140: 'N Cambridge',
-    2141: 'E Cambridge',
+    2138: 'West Cambridge',
+    2139: 'Mid Cambridge',
+    2140: 'North Cambridge',
+    2141: 'East Cambridge',
     2142: 'Kendall Sq',
-    2143: 'Union Sq',
-    2144: 'Davis Sq',
-    2145: 'E Somerville',
+    2143: 'Spring Hill',
+    2144: 'West Somerville',
+    2145: 'East Somerville',
     2155: 'Medford',
   };
 
@@ -37,6 +37,21 @@
 
   const LABEL_OFFSET = {
     2144: [0, 8],
+  };
+
+  // Towns outside the study area we still want to call out by name.
+  // Real lat/lon — projected with the same projection, then clamped to stay on-canvas.
+  const EXTRA_TOWN_LABELS = [
+    { name: 'Charlestown', lon: -71.060, lat: 42.378 },
+    { name: 'Chelsea',     lon: -71.033, lat: 42.392 },
+  ];
+
+  // Nudge the centroid-based label for towns whose polygon centroid sits
+  // somewhere visually unhelpful (e.g. Boston extends far south).
+  const SURROUND_LABEL_OFFSET = {
+    Boston: [40, -260],
+    Newton: [0, -40],
+    Waltham: [40, 40],
   };
 
   const YEARS = Array.from({ length: 26 }, (_, i) => 2000 + i);
@@ -178,14 +193,32 @@
   const LEGEND_TRANSIT_ROW_START_Y = LEGEND_TRANSIT_HEADER_Y + 26;
   const LEGEND_TRANSIT_ROW_GAP = 30;
   const LEGEND_TRANSIT_TEXT_OFFSET_Y = 7;
+  const LEGEND_BOX_HEIGHT = LEGEND_TRANSIT_ROW_START_Y + LEGEND_TRANSIT_ROW_GAP * 2 + 30;
+
+  // Uniform ZIP-label size — sized so Kendall Sq (the smallest target polygon) fits its label.
+  // Every other neighborhood label then uses the same size for visual consistency.
+  $: uniformLabelSize = (() => {
+    if (!pathGen) return 14;
+    const kendall = features.find(f => f.properties.ZCTA5CE20 === 2142);
+    if (!kendall) return 14;
+    const label = ZIP_LABELS[2142] ?? '';
+    const b = pathGen.bounds(kendall);
+    const w = b[1][0] - b[0][0];
+    const fit = (w * 0.85) / (label.length * 0.55);
+    return Math.max(11, Math.min(28, fit));
+  })();
 
   $: thresholds = d3.range(N_BUCKETS - 1).map(i =>
     globalMin + (i + 1) * (globalMax - globalMin) / N_BUCKETS
   );
 
+  // 5-step blue ramp; starts at a more saturated light blue than d3.schemeBlues[5]
+  // (whose lightest tint, #eff3ff, reads as near-white on the map).
+  const PRICE_COLORS = ['#c6dbef', '#9ecae1', '#6baed6', '#3182bd', '#08519c'];
+
   $: colorScale = d3.scaleThreshold()
     .domain(thresholds)
-    .range(d3.schemeBlues[N_BUCKETS]);
+    .range(PRICE_COLORS);
 
   $: legendBuckets = d3.range(N_BUCKETS).map(i => [
     globalMin + i * (globalMax - globalMin) / N_BUCKETS,
@@ -523,21 +556,45 @@
     <!-- Surrounding town labels -->
     {#each surroundingFeatures as feature}
       {@const c = pathGen?.centroid(feature)}
+      {@const off = SURROUND_LABEL_OFFSET[feature.properties.name] ?? [0, 0]}
       {#if c}
         <text
-          x={c[0]} y={c[1]}
+          x={c[0] + off[0]} y={c[1] + off[1]}
           text-anchor="middle"
           dominant-baseline="middle"
-          font-size={28 / zoomK}
-          fill="light-dark(#1f2937, #e5e7eb)"
-          font-weight="700"
-          letter-spacing="0.08em"
+          font-size={22 / zoomK}
+          fill="light-dark(#475569, #94a3b8)"
+          font-weight="600"
+          letter-spacing="0.06em"
           paint-order="stroke"
           stroke="light-dark(#f3f4f6, #1f2937)"
-          stroke-width={3.5 / zoomK}
+          stroke-width={3 / zoomK}
           pointer-events="none"
           style="text-transform: uppercase;"
         >{feature.properties.name}</text>
+      {/if}
+    {/each}
+
+    <!-- Extra surrounding-town callouts (Charlestown, Chelsea) — outside target extent, clamped on-canvas -->
+    {#each EXTRA_TOWN_LABELS as town}
+      {@const p = projection?.([town.lon, town.lat])}
+      {#if p}
+        {@const cx = Math.min(p[0], MAP_W - 70)}
+        {@const cy = Math.max(40, Math.min(p[1], HEIGHT - 40))}
+        <text
+          x={cx} y={cy}
+          text-anchor="middle"
+          dominant-baseline="middle"
+          font-size={22 / zoomK}
+          fill="light-dark(#475569, #94a3b8)"
+          font-weight="600"
+          letter-spacing="0.06em"
+          paint-order="stroke"
+          stroke="light-dark(#f3f4f6, #1f2937)"
+          stroke-width={3 / zoomK}
+          pointer-events="none"
+          style="text-transform: uppercase;"
+        >{town.name}</text>
       {/if}
     {/each}
 
@@ -675,7 +732,7 @@
           y={c[1] + (LABEL_OFFSET[zip]?.[1] ?? 0)}
           text-anchor="middle"
           dominant-baseline="middle"
-          font-size={28 / zoomK}
+          font-size={uniformLabelSize / zoomK}
           fill={getLabelColor(zip)}
           font-weight="bold"
           paint-order="stroke"
@@ -692,8 +749,8 @@
     <!-- Legend -->
     <g transform="translate({LEGEND_X}, 20)">
       <!-- Legend background box -->
-      <rect x={-12} y={-16} width={LEGEND_W + 24} height={520}
-        fill="light-dark(#fafbfc, #1a1b20)" stroke="light-dark(#e5e7eb, #3a3a42)" 
+      <rect x={-12} y={-16} width={LEGEND_W + 24} height={LEGEND_BOX_HEIGHT}
+        fill="light-dark(#fafbfc, #1a1b20)" stroke="light-dark(#e5e7eb, #3a3a42)"
         stroke-width="1" rx="10" />
       <text font-size="24" font-weight="bold" fill="currentColor">Avg Home Value</text>
       {#each legendBuckets as [lo, hi], i}

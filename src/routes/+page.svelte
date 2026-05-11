@@ -4,6 +4,7 @@
   import Narrative from "$lib/Narrative.svelte";
   import TitlePage from "$lib/TitlePage.svelte";
   import ZipcodeMap from "$lib/ZipcodeMap.svelte";
+  import Acknowledgements from "$lib/Acknowledgements.svelte";
   import { currentYear } from "$lib/stores.js";
   // import WriteupDesign from "$lib/WriteupDesign.svelte";
   // import WriteupPlan from "$lib/WriteupPlan.svelte";
@@ -28,6 +29,7 @@
 <!-- <Narrative position="between" />
 <ScrollyDevelopments /> -->
 <Narrative position="after" />
+<Acknowledgements />
 
 <style>
   .explore { padding-block: 4rem 3rem; }

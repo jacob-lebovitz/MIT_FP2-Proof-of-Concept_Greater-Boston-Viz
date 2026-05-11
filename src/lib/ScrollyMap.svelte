@@ -10,8 +10,10 @@
   // Story checkpoints: each is a "moment" in the Green Line saga
   const MAP_YEARS = [2005, 2012, 2017, 2022, 2025];
   const ALL_YEARS = Array.from({ length: 26 }, (_, i) => 2000 + i);
-  const N_BUCKETS = 7;
-  const PRICE_COLORS = d3.schemeBlues[N_BUCKETS];
+  const N_BUCKETS = 5;
+  // Keep this identical to PRICE_COLORS in ZipcodeMap.svelte so the legend
+  // matches the polygon fills on the map exactly.
+  const PRICE_COLORS = ['#c6dbef', '#9ecae1', '#6baed6', '#3182bd', '#08519c'];
   let priceLegendBuckets = [];
   let manualYearOffset = 0;
 
