@@ -193,7 +193,9 @@
   const LEGEND_TRANSIT_ROW_START_Y = LEGEND_TRANSIT_HEADER_Y + 26;
   const LEGEND_TRANSIT_ROW_GAP = 30;
   const LEGEND_TRANSIT_TEXT_OFFSET_Y = 7;
-  const LEGEND_BOX_HEIGHT = LEGEND_TRANSIT_ROW_START_Y + LEGEND_TRANSIT_ROW_GAP * 2 + 30;
+  const LEGEND_BOX_TOP_Y = -30;
+  const LEGEND_BOX_BOTTOM_Y = LEGEND_TRANSIT_ROW_START_Y + LEGEND_TRANSIT_ROW_GAP * 2 + 30;
+  const LEGEND_BOX_HEIGHT = LEGEND_BOX_BOTTOM_Y - LEGEND_BOX_TOP_Y;
 
   // Uniform ZIP-label size — sized so Kendall Sq (the smallest target polygon) fits its label.
   // Every other neighborhood label then uses the same size for visual consistency.
@@ -751,7 +753,7 @@
     <!-- Legend -->
     <g transform="translate({LEGEND_X}, 20)">
       <!-- Legend background box -->
-      <rect x={-12} y={-16} width={LEGEND_W + 24} height={LEGEND_BOX_HEIGHT}
+      <rect x={-12} y={LEGEND_BOX_TOP_Y} width={LEGEND_W + 24} height={LEGEND_BOX_HEIGHT}
         fill="light-dark(#fafbfc, #1a1b20)" stroke="light-dark(#e5e7eb, #3a3a42)"
         stroke-width="1" rx="10" />
       <text font-size="24" font-weight="bold" fill="currentColor">Avg Home Value</text>
