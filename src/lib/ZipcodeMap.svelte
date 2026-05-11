@@ -77,7 +77,7 @@
   let charlesRiverFeatures = [];
   let projection, pathGen;
   let tooltip = { visible: false, x: 0, y: 0, zip: '', city: '', value: '' };
-  let glTooltip = { visible: false, x: 0, y: 0, text: '' };
+  let glTooltip = { visible: false, x: 0, y: 0, text: '', color: 'green' };
   let svgEl;
   let zoomTransform = 'translate(0,0) scale(1)';
   let zoomK = 1;
@@ -146,7 +146,7 @@
   $: futureGreenLine = greenLineFeatures.filter(f => f.properties.year_opened > year && f.properties.branch !== 'B');
   $: visibleStations = stations.filter(s => s.year_opened <= year);
 
-  function handleGLMouseMove(e, feature) {
+  function handleGLMouseMove(e, feature, color = 'green') {
     const rect = e.currentTarget.closest('svg').getBoundingClientRect();
     const p = feature.properties;
     glTooltip = {
@@ -154,6 +154,7 @@
       x: e.clientX - rect.left + 14,
       y: e.clientY - rect.top - 44,
       text: `${p.name} (${p.year_opened})`,
+      color,
     };
   }
 
@@ -195,7 +196,7 @@
 
   // Line chart constants
   const LC_SVG_H = 980;
-  const LC_MARGIN = { top: 280, right: 126, bottom: 46, left: 70 };
+  const LC_MARGIN = { top: 280, right: 200, bottom: 80, left: 70 };
   const LC_W = TOTAL_W - LC_MARGIN.left - LC_MARGIN.right;
   const LC_H = LC_SVG_H - LC_MARGIN.top - LC_MARGIN.bottom;
 
@@ -639,7 +640,7 @@
         stroke-linejoin="round"
         role="img"
         aria-label={segment.properties.name}
-        on:mousemove={(e) => handleGLMouseMove(e, { properties: { name: segment.properties.name, year_opened: '' } })}
+        on:mousemove={(e) => handleGLMouseMove(e, { properties: { name: segment.properties.name, year_opened: '' } }, 'red')}
         on:mouseleave={handleGLMouseLeave}
       />
     {/each}
@@ -657,7 +658,7 @@
           aria-label={station.name}
           on:mousemove={(e) => {
             const rect = e.currentTarget.closest('svg').getBoundingClientRect();
-            glTooltip = { visible: true, x: e.clientX - rect.left + 14, y: e.clientY - rect.top - 44, text: station.name };
+            glTooltip = { visible: true, x: e.clientX - rect.left + 14, y: e.clientY - rect.top - 44, text: station.name, color: 'red' };
           }}
           on:mouseleave={handleGLMouseLeave}
         />
@@ -743,7 +744,7 @@
     {#if glTooltip.visible}
       <foreignObject x={glTooltip.x} y={glTooltip.y} width="300" height="80">
         <div class="tooltip">
-          <strong>🟢 {glTooltip.text}</strong>
+          <strong>{glTooltip.color === 'red' ? '🔴' : '🟢'} {glTooltip.text}</strong>
         </div>
       </foreignObject>
     {/if}
@@ -945,9 +946,11 @@
 
   .map-panel-title {
     grid-column: 1;
-    margin: 0 0 0.2rem;
-    font-size: 2.4rem;
-    line-height: 1.12;
+    margin: 0 0 0.15rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
   }
 
   .map-wrap.with-line-chart > .map-subtitle {
@@ -980,8 +983,10 @@
 
   .line-chart-panel h2 {
     margin: 0.35rem 0 0.45rem;
-    font-size: 2.4rem;
-    line-height: 1.12;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
   }
 
   .selection-control {
@@ -1010,16 +1015,19 @@
   }
 
   h2 {
-    margin-bottom: 0.2rem;
-    font-size: 2.4rem;
-    line-height: 1.12;
+    margin-bottom: 0.15rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
   }
 
   .subtitle {
-    color: #888;
-    margin: 0 0 0.75rem;
-    font-size: 1.8rem;
-    line-height: 1.25;
+    color: light-dark(#6b7280, #9ca3af);
+    margin: 0 0 0.85rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    letter-spacing: 0.02em;
   }
 
   .slider-row {

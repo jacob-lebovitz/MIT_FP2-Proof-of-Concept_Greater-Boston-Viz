@@ -112,8 +112,7 @@
     The headline you'll often hear is "new transit gentrifies the neighborhood."
     This is not what this data shows. New transit, paired with
     inclusionary zoning and an active permitting pipeline, expanded the housing
-    stock and grew the share of homes set aside as affordable. That's a more
-    boring story, but a more useful one for the next corridor.
+    stock and grew the share of homes set aside as affordable.
   </p>
 </div>
 
@@ -171,8 +170,12 @@
   }
 
   .after h2 {
-    font-size: 1.85rem;
-    max-width: 28ch;
+    font-size: clamp(1.7rem, 2.6vw, 2.15rem);
+    line-height: 1.18;
+    letter-spacing: -0.015em;
+    max-width: 52ch;
+    text-wrap: balance;
+    margin: 0.4rem 0 1.25rem;
   }
 
   h3 {

@@ -164,7 +164,7 @@
 
     <!-- Floating compact legend (right) -->
     <div class="floating-control side-legend">
-      <div class="control-label">AVG HOME VALUE</div>
+      <div class="control-label">Avg Home Value</div>
       {#each priceLegendBuckets as bucket}
         <div class="lg-row">
           <span class="swatch" style="background:{bucket.color}"></span>
@@ -175,11 +175,11 @@
         <span class="swatch no-data"></span>
         No data
       </div>
-      <div class="control-label" style="margin-top:0.6rem">CITY</div>
+      <div class="control-label" style="margin-top:0.55rem">City Labels</div>
       <div class="lg-row"><span class="dot" style="background:#2563eb"></span> Cambridge</div>
       <div class="lg-row"><span class="dot" style="background:#dc2626"></span> Somerville</div>
       <div class="lg-row"><span class="dot" style="background:#ca8a04"></span> Medford</div>
-      <div class="control-label" style="margin-top:0.6rem">TRANSIT</div>
+      <div class="control-label" style="margin-top:0.55rem">Transit</div>
       <div class="lg-row"><span class="line" style="--line-color:#00843D"></span> Green Line (built)</div>
       <div class="lg-row"><span class="line dashed" style="--line-color:#00843D"></span> Proposed Green Line expansion</div>
       <div class="lg-row"><span class="line" style="--line-color:#DA291C"></span> Red Line</div>
@@ -259,7 +259,7 @@
   }
 
   .side-legend {
-    top: 53%;
+    top: 47%;
     right: 1.25rem;
     transform: translateY(-50%);
     width: 258px;
@@ -273,11 +273,19 @@
   }
 
   .control-label {
+    font-size: 0.95rem;
+    letter-spacing: 0;
+    font-weight: 700;
+    color: currentColor;
+    margin-bottom: 0.35rem;
+  }
+
+  /* Keep the year scrubber label as a compact uppercase eyebrow */
+  .top-center .control-label {
     font-size: 0.72rem;
     letter-spacing: 0.12em;
-    font-weight: 700;
     color: light-dark(#475569, #94a3b8);
-    margin-bottom: 0.35rem;
+    margin-bottom: 0;
   }
 
   .year-scrub {
@@ -329,7 +337,7 @@
   }
   .lg-row .swatch {
     width: 20px;
-    height: 14px;
+    height: 20px;
     border-radius: 3px;
     border: 1px solid rgba(0,0,0,0.18);
     flex-shrink: 0;
@@ -340,7 +348,7 @@
       light-dark(#e5e7eb, #2d2d33);
   }
   .lg-row .dot {
-    width: 10px; height: 10px; border-radius: 50%;
+    width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;
   }
   .lg-row .line {
     width: 24px;
