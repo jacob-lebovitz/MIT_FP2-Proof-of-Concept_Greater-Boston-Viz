@@ -13,7 +13,6 @@
   const N_BUCKETS = 7;
   const PRICE_COLORS = d3.schemeBlues[N_BUCKETS];
   let priceLegendBuckets = [];
-  let manualYearOffset = 0;
 
   // Narrative tightly scoped to the Green Line thesis. Each card now also
   // surfaces a finding-level callout so the takeaways are distributed.
@@ -104,16 +103,40 @@
     return anchors[0].year;
   }
 
-  function getCurrentScrolled() {
-    if (!scrollySectionsEl) return 0;
-    return -scrollySectionsEl.getBoundingClientRect().top;
+  function getScrollFromYear(year, vh) {
+    const anchors = getAnchors(vh);
+    const clampedYear = clampYear(year);
+
+    if (clampedYear <= anchors[0].year) return anchors[0].scrollPos;
+    if (clampedYear >= anchors[anchors.length - 1].year) return anchors[anchors.length - 1].scrollPos;
+
+    for (let i = 0; i < anchors.length - 1; i++) {
+      if (clampedYear >= anchors[i].year && clampedYear <= anchors[i + 1].year) {
+        const t = (clampedYear - anchors[i].year) / (anchors[i + 1].year - anchors[i].year);
+        return anchors[i].scrollPos + t * (anchors[i + 1].scrollPos - anchors[i].scrollPos);
+      }
+    }
+
+    return anchors[0].scrollPos;
+  }
+
+  function syncScrollToYear(year) {
+    if (!scrollySectionsEl) return;
+
+    const rect = scrollySectionsEl.getBoundingClientRect();
+    const sectionTop = window.scrollY + rect.top;
+    const targetScrolled = getScrollFromYear(year, window.innerHeight);
+
+    window.scrollTo({
+      top: sectionTop + targetScrolled,
+      behavior: 'auto',
+    });
   }
 
   function handleYearChange(e) {
-    const newYear = parseInt(e.target.value, 10);
-    const baseYear = getBaseYearFromScroll(getCurrentScrolled(), window.innerHeight);
-    manualYearOffset = newYear - baseYear;
+    const newYear = clampYear(parseInt(e.target.value, 10));
     currentYear.set(newYear);
+    syncScrollToYear(newYear);
   }
 
   onMount(() => {
@@ -133,7 +156,7 @@
       const rect = scrollySectionsEl.getBoundingClientRect();
       const scrolled = -rect.top;
       const vh = window.innerHeight;
-      currentYear.set(clampYear(Math.round(getBaseYearFromScroll(scrolled, vh) + manualYearOffset)));
+      currentYear.set(clampYear(Math.round(getBaseYearFromScroll(scrolled, vh))));
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true });

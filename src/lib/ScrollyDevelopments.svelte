@@ -7,7 +7,6 @@
 
   const MAP_YEARS = [2011, 2015, 2020, 2025];
   const ALL_YEARS = Array.from({ length: MAP_YEARS[MAP_YEARS.length - 1] - MAP_YEARS[0] + 1 }, (_, i) => MAP_YEARS[0] + i);
-  let manualYearOffset = 0;
 
   // Each year now has ONE clear takeaway tied to the Green Line thesis,
   // with a single highlighted stat instead of a wall of numbers.
@@ -79,16 +78,40 @@
     return anchors[0].year;
   }
 
-  function getCurrentScrolled() {
-    if (!scrollySectionsEl) return 0;
-    return -scrollySectionsEl.getBoundingClientRect().top;
+  function getScrollFromYear(year, vh) {
+    const anchors = getAnchors(vh);
+    const clampedYear = clampYear(year);
+
+    if (clampedYear <= anchors[0].year) return anchors[0].scrollPos;
+    if (clampedYear >= anchors[anchors.length - 1].year) return anchors[anchors.length - 1].scrollPos;
+
+    for (let i = 0; i < anchors.length - 1; i++) {
+      if (clampedYear >= anchors[i].year && clampedYear <= anchors[i + 1].year) {
+        const t = (clampedYear - anchors[i].year) / (anchors[i + 1].year - anchors[i].year);
+        return anchors[i].scrollPos + t * (anchors[i + 1].scrollPos - anchors[i].scrollPos);
+      }
+    }
+
+    return anchors[0].scrollPos;
+  }
+
+  function syncScrollToYear(year) {
+    if (!scrollySectionsEl) return;
+
+    const rect = scrollySectionsEl.getBoundingClientRect();
+    const sectionTop = window.scrollY + rect.top;
+    const targetScrolled = getScrollFromYear(year, window.innerHeight);
+
+    window.scrollTo({
+      top: sectionTop + targetScrolled,
+      behavior: 'auto',
+    });
   }
 
   function handleYearChange(e) {
-    const newYear = parseInt(e.target.value, 10);
-    const baseYear = getBaseYearFromScroll(getCurrentScrolled(), window.innerHeight);
-    manualYearOffset = newYear - baseYear;
+    const newYear = clampYear(parseInt(e.target.value, 10));
     developmentsYear.set(newYear);
+    syncScrollToYear(newYear);
   }
 
   onMount(() => {
@@ -99,7 +122,7 @@
       const vh = window.innerHeight;
 
       if (rect.top > vh || rect.bottom < 0) return;
-      developmentsYear.set(clampYear(Math.round(getBaseYearFromScroll(scrolled, vh) + manualYearOffset)));
+      developmentsYear.set(clampYear(Math.round(getBaseYearFromScroll(scrolled, vh))));
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true });
