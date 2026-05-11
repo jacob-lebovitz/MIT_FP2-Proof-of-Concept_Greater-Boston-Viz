@@ -1,4 +1,4 @@
-<section class="acks content-narrow" aria-labelledby="acks-heading">
+<section class="acks" aria-labelledby="acks-heading">
   <div class="acks-eyebrow">CREDITS</div>
   <h2 id="acks-heading">Acknowledgements</h2>
 
@@ -82,7 +82,8 @@
 
 <style>
   .acks {
-    padding-block: 4rem 5rem;
+    margin: 0 auto;
+    padding: 4rem 2rem 5rem;
     border-top: 1px solid light-dark(rgba(0,0,0,0.08), rgba(255,255,255,0.1));
     color: light-dark(#334155, #cbd5e1);
   }
