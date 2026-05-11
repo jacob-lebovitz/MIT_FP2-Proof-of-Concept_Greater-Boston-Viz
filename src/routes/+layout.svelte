@@ -9,6 +9,20 @@ let pages = [
   {url: "/team", title: "Team"},
 ];
 
+function normalizePath(path) {
+  return path.replace(/\/+$/, "") || "/";
+}
+
+function internalHref(url) {
+  return url.startsWith("http") ? url : base + url;
+}
+
+function isCurrentPage(pathname, url) {
+  if (url.startsWith("http")) return false;
+
+  return normalizePath(pathname) === normalizePath(internalHref(url));
+}
+
 let colorScheme = "light dark";
 
 if (browser && localStorage.colorScheme) {
@@ -31,8 +45,9 @@ $: if (browser) localStorage.colorScheme = colorScheme;
 
 <nav>
   {#each pages as p}
-    <a href={p.url.startsWith("http") ? p.url : base + p.url}
-        class:current={$page.url.pathname === (base + p.url)}
+    <a href={internalHref(p.url)}
+        class:current={isCurrentPage($page.url.pathname, p.url)}
+        aria-current={isCurrentPage($page.url.pathname, p.url) ? "page" : undefined}
         target={p.url.startsWith("http") ? "_blank": null}
     >
      {p.title}
