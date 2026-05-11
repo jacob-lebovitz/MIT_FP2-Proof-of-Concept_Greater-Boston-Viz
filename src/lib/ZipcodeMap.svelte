@@ -60,6 +60,11 @@
   };
 
   const RED_LINE_COLOR = '#DA291C';
+  const TOOLTIP_MARGIN = 12;
+  const TOOLTIP_X_OFFSET = compact ? 7 : 2;
+  const TOOLTIP_Y_OFFSET = compact ? 7 : 2;
+  const TOWN_TOOLTIP_WIDTH = 320;
+  const TOWN_TOOLTIP_HEIGHT = 156;
 
   let features = [];
   let housing = [];
@@ -417,16 +422,48 @@
     return '$' + Math.round(v / 1000) + 'k';
   }
 
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function getSvgPointerPosition(e) {
+    const svg = e.currentTarget.closest('svg');
+    const rect = svg.getBoundingClientRect();
+    const scaleX = TOTAL_W / rect.width;
+    const scaleY = HEIGHT / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
+  }
+
+  function positionTooltip(e, width, height) {
+    const { x, y } = getSvgPointerPosition(e);
+
+    let tooltipX = x + TOOLTIP_X_OFFSET;
+    if (tooltipX + width > TOTAL_W - TOOLTIP_MARGIN) {
+      tooltipX = x - width - TOOLTIP_X_OFFSET;
+    }
+
+    let tooltipY = y - height - TOOLTIP_Y_OFFSET;
+    if (tooltipY < TOOLTIP_MARGIN) {
+      tooltipY = y + TOOLTIP_Y_OFFSET;
+    }
+
+    return {
+      x: clamp(tooltipX, TOOLTIP_MARGIN, TOTAL_W - width - TOOLTIP_MARGIN),
+      y: clamp(tooltipY, TOOLTIP_MARGIN, HEIGHT - height - TOOLTIP_MARGIN),
+    };
+  }
+
   function handleMouseMove(e, feature) {
     const zip = feature.properties.ZCTA5CE20;
     const zipStr = String(zip).padStart(5, '0');
     const entry = housingByZip[zipStr];
-    const rect = e.currentTarget.closest('svg').getBoundingClientRect();
     hoveredZip = zipStr;
     tooltip = {
       visible: true,
-      x: e.clientX - rect.left + 14,
-      y: e.clientY - rect.top - 40,
+      ...positionTooltip(e, TOWN_TOOLTIP_WIDTH, TOWN_TOOLTIP_HEIGHT),
       zip: zipStr,
       city: entry?.city ?? '',
       value: fmt(getValue(zip, year)),
@@ -709,7 +746,7 @@
 
     <!-- Tooltip -->
     {#if tooltip.visible}
-      <foreignObject x={tooltip.x} y={tooltip.y} width="280" height="120">
+      <foreignObject x={tooltip.x} y={tooltip.y} width={TOWN_TOOLTIP_WIDTH} height={TOWN_TOOLTIP_HEIGHT}>
         <div class="tooltip">
           <strong>{getNeighborhoodName(tooltip.zip)}</strong>
           <div style="font-size:0.9em;opacity:0.75">{tooltip.city} · {tooltip.zip}</div>
